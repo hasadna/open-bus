@@ -21,8 +21,8 @@ class ArrivingBus(object):
         self.stop_point_ref = stop_point_ref
 
     def __str__(self):
-        print("ArrivingBus<%s, %s, %s, %s, %s, %s, %s, %s>" %
-              self.line_ref,
+        return "ArrivingBus<%s, %s, %s, %s, %s, %s, %s, %s>" %
+              (self.line_ref,
               self.direction_ref,
               self.published_line_name,
               self.operator_ref,
