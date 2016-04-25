@@ -19,6 +19,9 @@ def get_arrivals_response_xml(request_xml):
         Siri response XML (String)
     """
     try:
+        proxy = urllib2.ProxyHandler({'http': 'http://openbus:openbussiri@192.241.154.128:5035'})
+        opener = urllib2.build_opener(proxy)
+        urllib2.install_opener(opener)
         req = urllib2.Request(SIRI_SERVICES_URL, headers=HEADERS, data=request_xml)
         res = urllib2.urlopen(req).read()
         return res
