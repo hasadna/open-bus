@@ -21,7 +21,7 @@ class BusArrival(object):
         self.stop_point_ref = stop_point_ref
 
     def __str__(self):
-        return "BusArrival<%s, %s, %s, %s, %s, %s, %s, %s>" %
+        return "BusArrival<%s, %s, %s, %s, %s, %s, %s, %s>" % \
               (self.line_ref,
               self.direction_ref,
               self.published_line_name,
@@ -90,7 +90,7 @@ def parse_siri_xml(response_xml):
         List of BusArrival objects
     """
 
-    soup = BeautifulSoup(response_xml)
+    soup = BeautifulSoup(response_xml, "xml")
 
     errors = soup.find_all("ErrorCondition")  # irrelevant ATM
     busses = soup.find_all("MonitoredStopVisit")
