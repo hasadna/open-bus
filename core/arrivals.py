@@ -6,7 +6,7 @@ from datetime import datetime
 
 
 REQUEST_TEMPLATE_FILENAME = "request-template.xml"
-REQUEST_TEMPLATE = Environment(loader=FileSystemLoader('.')).get_template(REQUEST_TEMPLATE_FILENAME)
+REQUEST_TEMPLATE = Environment(loader=FileSystemLoader('../templates')).get_template(REQUEST_TEMPLATE_FILENAME)
 HEADERS = {'Content-Type': 'text/xml; charset=utf-8'}
 SIRI_SERVICES_URL = 'http://siri.motrealtime.co.il:8081/Siri/SiriServices'
 
