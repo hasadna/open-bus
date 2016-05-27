@@ -13,5 +13,7 @@ CREATE TABLE arrivals(
 	monitoring_ref		INT	NOT NULL,
 	expected_arrival_time	TIMESTAMP WITH TIME ZONE 	NOT NULL,
 	stop_point_ref		INT	NOT NULL,
+	response_timestamp	TIMESTAMP WITH TIME ZONE 	NOT NULL,
+	recorded_at			TIMESTAMP WITH TIME ZONE 	NOT NULL,
 	response_id			INT REFERENCES responses(id) NOT NULL
 );
