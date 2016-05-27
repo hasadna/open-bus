@@ -10,7 +10,8 @@ class BusArrival(object):
                  destination_ref,
                  monitoring_ref,
                  expected_arrival_time,
-                 stop_point_ref):
+                 stop_point_ref,
+                 response_xml):
         self.line_ref = line_ref
         self.direction_ref = direction_ref
         self.published_line_name = published_line_name
@@ -19,7 +20,7 @@ class BusArrival(object):
         self.monitoring_ref = monitoring_ref
         self.expected_arrival_time = expected_arrival_time
         self.stop_point_ref = stop_point_ref
-
+        self.response_xml = response_xml
     def __str__(self):
         return "BusArrival<%s, %s, %s, %s, %s, %s, %s, %s>" % \
               (self.line_ref,
@@ -43,15 +44,10 @@ def _get_tag_text(tag):
             its inner text if not None
             otherwise an empty string
     """
-
-    if tag is not None:
-        tag = tag.getText()
-    else:
-        tag = ""
-    return tag
+    return tag.getText() if tag is not None else ""
 
 
-def _bus_node_to_busarrival_obj(bus_node):
+def _bus_node_to_busarrival_obj(bus_node, response_xml):
     """
         Args:
             bus_node - an object taken from Siri XML
@@ -78,7 +74,8 @@ def _bus_node_to_busarrival_obj(bus_node):
                        destination_ref,
                        monitoring_ref,
                        expected_arrival_time,
-                       stop_point_ref)
+                       stop_point_ref,
+                       response_xml)
 
 
 def parse_siri_xml(response_xml):
@@ -96,4 +93,4 @@ def parse_siri_xml(response_xml):
     busses = soup.find_all("MonitoredStopVisit")
 
     if busses:
-        return [_bus_node_to_busarrival_obj(bus) for bus in busses]
+        return [_bus_node_to_busarrival_obj(bus, response_xml) for bus in busses]
