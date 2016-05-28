@@ -1,4 +1,4 @@
-import urllib2
+import urllib.request
 import pytz
 import traceback
 from jinja2 import Environment, FileSystemLoader
@@ -19,13 +19,13 @@ def get_arrivals_response_xml(request_xml):
         Siri response XML (String)
     """
     try:
-        proxy = urllib2.ProxyHandler({'http': HTTP_PROXY})
-        opener = urllib2.build_opener(proxy)
-        urllib2.install_opener(opener)
-        req = urllib2.Request(SIRI_SERVICES_URL, headers=HEADERS, data=request_xml)
-        res = urllib2.urlopen(req).read()
+        proxy = urllib.request.ProxyHandler({'http': HTTP_PROXY})
+        opener = urllib.request.build_opener(proxy)
+        urllib.request.install_opener(opener)
+        req = urllib.request.Request(SIRI_SERVICES_URL, headers=HEADERS, data=request_xml.encode('utf8'))
+        res = urllib.request.urlopen(req).read()
         return res
-    except urllib2.URLError:
+    except urllib.request.URLError:
         traceback.print_exc()
 
 
