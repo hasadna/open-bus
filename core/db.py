@@ -12,11 +12,11 @@ DB_SCHEMA_FILENAME = os.path.join(os.path.dirname(
 
 def connect(**kwargs):
     try:
-        conn_string = "dbname={name} user={user} host={host} password={password}".format(
+        conn_string = "dbname={name} user={user} host={host} port={port} password={password}".format(
             **kwargs)
         return psycopg2.connect(conn_string)
     except psycopg2.Error:
-        print "Unable to connect to database."
+        print ("Unable to connect to database.")
 
 
 def create(conn):
