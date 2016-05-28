@@ -1,5 +1,4 @@
 from bs4 import BeautifulSoup
-import lxml
 
 
 class BusArrival(object):
@@ -88,7 +87,7 @@ def parse_siri_xml(response_xml):
         List of BusArrival objects
     """
 
-    soup = BeautifulSoup(response_xml, "lxml")
+    soup = BeautifulSoup(response_xml, "xml")
 
     errors = soup.find_all("ErrorCondition")  # irrelevant ATM
     busses = soup.find_all("MonitoredStopVisit")
