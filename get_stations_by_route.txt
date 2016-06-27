@@ -1,0 +1,11 @@
+This draft file outlines the relationships between the relevant GTFS files / tables
+to determine how to extract the list of stops for a given route + departure stop.
+
+input: route + departure stop
+output: list of stops
+
+routes.route_id = trips.route_id
+trips.trip_id = stop_times.trip_id
+stop_times.stop_id = stops.stop_id
+
+routes -> trips -> stop_times -> stops
