@@ -227,8 +227,8 @@ def export_trip_route_stories_to_csv(output_file, trip_to_route_story):
 
 
 if __name__ == '__main__':
-    gtfs_folder = r'sample'
-    g = GTFS('sample/israel-public-transportation.zip')
+    gtfs_folder = r'../sample'
+    g = GTFS('../sample/israel-public-transportation.zip')
     stories, trips = build_route_stories(g)
     export_route_stories_to_csv(os.path.join(gtfs_folder, 'route_stories.txt'), stories)
     export_trip_route_stories_to_csv(os.path.join(gtfs_folder, 'trip_to_stories.txt'), trips)

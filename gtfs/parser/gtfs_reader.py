@@ -286,5 +286,5 @@ class Shape:
 
 
 if __name__ == '__main__':
-    g = GTFS('sample/israel-public-transportation.zip')
+    g = GTFS('../sample/israel-public-transportation.zip')
     g.load_all()
