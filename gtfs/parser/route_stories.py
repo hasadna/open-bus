@@ -64,6 +64,19 @@ import io
 from collections import defaultdict, namedtuple
 import os
 from gtfs.parser.gtfs_reader import GTFS, StopTime
+import sys
+
+
+def parse_timestamp(timestamp):
+    """Returns second since start of day"""
+    # We need to manually parse because there's hours >= 24; but ain't Python doing it beautifully?
+    (hour, minute, second) = (int(x) for x in timestamp.split(':'))
+    return hour * 60 * 60 + minute * 60 + second
+
+
+def format_time(seconds_from_midnight):
+    return '%02d:%02d:%02d' % (
+        seconds_from_midnight / 3600, seconds_from_midnight % 3600 / 60, seconds_from_midnight % 60)
 
 
 class RouteStoryStop:
@@ -182,7 +195,6 @@ def build_route_stories(gtfs: GTFS):
         route_stories = {route_story_id: RouteStory(route_story_id, route_story_tuple)
                          for route_story_tuple, route_story_id in route_story_to_id.items()}
         print("Total number of route stories=%d" % len(route_stories))
-        print("Total number of route story stops=%d" % sum(len(story.stops) for story in route_stories.values()))
         print("Done.")
         return route_stories, trip_to_route_story
 
@@ -233,12 +245,6 @@ def load_route_stories_from_csv(route_stories_file, trip_to_route_story_file):
     route_stories: a dictionary from route_story_id to route_story object
     trip_to_route_story: a dictionary from trip_id to a TripRouteStory named tuple
     """
-    def parse_timestamp(timestamp):
-        """Returns second since start of day"""
-        # We need to manually parse because there's hours >= 24; but ain't Python doing it beautifully?
-        (hour, minute, second) = (int(x) for x in timestamp.split(':'))
-        return hour * 60 * 60 + minute * 60 + second
-
     route_story_id_to_stops = defaultdict(lambda: [])
     with open(route_stories_file, encoding='utf8') as f:
         for record in csv.DictReader(f):
@@ -248,20 +254,38 @@ def load_route_stories_from_csv(route_stories_file, trip_to_route_story_file):
     route_stories = {route_story_id: RouteStory(route_story_id, stops) for route_story_id, stops in
                      route_story_id_to_stops.items()}
 
-    trip_to_route_story = []
+    trip_to_route_story = {}
     with open(trip_to_route_story_file, encoding='utf8') as f:
         for record in csv.DictReader(f):
             trip_id = record['trip_id']
-            print(record['start_time'])
             start_time = parse_timestamp(record['start_time'])
             route_story = int(record['route_story'])
             trip_to_route_story[trip_id] = TripRouteStory(start_time, route_stories[route_story])
     return route_stories, trip_to_route_story
 
 
-if __name__ == '__main__':
-    gtfs_folder = r'../sample'
-    g = GTFS('../sample/israel-public-transportation.zip')
+def generate_route_stories(gtfs_folder):
+    g = GTFS(os.path.join(gtfs_folder, 'israel-public-transportation.zip'))
     stories, trips = build_route_stories(g)
     export_route_stories_to_csv(os.path.join(gtfs_folder, 'route_stories.txt'), stories)
     export_trip_route_stories_to_csv(os.path.join(gtfs_folder, 'trip_to_stories.txt'), trips)
+    return stories, trips
+
+
+def test_route_stories():
+    gtfs_folder = r'../sample'
+    stories, trips = generate_route_stories(gtfs_folder)
+    loaded = load_route_stories_from_csv(os.path.join(gtfs_folder, 'route_stories.txt'),
+                                         os.path.join(gtfs_folder, 'trip_to_stories.txt'))
+    assert stories == loaded[0]
+    assert len(trips) == len(loaded[1])
+    assert trips == {trip_id: (route_story.route_story_id, format_time(start_time)) for
+                     trip_id, (start_time, route_story) in loaded[1].items()}
+
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        print("Running test on sample")
+        test_route_stories()
+    else:
+        generate_route_stories(sys.argv[1])
