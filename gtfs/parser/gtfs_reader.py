@@ -77,6 +77,7 @@ class GTFS:
 
     def load_trips(self):
         self.load_services()
+        self.load_routes()
 
         if self.trips is None:
             with zipfile.ZipFile(self.filename) as z:
