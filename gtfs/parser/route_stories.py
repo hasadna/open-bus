@@ -61,13 +61,13 @@ import zipfile
 import datetime
 import csv
 import io
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 import os
-from gtfs_reader import GTFS, StopTime
+from gtfs.parser.gtfs_reader import GTFS, StopTime
 
 
 class RouteStoryStop:
-    def __init__(self, arrival_offset, departure_offset, stop_id, pickup_type, drop_off_type, stop_sequence=None):
+    def __init__(self, arrival_offset, departure_offset, stop_id, stop_sequence, pickup_type, drop_off_type):
         self.arrival_offset = arrival_offset
         self.departure_offset = departure_offset
         self.stop_id = stop_id
@@ -93,7 +93,7 @@ class RouteStoryStop:
     @classmethod
     def from_csv(cls, csv_record):
         route_story_id = int(csv_record['route_story_id'])
-        field_names = "arrival_offset,departure_offset,stop_id,pickup_type,drop_off_type".split(',')
+        field_names = "arrival_offset,departure_offset,stop_id,stop_sequence,pickup_type,drop_off_type".split(',')
         fields = [csv_record[field] for field in field_names]
         fields = [int(field) if field != '' else 0 for field in fields]
         return route_story_id, cls(*fields)
@@ -109,10 +109,6 @@ class RouteStory:
 
     def __hash__(self):
         return hash(self.route_story_id)
-
-    @classmethod
-    def from_tuple(cls, route_story_id, route_story_stops):
-        return RouteStory(route_story_id, route_story_stops)
 
 
 def build_route_stories(gtfs: GTFS):
@@ -170,11 +166,12 @@ def build_route_stories(gtfs: GTFS):
             # get the start time in seconds since the start of the day
             start_time = gtfs_stop_times[0].arrival_time
             # convert the StopTime object to RouteStoryStop object; use a tuple because it's hashable
-            route_story_tuple = tuple(RouteStoryStop(record.arrival_time - start_time,
-                                                     record.departure_time - start_time,
-                                                     record.stop_id,
-                                                     record.pickup_type,
-                                                     record.drop_off_type) for record in gtfs_stop_times)
+            route_story_tuple = tuple(RouteStoryStop(stop_time.arrival_time - start_time,
+                                                     stop_time.departure_time - start_time,
+                                                     stop_time.stop_id,
+                                                     stop_time.stop_sequence,
+                                                     stop_time.pickup_type,
+                                                     stop_time.drop_off_type) for stop_time in gtfs_stop_times)
             # is it a new route story? if yes, allocate an id
             if route_story_tuple not in route_story_to_id:
                 route_story_id = len(route_story_to_id) + 1
@@ -182,7 +179,7 @@ def build_route_stories(gtfs: GTFS):
             trip_to_route_story[trip_id] = (route_story_to_id[route_story_tuple], csv_records[0]['departure_time'])
 
         # convert the route_story_tuples to RouteStory objects
-        route_stories = {route_story_id: RouteStory.from_tuple(route_story_id, route_story_tuple)
+        route_stories = {route_story_id: RouteStory(route_story_id, route_story_tuple)
                          for route_story_tuple, route_story_id in route_story_to_id.items()}
         print("Total number of route stories=%d" % len(route_stories))
         print("Total number of route story stops=%d" % sum(len(story.stops) for story in route_stories.values()))
@@ -221,9 +218,45 @@ def export_trip_route_stories_to_csv(output_file, trip_to_route_story):
         writer.writeheader()
         for trip_id, (route_story_id, start_time) in trip_to_route_story.items():
             writer.writerow({"trip_id": trip_id,
-                             "start_time": route_story_id,
-                             "route_story": start_time})
+                             "start_time": start_time,
+                             "route_story": route_story_id})
     print("Trips export done.")
+
+
+TripRouteStory = namedtuple('TripRouteStory', 'start_time route_story')
+
+
+def load_route_stories_from_csv(route_stories_file, trip_to_route_story_file):
+    """Reads route stories as written by export_route_stories_to_csv, export_trip_route_stories_to_csv.
+
+    Returns a tuple (route_stories,  trip_to_route_story):
+    route_stories: a dictionary from route_story_id to route_story object
+    trip_to_route_story: a dictionary from trip_id to a TripRouteStory named tuple
+    """
+    def parse_timestamp(timestamp):
+        """Returns second since start of day"""
+        # We need to manually parse because there's hours >= 24; but ain't Python doing it beautifully?
+        (hour, minute, second) = (int(x) for x in timestamp.split(':'))
+        return hour * 60 * 60 + minute * 60 + second
+
+    route_story_id_to_stops = defaultdict(lambda: [])
+    with open(route_stories_file, encoding='utf8') as f:
+        for record in csv.DictReader(f):
+            trip_story_id, trip_story_stop = RouteStoryStop.from_csv(record)
+            route_story_id_to_stops[trip_story_id].append(trip_story_stop)
+
+    route_stories = {route_story_id: RouteStory(route_story_id, stops) for route_story_id, stops in
+                     route_story_id_to_stops.items()}
+
+    trip_to_route_story = []
+    with open(trip_to_route_story_file, encoding='utf8') as f:
+        for record in csv.DictReader(f):
+            trip_id = record['trip_id']
+            print(record['start_time'])
+            start_time = parse_timestamp(record['start_time'])
+            route_story = int(record['route_story'])
+            trip_to_route_story[trip_id] = TripRouteStory(start_time, route_stories[route_story])
+    return route_stories, trip_to_route_story
 
 
 if __name__ == '__main__':
