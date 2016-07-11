@@ -1,94 +1,176 @@
-# TODO: Validate index-creation syntax.
-# TODO: Deside which indexes are wanted.
-# TODO: Create enums for relevant fields (inline comments).
-# TODO: Make sure type-sizes are fine.
-# TODO: Consider using TinyInt instead of INT when relevant.
-# TODO: Check requested type-size for coordinates.
-# TODO: Check requested type-size for shape_dist_traveled.
+-- TODO: Create enums for relevant fields (inline comments).
+-- TODO: Make sure type-sizes are fine.
+-- TODO: Check requested type-size for coordinates.
+-- TODO: Check requested type-size for shape_dist_traveled.
 
 
-CREATE TABLE agency(
-    agency_id INT(8) NOT NULL PRIMARY KEY,
-    agency_name VARCHAR(100) NOT NULL,
-    agency_url VARCHAR(100) NOT NULL,
-);
+CREATE TABLE agency
+(
+  agency_id integer NOT NULL,
+  agency_name character varying(100) NOT NULL,
+  agency_url character varying(100) NOT NULL,
+  CONSTRAINT agency_pkey PRIMARY KEY (agency_id )
+)
+ALTER TABLE agency
+  OWNER TO openbus;
 
-CREATE TABLE routes (
-    route_id INT(32) NOT NULL PRIMARY KEY,
-    agency_id INT(8),
-    route_short_name VARCHAR(50) NOT NULL,
-    route_long_name VARCHAR(255) NOT NULL,
-    route_desc VARCHAR(10),
-    route_type INT(4) NOT NULL, # Should be an Enum.
-    route_color VARCHAR(9), # Can be an Enum.
-    KEY `agency_id` (agency_id),
-    KEY `route_type` (route_type)
-);
 
-CREATE TABLE trips (
-    trip_id INT(128) NOT NULL PRIMARY KEY,
-    route_id INT(32) NOT NULL,
-    service_id INT(32) NOT NULL,
-    direction_id INT(4),
-    shape_id INT(32),
-    KEY `route_id` (route_id),
-    KEY `service_id` (service_id),
-    KEY `direction_id` (direction_id),
-    KEY `shape_id` (shape_id)
-);
+CREATE TABLE routes
+(
+  route_id integer NOT NULL,
+  agency_id integer,
+  route_short_name character varying(50),
+  route_long_name character varying(255),
+  route_desc character varying(10),
+  route_type integer NOT NULL, -- Should be an Enum.
+  route_color character varying(9), -- Can be an Enum.
+  CONSTRAINT routes_pkey PRIMARY KEY (route_id )
+)
+ALTER TABLE routes
+  OWNER TO openbus;
+CREATE INDEX routes_agency_id
+  ON routes
+  USING btree
+  (agency_id );
+CREATE INDEX routes_route_type
+  ON routes
+  USING btree
+  (route_type );
 
-CREATE TABLE calendar (
-    service_id INT(32) NOT NULL PRIMARY KEY,
-    sunday BOOLEAN NOT NULL,
-    monday BOOLEAN NOT NULL,
-    tuesday BOOLEAN NOT NULL,
-    wednesday BOOLEAN NOT NULL,
-    thursday BOOLEAN NOT NULL,
-    friday BOOLEAN NOT NULL,
-    saturday BOOLEAN NOT NULL,
-    start_date VARCHAR(8) NOT NULL,	
-    end_date VARCHAR(8) NOT NULL,
-    KEY `service_id` (service_id)
-);
+  
+CREATE TABLE trips
+(
+  trip_id integer NOT NULL,
+  route_id integer,
+  service_id integer,
+  direction_id integer,
+  shape_id integer,
+  CONSTRAINT trips_pkey PRIMARY KEY (trip_id )
+)
+ALTER TABLE trips
+  OWNER TO openbus;
+CREATE INDEX trips_direction_id
+  ON trips
+  USING btree
+  (direction_id );
+CREATE INDEX trips_route_id
+  ON trips
+  USING btree
+  (route_id );
+CREATE INDEX trips_service_id
+  ON trips
+  USING btree
+  (service_id );
+CREATE INDEX trips_shape_id
+  ON trips
+  USING btree
+  (shape_id );
 
-CREATE TABLE stop_times (
-    id INT(12) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    trip_id INT(128) NOT NULL,
-    arrival_time VARCHAR(8) NOT NULL,
-    departure_time VARCHAR(8) NOT NULL,
-    stop_id INT(32) NOT NULL,
-    stop_sequence INT(8) NOT NULL,
-    pickup_type BOOLEAN,
-    drop_off_type BOOLEAN,
-    shape_dist_traveled INT(32),
-    KEY `trip_id` (trip_id),
-    KEY `stop_id` (stop_id),
-    KEY `stop_sequence` (stop_sequence),
-    KEY `pickup_type` (pickup_type),
-    KEY `drop_off_type` (drop_off_type)
-);
+  
+CREATE TABLE calendar
+(
+  service_id integer NOT NULL,
+  sunday boolean,
+  monday boolean,
+  tuesday boolean,
+  wednesday boolean,
+  thursday boolean,
+  friday boolean,
+  saturday boolean,
+  start_date character varying(8),
+  end_date character varying(8),
+  CONSTRAINT calendar_pkey PRIMARY KEY (service_id )
+)
+ALTER TABLE calendar
+  OWNER TO openbus;
+CREATE INDEX calendar_service_id
+  ON calendar
+  USING btree
+  (service_id ); 
+  
+  
+CREATE TABLE stop_times
+(
+  id serial NOT NULL,
+  trip_id integer,
+  arrival_time character varying(8),
+  departure_time character varying(8),
+  stop_id integer,
+  stop_sequence integer,
+  pickup_type boolean,
+  drop_off_type boolean,
+  shape_dist_traveled integer,
+  CONSTRAINT stop_times_pkey PRIMARY KEY (id )
+)
+ALTER TABLE stop_times
+  OWNER TO openbus;
+CREATE INDEX stop_times_drop_off_type
+  ON stop_times
+  USING btree
+  (drop_off_type );
+CREATE INDEX stop_times_pickup_type
+  ON stop_times
+  USING btree
+  (pickup_type );
+CREATE INDEX stop_times_stop_id
+  ON stop_times
+  USING btree
+  (stop_id );
+CREATE INDEX stop_times_stop_sequence
+  ON stop_times
+  USING btree
+  (stop_sequence );
+CREATE INDEX stop_times_trip_id
+  ON stop_times
+  USING btree
+  (trip_id );
+  
+  
+CREATE TABLE stops
+(
+  stop_id integer NOT NULL,
+  stop_code integer,
+  stop_name character varying(255),
+  stop_desc character varying(255),
+  stop_lat numeric(10,10), -- TODO: check requested type-size.
+  stop_lon numeric(10,10), -- TODO: check requested type-size.
+  location_type boolean, -- Should be an Enum.
+  parent_station integer, -- Should be an Enum.
+  zone_id character varying(255),
+  CONSTRAINT stops_pkey PRIMARY KEY (stop_id )
+)
+ALTER TABLE stops
+  OWNER TO openbus;
+CREATE INDEX stops_location_type
+  ON stops
+  USING btree
+  (location_type );
+CREATE INDEX stops_parent_station
+  ON stops
+  USING btree
+  (parent_station );
+CREATE INDEX stops_stop_lat
+  ON stops
+  USING btree
+  (stop_lat );
+CREATE INDEX stops_stop_lon
+  ON stops
+  USING btree
+  (stop_lon );
+CREATE INDEX stops_zone_id
+  ON stops
+  USING btree
+  (zone_id COLLATE pg_catalog."default" );
 
-CREATE TABLE stops (
-    stop_id INT(32) NOT NULL PRIMARY KEY,
-    stop_code INT(32),
-    stop_name VARCHAR(255) NOT NULL,
-    stop_desc VARCHAR(255),
-    stop_lat DECIMAL(10,20) NOT NULL, # TODO: check requested type-size.
-    stop_lon DECIMAL(10,20) NOT NULL, # TODO: check requested type-size.
-    location_type BOOLEAN, # Should be an Enum.
-    parent_station INT(2), # Should be an Enum.
-    zone_id VARCHAR(255),
-    KEY `zone_id` (zone_id),
-    KEY `stop_lat` (stop_lat),
-    KEY `stop_lon` (stop_lon),
-    KEY `location_type` (location_type),
-    KEY `parent_station` (parent_station)
-);
 
-CREATE TABLE shapes (
-    shape_id INT(32) NOT NULL PRIMARY KEY,
-    shape_pt_sequence INT(8) NOT NULL PRIMARY KEY,
-    shape_pt_lat DECIMAL(8,6) NOT NULL,
-    shape_pt_lon DECIMAL(8,6) NOT NULL,
-    shape_dist_traveled INT(64) # TODO: check requested type-size.
-);
+CREATE TABLE shapes
+(
+  shape_id integer NOT NULL,
+  shape_pt_sequence integer NOT NULL,
+  shape_pt_lat numeric(8,6) NOT NULL,
+  shape_pt_lon numeric(8,6) NOT NULL,
+  shape_dist_traveled integer,
+  CONSTRAINT shapes_pkey PRIMARY KEY (shape_id , shape_pt_sequence )
+)
+ALTER TABLE shapes
+  OWNER TO openbus;
