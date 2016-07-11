@@ -1,12 +1,16 @@
 import gtfs.kavrazif.geo as geo
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from gtfs.parser.gtfs_reader import *
-from gtfs.parser import route_stories
+from gtfs.parser.route_stories import load_route_stories_from_csv
 import os
 import sys
-
+from datetime import timedelta
 
 StationAndDistance = namedtuple('StationAndDistance', 'station_id distance')
+
+RouteAndFrequency = namedtuple('RouteAndFrequency', 'route weekdays_trips weekend_trips')
+
+weekdays = {6, 0, 1, 2, 3}
 
 
 def stop_to_station_distance(gtfs, trip_to_route_story):
@@ -44,7 +48,7 @@ def stop_to_station_distance(gtfs, trip_to_route_story):
 def export_stop_station_distance_to_csv(output_file, stop_station_distance):
     print("Exporting stop station distance")
     with open(output_file, 'w') as f:
-        f.write("stop_id,nearest_train_station_id,train_station_distance\n")
+        f.write("stop_id,station_id,station_distance\n")
         for stop_id, (station_id, station_distance) in stop_station_distance.items():
             f.write(','.join(str(x) for x in [stop_id, station_id, station_distance]) + '\n')
     print("Export done")
@@ -55,9 +59,8 @@ def generate_station_distance(gtfs_folder):
         print('route_stories.txt file not available in gtfs folder, please generate route stories first')
         return
     gtfs = GTFS(os.path.join(gtfs_folder, 'israel-public-transportation.zip'))
-    _, trip_to_route_story = route_stories.load_route_stories_from_csv(
-        os.path.join(gtfs_folder, 'route_stories.txt'),
-        os.path.join(gtfs_folder, 'trip_to_stories.txt'))
+    _, trip_to_route_story = load_route_stories_from_csv(os.path.join(gtfs_folder, 'route_stories.txt'),
+                                                         os.path.join(gtfs_folder, 'trip_to_stories.txt'))
     station_distance = stop_to_station_distance(gtfs, trip_to_route_story)
     export_stop_station_distance_to_csv(os.path.join(gtfs_folder, 'stop_station_distance.txt'), station_distance)
 
@@ -67,6 +70,46 @@ def load_train_station_distance(gtfs_folder):
         reader = csv.DictReader(f)
         return {int(row['stop_id']): StationAndDistance(int(row['station_id']), float(row['station_distance']))
                 for row in reader}
+
+
+def route_frequency(gtfs, start_date, period=timedelta(days=7)):
+    """returns a map from route, to a tuple (int, int) - number of trips for route for weekdays and weekends"""
+    end_date = start_date + period
+    gtfs.load_trips()
+    res = defaultdict(lambda: (0, 0))
+    for trip in gtfs.trips.values():
+        if trip.service.end_date < start_date or trip.service.start_date > end_date:  # future or past trip
+            continue
+        (weekday_trips, weekend_trips) = res[trip.route]
+        weekday_trips += len(trip.service.days.intersection(weekdays))
+        weekend_trips += len(trip.service.days.difference(weekdays))
+        res[trip.route] = (weekday_trips, weekend_trips)
+    return res
+
+
+def route_story_to_route(gtfs, trip_to_route_stories, start_date, period=timedelta(days=7)):
+    """Returns a dictionary from route_story to the corresponding route
+
+    trip_to_route_stories: dictionary trip_id to a TripRouteStory, as returned by load_route_stories_from_csv
+    """
+    gtfs.load_trips()
+    end_date = start_date + period
+    trips = (trip for trip in gtfs.trips.values() if
+             trip.service.end_date < start_date or trip.service.start_date > end_date)
+    return {trip_to_route_stories[trip.trip_id].route_story: trip.route for trip in trips}
+
+
+def routes_calling_at_stop(gtfs, trip_to_route_stories, start_date, period=timedelta(days=7)):
+    """Returns a dictionary from a stop_id to a List[Route] containing all routes calling there"""
+    def key(r):
+        return ''.join(d for d in r.line_number if d.isdigit()), r.route_desc
+
+    res = defaultdict(lambda: set())
+    for route_story, route in route_story_to_route(gtfs, trip_to_route_stories, start_date, period).items():
+        for stop in route_story.stops:
+            res[stop.stop_id].add(route)
+
+    return {stop_id: sorted(list(routes), key=key) for stop_id, routes in res.items()}
 
 
 if __name__ == '__main__':
