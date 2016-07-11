@@ -21,8 +21,8 @@ def stop_to_station_distance(gtfs, trip_to_route_story):
     train_route_stories = set(trip_to_route_story[trip.trip_id].route_story for trip in train_trips)
     train_stations = set()
     for route_story in train_route_stories:
-        for trip_story_stop in route_story:
-            train_stations.add(trip_story_stop.stop_id)
+        for route_story_stop in route_story.stops:
+            train_stations.add(route_story_stop.stop_id)
     print("%d train stations found" % len(train_stations))
 
     # transform to geo-point objects
@@ -56,10 +56,17 @@ def generate_station_distance(gtfs_folder):
         return
     gtfs = GTFS(os.path.join(gtfs_folder, 'israel-public-transportation.zip'))
     _, trip_to_route_story = route_stories.load_route_stories_from_csv(
-        os.path.join(gtfs_folder, '../sample/route_stories.txt'),
-        os.path.join(gtfs_folder, '../sample/trip_to_stories.txt'))
+        os.path.join(gtfs_folder, 'route_stories.txt'),
+        os.path.join(gtfs_folder, 'trip_to_stories.txt'))
     station_distance = stop_to_station_distance(gtfs, trip_to_route_story)
     export_stop_station_distance_to_csv(os.path.join(gtfs_folder, 'stop_station_distance.txt'), station_distance)
+
+
+def load_train_station_distance(gtfs_folder):
+    with open(os.path.join(gtfs_folder, 'stop_station_distance.txt'), encoding='utf8') as f:
+        reader = csv.DictReader(f)
+        return {int(row['stop_id']): StationAndDistance(int(row['station_id']), float(row['station_distance']))
+                for row in reader}
 
 
 if __name__ == '__main__':
