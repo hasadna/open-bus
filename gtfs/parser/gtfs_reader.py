@@ -280,6 +280,12 @@ class Shape:
     def add_coordinate(self, point, sequence):
         self.coordinates[sequence] = point
 
+    def __eq__(self, other):
+        return self.shape_id == other.shape_id
+
+    def __hash__(self):
+        return hash(self.shape_id)
+
     # shape_id,shape_pt_lat,shape_pt_lon,shape_pt_sequence
     @classmethod
     def from_csv(cls, csv_record, current_shapes):
