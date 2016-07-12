@@ -72,9 +72,9 @@ def load_train_station_distance(gtfs_folder):
                 for row in reader}
 
 
-def route_frequency(gtfs, start_date, period=timedelta(days=7)):
+def route_frequency(gtfs, start_date):
     """returns a map from route, to a tuple (int, int) - number of trips for route for weekdays and weekends"""
-    end_date = start_date + period
+    end_date = start_date + timedelta(days=7)
     gtfs.load_trips()
     res = defaultdict(lambda: (0, 0))
     for trip in gtfs.trips.values():
@@ -87,25 +87,25 @@ def route_frequency(gtfs, start_date, period=timedelta(days=7)):
     return res
 
 
-def route_story_to_route(gtfs, trip_to_route_stories, start_date, period=timedelta(days=7)):
+def route_story_to_route(gtfs, trip_to_route_stories, start_date):
     """Returns a dictionary from route_story to the corresponding route
 
     trip_to_route_stories: dictionary trip_id to a TripRouteStory, as returned by load_route_stories_from_csv
     """
     gtfs.load_trips()
-    end_date = start_date + period
+    end_date = start_date + timedelta(days=7)
     trips = (trip for trip in gtfs.trips.values() if
              trip.service.end_date < start_date or trip.service.start_date > end_date)
     return {trip_to_route_stories[trip.trip_id].route_story: trip.route for trip in trips}
 
 
-def routes_calling_at_stop(gtfs, trip_to_route_stories, start_date, period=timedelta(days=7)):
+def routes_calling_at_stop(gtfs, trip_to_route_stories, start_date):
     """Returns a dictionary from a stop_id to a List[Route] containing all routes calling there"""
     def key(r):
         return ''.join(d for d in r.line_number if d.isdigit()), r.route_desc
 
     res = defaultdict(lambda: set())
-    for route_story, route in route_story_to_route(gtfs, trip_to_route_stories, start_date, period).items():
+    for route_story, route in route_story_to_route(gtfs, trip_to_route_stories, start_date).items():
         for stop in route_story.stops:
             res[stop.stop_id].add(route)
 
