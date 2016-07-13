@@ -1,3 +1,7 @@
+# Note
+This project moved to [GitHub](https://github.com/hasadna/open-bus).
+You can still watch its old versions here.
+
 # OpenBus
 
 A project under OpenTrain @ [the public knowledge workshop](http://http://www.hasadna.org.il).
