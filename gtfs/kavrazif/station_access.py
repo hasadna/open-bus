@@ -6,7 +6,19 @@ import os
 import csv
 from collections import defaultdict, Counter
 
-route_types = {0: 'LightRailway', 2: 'IsraelRail', 3: 'Bus', 4: 'Shared Taxi'}
+route_types = {0: 'LightRailway', 2: 'Train', 3: 'Bus', 4: 'SharedTaxi'}
+day_names = 'sunday monday tuesday wednesday thursday friday saturday'.split()
+weekday_names = day_names[:5]
+weekend_days = {4, 5}
+
+
+def format_time(t):
+    return '%02d:%02d:%02d' % (t / 3600, t % 3600 / 60, t % 60)
+
+
+def parse_time(t):
+    hour, minute, second = [int(f) for f in t.split(':')]
+    return hour * 3600 + minute * 60 + second
 
 
 class StationAccessFinder:
@@ -115,7 +127,7 @@ class StationAccessFinder:
             self.routes = []
             self.travel_time = 0
 
-    def __init__(self, gtfs_folder, output_folder, start_date, station_stop_distance=300):
+    def __init__(self, gtfs_folder, output_folder, start_date, end_date=None, station_stop_distance=300):
         print("StationAccessFinder.__init__")
         self.gtfs = GTFS(os.path.join(gtfs_folder, 'israel-public-transportation.zip'))
         self.gtfs_folder = gtfs_folder
@@ -131,7 +143,7 @@ class StationAccessFinder:
         # configuration
         self.station_stop_distance = station_stop_distance
         self.start_date = start_date
-        self.end_date = start_date + datetime.timedelta(days=7)
+        self.end_date = end_date if end_date is not None else start_date + datetime.timedelta(days=7)
         # things that will be build during run()
         self.stops_near_stations = None  # dictionary from stop_id to StopAndDistance object
         self.extended_route_stories = None
@@ -286,7 +298,7 @@ class StationAccessFinder:
 
     def date_range(self):
         d = self.start_date
-        while d < self.end_date:
+        while d <= self.end_date:
             yield d
             d += datetime.timedelta(days=1)
 
@@ -322,9 +334,15 @@ class CallingAtStation:
 
     """
 
-    def __init__(self, gtfs_folder, output_folder, start_date, max_station_distance=300,
+    station_calls_fields = ['trip_id', 'route_id', 'route_code', 'route_direction', 'route_alternative', 'line_number',
+                            'stop_id', 'stop_sequence',
+                            'stop_code', 'station_id', 'station_code', 'station_distance', 'station_name', 'service_id',
+                            'start_date', 'end_date', 'route_type', 'arrival_time', 'weekday_calls',
+                            'weekend_calls'] + day_names
+
+    def __init__(self, gtfs_folder, output_folder, start_date, end_date=None, max_station_distance=300,
                  minutes_between_distinct_calls=15):
-        self.finder = StationAccessFinder(gtfs_folder, output_folder, start_date, max_station_distance)
+        self.finder = StationAccessFinder(gtfs_folder, output_folder, start_date, end_date, max_station_distance)
         self.seconds_between_distinct_calls = minutes_between_distinct_calls * 60
         self.filtered_calls = []
         self.trips_and_stops = []
@@ -353,12 +371,11 @@ class CallingAtStation:
         for route_story in self.finder.extended_route_stories.values():
             filtered = [route_story.station_stops[0]]
             for route_story_stop in route_story.station_stops[1:]:
-                curr_station = self.finder.stops_near_stations[route_story_stop.stop_id]
-                prev_station = self.finder.stops_near_stations[filtered[-1].stop_id]
+                curr_station = self.finder.stops_near_stations[route_story_stop.stop_id].station_id
+                prev_station = self.finder.stops_near_stations[filtered[-1].stop_id].station_id
                 if curr_station != prev_station:
                     filtered.append(route_story_stop)
-                elif route_story_stop.arrival_offset - filtered[
-                    -1].arrival_offset > self.seconds_between_distinct_calls:
+                elif route_story_stop.arrival_offset - filtered[-1].arrival_offset > self.seconds_between_distinct_calls:
                     filtered.append(route_story_stop)
                 else:
                     curr_distance = self.finder.stops_near_stations[route_story_stop.stop_id].distance
@@ -376,28 +393,28 @@ class CallingAtStation:
             route_story_id = self.finder.trips_to_route_stories[trip.trip_id].route_story.route_story_id
             if route_story_id in self.finder.extended_route_stories:
                 for route_story_stop in self.finder.extended_route_stories[route_story_id].station_stops:
-                    self.trips_and_stops.append((trip, route_story_stop.stop_id, route_story_stop.arrival_offset))
+                    self.trips_and_stops.append((trip, route_story_stop))
 
     def export_all_station_calls(self):
         print("6. export_all_station_calls")
         self.finder.gtfs.load_stops()
         with open(os.path.join(self.finder.output_folder, 'station_calls.txt'), 'w', encoding='utf8') as f:
-            day_names = 'monday tuesday wednesday thursday friday saturday sunday'.split()
-            fields = ['route_id', 'route_code', 'route_direction', 'route_alternative', 'line_number', 'stop_id',
-                      'stop_code', 'station_id', 'station_code', 'station_distance', 'station_name', 'service_id',
-                      'start_date', 'end_date', 'route_type'] + day_names
-            w = csv.DictWriter(f, lineterminator='\r\n', fieldnames=fields)
+            w = csv.DictWriter(f, lineterminator='\n', fieldnames=self.station_calls_fields)
             w.writeheader()
-            for trip, stop_id, arrival_offset in self.trips_and_stops:
+            for trip, route_story_stop in self.trips_and_stops:
+                stop_id, arrival_offset = route_story_stop.stop_id, route_story_stop.arrival_offset
+                arrival_time = self.finder.trips_to_route_stories[trip.trip_id].start_time + arrival_offset
                 route_code, route_direction, route_alternative = trip.route.route_desc.split('-')
                 station_id = self.finder.stops_near_stations[stop_id].station_id
-                row = {'route_id': trip.route.route_id,
+                row = {'trip_id': trip.trip_id,
+                       'route_id': trip.route.route_id,
                        'route_code': route_code,
                        'route_direction': route_direction,
                        'route_alternative': route_alternative,
                        'line_number': trip.route.line_number,
                        'stop_id': stop_id,
                        'stop_code': self.finder.gtfs.stops[stop_id].stop_code,
+                       'stop_sequence': route_story_stop.stop_sequence,
                        'station_id': station_id,
                        'station_code': self.finder.gtfs.stops[station_id].stop_code,
                        'station_name': self.finder.gtfs.stops[station_id].stop_name,
@@ -405,7 +422,10 @@ class CallingAtStation:
                        'service_id': trip.service.service_id,
                        'start_date': trip.service.start_date,
                        'end_date': trip.service.end_date,
-                       'route_type': trip.route.route_type}
+                       'route_type': trip.route.route_type,
+                       'arrival_time': format_time(arrival_time),
+                       'weekday_calls': len(trip.service.days.difference(weekend_days)),
+                       'weekend_calls': len(trip.service.days.intersection(weekend_days))}
                 row.update({name: Service.weekday_names[name] in trip.service.days for name in day_names})
                 w.writerow(row)
 
@@ -415,12 +435,13 @@ class CallingAtStation:
 
         print("5.1 days_station_calls_counter")
         self.hourly_calls = defaultdict(lambda: Counter())
-        for trip, stop_id, arrival_offset in self.trips_and_stops:
+        for trip, route_story_stop in self.trips_and_stops:
             service = trip.service
+            stop_id, arrival_offset = route_story_stop.stop_id, route_story_stop.arrival_offset
             for d in self.finder.date_range():
-                if service.start_date <= d <= service.end_date and d.weekday() in service.days:
+                day = d.weekday()
+                if service.start_date <= d <= service.end_date and day in service.days:
                     station_id = self.finder.stops_near_stations[stop_id].station_id
-                    day = d.weekday
                     hour = get_hour(self.finder.trips_to_route_stories[trip.trip_id].start_time + arrival_offset)
                     route_type = trip.route.route_type
                     self.hourly_calls[station_id][(day, hour, route_type)] += 1
@@ -431,7 +452,14 @@ class CallingAtStation:
         self.hourly_calls_weekday_average = defaultdict(lambda: Counter())
         for station_id in self.hourly_calls:
             for (day, hour, route_type), count in self.hourly_calls[station_id].items():
-                self.hourly_calls_weekday_average[station_id][(hour, route_type)] += count
+                if day in weekdays:
+                    self.hourly_calls_weekday_average[station_id][(hour, route_type)] += count
+
+        n_days = len([x for x in self.finder.date_range() if x.weekday() in weekdays])
+        print("  There are %d weekdays in period" % n_days)
+        for station_id in self.hourly_calls_weekday_average:
+            for key in self.hourly_calls_weekday_average[station_id]:
+                self.hourly_calls_weekday_average[station_id][key] /= n_days
 
     def export_average_hourly_calls(self):
         def export(filename, route_type):
@@ -445,7 +473,7 @@ class CallingAtStation:
                     row = {'station_id': station_id,
                            'station_code': self.finder.gtfs.stops[station_id].stop_code,
                            'station_name': self.finder.gtfs.stops[station_id].stop_name,
-                           'daily_total': sum(self.hourly_calls_weekday_average[station_id][(hour, route_type)] 
+                           'daily_total': sum(self.hourly_calls_weekday_average[station_id][(hour, route_type)]
                                               for hour in range(26))}
                     row.update({'h%02d' % hour: self.hourly_calls_weekday_average[station_id][(hour, route_type)]
                                 for hour in range(26)})
@@ -454,6 +482,28 @@ class CallingAtStation:
         self.finder.gtfs.load_stops()
         export('station_calls_stats_bus.txt', 3)
         export('station_calls_stats_train.txt', 2)
+
+    @staticmethod
+    def explode_stop_data(folder, weekdays_only=True, route_type=3):
+        # read the data written by export_all_station_calls
+        output_folder = os.path.join(folder, 'stations_%s' % route_types[route_type])
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+        with open(os.path.join(folder, 'station_calls.txt'), 'r', encoding='utf') as f:
+            reader = csv.DictReader(f)
+            by_station = defaultdict(lambda: [])
+            bus_records = (record for record in reader if record['route_type'] == str(route_type) and
+                           (int(record['weekday_calls']) > 0 or not weekdays_only))
+            for record in bus_records:
+                by_station[record['station_id']].append(record)
+
+        for station_id, records in by_station.items():
+            records.sort(key=lambda r: parse_time(record['arrival_time']))
+            station_name = records[0]['station_name']
+            with open(os.path.join(output_folder, 'station_calls_%s.txt' % station_name), 'w', encoding='utf8') as f:
+                w = csv.DictWriter(f, lineterminator='\n', fieldnames=CallingAtStation.station_calls_fields)
+                w.writeheader()
+                w.writerows(records)
 
 
 def filter_station_access_results(folder, output_filename=None,
@@ -516,5 +566,9 @@ if __name__ == '__main__':
     #                               stations_to_exclude=busiest_train_stations, only_nearest_station=True,
     #                               min_weekday_trips=25)
     output_folder = 'train_access_stats'
-    finder = CallingAtStation(gtfs_folder, output_folder, datetime.date(2016, 6, 1))
-    finder.run_calling_at_station()
+    #finder = CallingAtStation(gtfs_folder, output_folder, datetime.date(2016, 6, 1), datetime.date(2016, 6, 14),
+    #                          max_station_distance=300)
+    #finder.run_calling_at_station()
+    #CallingAtStation.explode_stop_data(output_folder)
+    CallingAtStation.explode_stop_data(output_folder, route_type=3)
+    CallingAtStation.explode_stop_data(output_folder, route_type=2)
