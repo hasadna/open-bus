@@ -11,10 +11,10 @@ import numpy as np
 import os
 import json
 from datetime import date
+import sys
 
-gtfs_folder = 'data/gtfs/gtfs_2016_05_25/'
+gtfs_folder = 'data/gtfs/gtfs_2016_05_25/' if len(sys.argv) == 1 else sys.argv[1]
 start_date = date(2016, 6, 1)
-
 
 
 class IndexServer:
@@ -28,7 +28,7 @@ class IndexServer:
 
 
 class StopFinder:
-    def __init__(self):
+    def __init__(self, gtfs_folder):
         self.gtfs = GTFS(os.path.join(gtfs_folder, 'israel-public-transportation.zip'))
         self.gtfs.load_stops()
         self.gtfs.load_routes()
@@ -94,10 +94,9 @@ class StopFinder:
             'routes': routes
         })
 
-
 app = falcon.API()
 app.add_route('/', IndexServer())
-app.add_route('/stop', StopFinder())
+app.add_route('/stop', StopFinder(gtfs_folder))
 
 # Useful for debugging problems in your API; works with pdb.set_trace(). You
 # can also use Gunicorn to host your app. Gunicorn can be configured to
