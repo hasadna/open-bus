@@ -85,7 +85,6 @@ class StationAccessFinder:
 
     # todo:
     # * export stops_near_stations, extended_routes
-    # * route_story_frequency - isn't correct if service changed midweek, needs to be calculated day-by-day
     # * Extend to support bus trips from station
     # * Better ways to calculate "station stops" (manually using local knowledge? using Google walking directions API?)
 
@@ -230,8 +229,11 @@ class StationAccessFinder:
             route_story_id = self.trips_to_route_stories[trip.trip_id].route_story.route_story_id
             if route_story_id in self.extended_route_stories:
                 extended_route_story = self.extended_route_stories[route_story_id]
-                extended_route_story.weekday_trips += len(trip.service.days.intersection(weekdays))
-                extended_route_story.weekend_trips += len(trip.service.days.difference(weekdays))
+                for d in self.date_range():
+                    if d.weekday() in weekdays:
+                        extended_route_story.weekday_trips += 1
+                    else:
+                        extended_route_story.weekend_trips += 1
 
     def route_story_to_route(self):
         print("Running stage 5: route_story_to_route")
