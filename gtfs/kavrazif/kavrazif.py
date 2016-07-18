@@ -45,12 +45,16 @@ def stop_to_station_distance(gtfs, trip_to_route_story):
     return {stop.stop_id: find_nearest_station(stop) for stop in gtfs.stops.values()}
 
 
-def export_stop_station_distance_to_csv(output_file, stop_station_distance):
+def export_stop_station_distance_to_csv(gtfs, output_file, stop_station_distance):
     print("Exporting stop station distance")
     with open(output_file, 'w') as f:
-        f.write("stop_id,station_id,station_distance\n")
+        f.write("stop_id,station_id,stop_code,station_code,station_distance\n")
         for stop_id, (station_id, station_distance) in stop_station_distance.items():
-            f.write(','.join(str(x) for x in [stop_id, station_id, station_distance]) + '\n')
+            stop_code = gtfs.stops[stop_id].stop_code
+            station_code = gtfs.stops[station_id].stop_code
+            f.write(','.join(str(x) for x in [stop_id, station_id,
+                                              stop_code, station_code,
+                                              station_distance]) + '\n')
     print("Export done")
 
 
@@ -62,7 +66,7 @@ def generate_station_distance(gtfs_folder):
     _, trip_to_route_story = load_route_stories_from_csv(os.path.join(gtfs_folder, 'route_stories.txt'),
                                                          os.path.join(gtfs_folder, 'trip_to_stories.txt'))
     station_distance = stop_to_station_distance(gtfs, trip_to_route_story)
-    export_stop_station_distance_to_csv(os.path.join(gtfs_folder, 'stop_station_distance.txt'), station_distance)
+    export_stop_station_distance_to_csv(gtfs, os.path.join(gtfs_folder, 'stop_station_distance.txt'), station_distance)
 
 
 def load_train_station_distance(gtfs_folder):
