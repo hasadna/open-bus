@@ -1,0 +1,11 @@
+INSERT INTO {{table_name}}  
+				   ({% for col in columns[:-1]:  %}
+				   	{{col}},
+				   	{% endfor %}
+				   	{{ columns[-1] }}
+				   ) 
+				   VALUES ({% for val in values[:-1]:  %}
+				   	{{val}},
+				   	{% endfor %}
+				   	{{ values[-1] }}
+				   );

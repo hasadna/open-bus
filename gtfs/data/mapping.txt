@@ -1,0 +1,28 @@
+TABLE agency
+agency_id integer NOT NULL,
+agency_name character varying(100) NOT NULL,
+agency_url character varying(100) NOT NULL,
+
+TABLE routes
+route_id integer NOT NULL,
+agency_id integer,
+route_short_name character varying(50),
+route_long_name character varying(255),
+route_desc character varying(10),
+route_type integer NOT NULL, -- Should be an Enum.
+route_color character varying(9), -- Can be an Enum.
+
+TABLE trips
+trip_id integer NOT NULL,
+route_id integer,
+service_id integer,
+direction_id integer,
+shape_id integer,
+
+TABLE shapes
+shape_id integer NOT NULL,
+shape_pt_sequence integer NOT NULL,
+shape_pt_lat numeric(8,6) NOT NULL,
+shape_pt_lon numeric(8,6) NOT NULL,
+shape_dist_traveled integer,
+
