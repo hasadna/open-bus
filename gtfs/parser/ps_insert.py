@@ -4,10 +4,10 @@ import psycopg2
 import os
 from jinja2 import Environment, FileSystemLoader
 import os.path
-import unicodecsv
-import sys
-reload(sys)  # Reload does the trick!
-sys.setdefaultencoding('UTF8')
+import csv
+import io
+# reload(sys)  # Reload does the trick!
+# sys.setdefaultencoding('UTF8')
 
 
 
@@ -79,12 +79,10 @@ query template - template for queries in postgres
 '''
 def insert_file_to_db(file_path,cursor,mapping_file,query_template):
 	table_name,columns = get_columns(file_path,mapping_file)
-
-	with open(file_path,'r') as f:
+	with open(file_path,'rb') as f:
 		#find indices of columns in the postgres actual table
-		reader = unicodecsv.DictReader(f,encoding='utf-8')
+		reader = csv.DictReader(io.TextIOWrapper(f,encoding='utf-8'))
 		for row in reader:
-			print row
 			values = []
 			placeholder = []
 			for col in columns:
@@ -94,11 +92,9 @@ def insert_file_to_db(file_path,cursor,mapping_file,query_template):
 
 	
 
-			query = query_template.render(columns=zip(*columns)[0]\
+			query = query_template.render(columns=list(zip(*columns))[0]\
 				,values=placeholder,table_name=table_name)
-			print query
 			cursor.execute(query,values)
-			
 
 
 
@@ -117,7 +113,6 @@ def insert_folder_to_db(folder):
 	query_template = env.get_template(QUERY_TEMPLATE_FILE_NAME)
 
 	for file in os.listdir(folder):
-		print file
 		# try:
 		insert_file_to_db(os.path.join(folder,file),\
 		cursor,os.path.join(DATA_DIR,MAPPING_FILE),\
@@ -126,7 +121,7 @@ def insert_folder_to_db(folder):
 		# 	print file + " failed"
 		# 	print e.message
 
-
+		print(conn_obj.commit())
 	conn_obj.close()
 
 insert_folder_to_db("../sample/pub")
