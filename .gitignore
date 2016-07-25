@@ -1,4 +1,6 @@
 *.pyc
 __pycache__
 .idea/
+gtfs/data/connection_details.txt
+gtfs/sample/israel-public-transportation/
 venv

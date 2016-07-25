@@ -22,7 +22,6 @@ def insert_to_db(table_name, columns, entries):
 	c = conn.cursor()
 
 	columns = """ (""" + ','.join([column for column in columns]) + """) values """ 
-	print(columns)
 	query = "insert into {table_name} {columns}".format(table_name=table_name, columns=columns)
 	
 	
