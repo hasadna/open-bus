@@ -61,7 +61,7 @@ def get_columns(file_path,mapping_file):
 		while line!=None:
 		
 			line = f.readline()
-			line_arr = line.split(" ")
+			line_arr = line.strip().split(" ")
 			if len(line_arr)<2:
 				break
 			columns.append((line_arr[0],line_arr[1]))
@@ -77,7 +77,7 @@ in the db
 query template - template for queries in postgres
 
 '''
-def insert_file_to_db(file_path,cursor,mapping_file,query_template):
+def insert_file_to_db(file_path,cursor,mapping_file,query_template,conn_obj):
 	table_name,columns = get_columns(file_path,mapping_file)
 	with open(file_path,'rb') as f:
 		#find indices of columns in the postgres actual table
@@ -94,8 +94,12 @@ def insert_file_to_db(file_path,cursor,mapping_file,query_template):
 
 			query = query_template.render(columns=list(zip(*columns))[0]\
 				,values=placeholder,table_name=table_name)
-			cursor.execute(query,values)
-
+			try:
+				cursor.execute(query,values)
+				conn_obj.commit()
+			except Exception as e:
+				print(e)
+				conn_obj.rollback()
 
 
 def insert_folder_to_db(folder):
@@ -113,15 +117,17 @@ def insert_folder_to_db(folder):
 	query_template = env.get_template(QUERY_TEMPLATE_FILE_NAME)
 
 	for file in os.listdir(folder):
-		# try:
-		insert_file_to_db(os.path.join(folder,file),\
-		cursor,os.path.join(DATA_DIR,MAPPING_FILE),\
-		query_template)
-		# except Exception as e:
-		# 	print file + " failed"
-		# 	print e.message
+		try:
+			insert_file_to_db(os.path.join(folder,file),\
+			cursor,os.path.join(DATA_DIR,MAPPING_FILE),\
+			query_template,conn_obj)
+			
+			
+		except Exception as e:
+			print(file + " failed")
+			print(e)
+			continue
 
-		print(conn_obj.commit())
 	conn_obj.close()
 
-insert_folder_to_db("../sample/pub")
+insert_folder_to_db("../sample/israel-public-transportation")
