@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+
 import psycopg2
 import os
 from jinja2 import Environment, FileSystemLoader
@@ -86,8 +85,10 @@ def insert_file_to_db(file_path,cursor,mapping_file,query_template,conn_obj):
 			values = []
 			placeholder = []
 			for col in columns:
-			
-				values.append(row[col[0]])
+				if col[1] == "integer" and len(row[col[0]])==0 :
+					values.append(None)
+				else:
+					values.append(row[col[0]])
 				placeholder.append("%s")
 
 	
@@ -99,6 +100,7 @@ def insert_file_to_db(file_path,cursor,mapping_file,query_template,conn_obj):
 				conn_obj.commit()
 			except Exception as e:
 				print(e)
+				print(row)
 				conn_obj.rollback()
 
 
@@ -131,3 +133,4 @@ def insert_folder_to_db(folder):
 	conn_obj.close()
 
 insert_folder_to_db("../sample/israel-public-transportation")
+# insert_file_to_db("../sample/israel-public-transportation/stops.txt")

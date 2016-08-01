@@ -2,15 +2,14 @@
 -- TODO: Make sure type-sizes are fine.
 -- TODO: Check requested type-size for coordinates.
 -- TODO: Check requested type-size for shape_dist_traveled.
-
+SET ROLE openbus;
 
 CREATE TABLE agency
 (
   agency_id integer NOT NULL,
   agency_name character varying(100) NOT NULL,
-  agency_url character varying(100) NOT NULL,
   CONSTRAINT agency_pkey PRIMARY KEY (agency_id )
-)
+);
 ALTER TABLE agency
   OWNER TO openbus;
 
@@ -25,7 +24,7 @@ CREATE TABLE routes
   route_type integer NOT NULL, -- Should be an Enum.
   route_color character varying(9), -- Can be an Enum.
   CONSTRAINT routes_pkey PRIMARY KEY (route_id )
-)
+);
 ALTER TABLE routes
   OWNER TO openbus;
 CREATE INDEX routes_agency_id
@@ -40,13 +39,13 @@ CREATE INDEX routes_route_type
   
 CREATE TABLE trips
 (
-  trip_id integer NOT NULL,
+  trip_id character varying(50) NOT NULL,
   route_id integer,
   service_id integer,
   direction_id integer,
   shape_id integer,
   CONSTRAINT trips_pkey PRIMARY KEY (trip_id )
-)
+);
 ALTER TABLE trips
   OWNER TO openbus;
 CREATE INDEX trips_direction_id
@@ -80,7 +79,7 @@ CREATE TABLE calendar
   start_date character varying(8),
   end_date character varying(8),
   CONSTRAINT calendar_pkey PRIMARY KEY (service_id )
-)
+);
 ALTER TABLE calendar
   OWNER TO openbus;
 CREATE INDEX calendar_service_id
@@ -92,16 +91,15 @@ CREATE INDEX calendar_service_id
 CREATE TABLE stop_times
 (
   id serial NOT NULL,
-  trip_id integer,
+  trip_id character varying(50),
   arrival_time character varying(8),
   departure_time character varying(8),
   stop_id integer,
   stop_sequence integer,
   pickup_type boolean,
   drop_off_type boolean,
-  shape_dist_traveled integer,
   CONSTRAINT stop_times_pkey PRIMARY KEY (id )
-)
+);
 ALTER TABLE stop_times
   OWNER TO openbus;
 CREATE INDEX stop_times_drop_off_type
@@ -132,13 +130,13 @@ CREATE TABLE stops
   stop_code integer,
   stop_name character varying(255),
   stop_desc character varying(255),
-  stop_lat numeric(10,10), -- TODO: check requested type-size.
-  stop_lon numeric(10,10), -- TODO: check requested type-size.
+  stop_lat numeric(10,8), -- TODO: check requested type-size.
+  stop_lon numeric(10,8), -- TODO: check requested type-size.
   location_type boolean, -- Should be an Enum.
   parent_station integer, -- Should be an Enum.
   zone_id character varying(255),
   CONSTRAINT stops_pkey PRIMARY KEY (stop_id )
-)
+);
 ALTER TABLE stops
   OWNER TO openbus;
 CREATE INDEX stops_location_type
@@ -169,8 +167,7 @@ CREATE TABLE shapes
   shape_pt_sequence integer NOT NULL,
   shape_pt_lat numeric(8,6) NOT NULL,
   shape_pt_lon numeric(8,6) NOT NULL,
-  shape_dist_traveled integer,
   CONSTRAINT shapes_pkey PRIMARY KEY (shape_id , shape_pt_sequence )
-)
+);
 ALTER TABLE shapes
   OWNER TO openbus;
