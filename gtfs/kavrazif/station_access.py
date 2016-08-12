@@ -279,7 +279,8 @@ class StationAccessFinder:
         self.gtfs.load_stops()
         with open(os.path.join(self.output_folder, 'station_access.txt'), 'w', encoding='utf8') as f:
             writer = csv.DictWriter(f, lineterminator='\n',
-                                    fieldnames=['stop_id', 'station_id', 'travel_time', 'weekday_trips',
+                                    fieldnames=['stop_id', 'station_id', 'stop_code', 'station_code',
+                                                'travel_time', 'weekday_trips',
                                                 'weekend_trips', 'latitude', 'longitude', 'station_name',
                                                 'line_numbers', 'route_ids', 'parent_stop'])
             writer.writeheader()
@@ -287,6 +288,8 @@ class StationAccessFinder:
                 writer.writerow({
                     'stop_id': stop_and_station.stop_id,
                     'station_id': stop_and_station.station_id,
+                    'stop_code': self.gtfs.stops[stop_and_station.stop_id].stop_code,
+                    'station_code': self.gtfs.stops[stop_and_station.station_id].stop_code,
                     'travel_time': int(stop_and_station.travel_time // 60),
                     'weekday_trips': stop_and_station.weekday_trips,
                     'weekend_trips': stop_and_station.weekend_trips,
@@ -572,5 +575,7 @@ if __name__ == '__main__':
     #                          max_station_distance=300)
     #finder.run_calling_at_station()
     #CallingAtStation.explode_stop_data(output_folder)
-    CallingAtStation.explode_stop_data(output_folder, route_type=3)
-    CallingAtStation.explode_stop_data(output_folder, route_type=2)
+    #CallingAtStation.explode_stop_data(output_folder, route_type=3)
+    #CallingAtStation.explode_stop_data(output_folder, route_type=2)
+    finder = StationAccessFinder(gtfs_folder, output_folder, datetime.date(2016, 6, 1))
+    finder.run_station_access()
