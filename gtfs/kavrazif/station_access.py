@@ -52,6 +52,8 @@ class StationAccessFinder:
     for each route story, given (1) all stops (2) station stops, calculate the time from the stop to the next train
     station after it.
 
+    + if to_station == False, calculate time from train station to stop
+
     Result: dictionary route_story_id -> list of (stop_id, station_id, time_to_station)
 
     __4__: calculate route story frequencies
@@ -85,7 +87,6 @@ class StationAccessFinder:
 
     # todo:
     # * export stops_near_stations, extended_routes
-    # * Extend to support bus trips from station
     # * Better ways to calculate "station stops" (manually using local knowledge? using Google walking directions API?)
 
 
@@ -126,13 +127,15 @@ class StationAccessFinder:
             self.routes = []
             self.travel_time = 0
 
-    def __init__(self, gtfs_folder, output_folder, start_date, end_date=None, station_stop_distance=300):
+    def __init__(self, gtfs_folder, output_folder, start_date, end_date=None, station_stop_distance=300,
+                 to_station=True):
         print("StationAccessFinder.__init__")
         self.gtfs = GTFS(os.path.join(gtfs_folder, 'israel-public-transportation.zip'))
         self.gtfs_folder = gtfs_folder
         self.output_folder = output_folder
         if not os.path.exists(self.output_folder):
             os.makedirs(self.output_folder)
+        self.to_station = to_station
         # load route stories
         print("Loading route stories")
         self.route_stories, self.trips_to_route_stories = route_stories.load_route_stories_from_csv(
@@ -155,7 +158,10 @@ class StationAccessFinder:
         # stage 2
         self.route_story_train_station_stops()
         # stage 3
-        self.route_story_stops_to_stations()
+        if self.to_station:
+            self.route_story_stops_to_stations()
+        else:
+            self.stations_to_route_story_stop()
         # stage 4
         self.route_story_frequency()
         # stage 5
@@ -218,6 +224,19 @@ class StationAccessFinder:
                     if next_station is None:
                         break
                 assert next_station.arrival_offset >= route_story_stop.arrival_offset, 'sort problem!'
+                extended_route_story.stop_and_station.append((route_story_stop, next_station))
+
+    def stations_to_route_story_stop(self):
+        print("Running stage 3: stations_to_route_story_stop")
+        for extended_route_story in self.extended_route_stories.values():
+            station_stops_iter = iter(reversed(extended_route_story.station_stops))
+            next_station = next(station_stops_iter)
+            for route_story_stop in reversed(extended_route_story.route_story.stops):
+                if route_story_stop.stop_sequence < next_station.stop_sequence:
+                    next_station = next(station_stops_iter, None)
+                    if next_station is None:
+                        break
+                assert next_station.arrival_offset <= route_story_stop.arrival_offset, 'sort problem!'
                 extended_route_story.stop_and_station.append((route_story_stop, next_station))
 
     def route_story_frequency(self):
@@ -577,5 +596,5 @@ if __name__ == '__main__':
     #CallingAtStation.explode_stop_data(output_folder)
     #CallingAtStation.explode_stop_data(output_folder, route_type=3)
     #CallingAtStation.explode_stop_data(output_folder, route_type=2)
-    finder = StationAccessFinder(gtfs_folder, output_folder, datetime.date(2016, 6, 1))
+    finder = StationAccessFinder(gtfs_folder, output_folder, datetime.date(2016, 6, 1), to_station=False)
     finder.run_station_access()
