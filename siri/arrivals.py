@@ -5,8 +5,8 @@ from jinja2 import Environment, FileSystemLoader
 from datetime import datetime
 
 
-REQUEST_TEMPLATE_FILENAME = "request-template.xml"
-REQUEST_TEMPLATE = Environment(loader=FileSystemLoader('templates')).get_template(REQUEST_TEMPLATE_FILENAME)
+REQUEST_TEMPLATE_FILE = "request.template"
+REQUEST_TEMPLATE = Environment(loader=FileSystemLoader('templates')).get_template(REQUEST_TEMPLATE_FILE)
 HEADERS = {'Content-Type': 'text/xml; charset=utf-8'}
 SIRI_SERVICES_URL = 'http://siri.motrealtime.co.il:8081/Siri/SiriServices'
 HTTP_PROXY = 'http://openbus@192.241.154.128:5035'

@@ -15,8 +15,8 @@ def connect(**kwargs):
         conn_string = "dbname={name} user={user} host={host} port={port} password={password}".format(
             **kwargs)
         return psycopg2.connect(conn_string)
-    except psycopg2.Error:
-        print ("Unable to connect to database.")
+    except psycopg2.Error as e:
+        print ("Unable to connect to database", e)
 
 
 def create(conn):
@@ -29,11 +29,11 @@ def create(conn):
 
 def insert_arrivals(bus_arrivals, conn):
     cursor = conn.cursor()
+    # All bus arrivals have the same response xml
+    response_xml = bus_arrivals[0].response_xml
+    cursor.execute(RESPONSE_INSERT_QUERY, (response_xml,))
+    response_id = int(cursor.fetchone()[0])
     for arrival in bus_arrivals:
-        response_data = (arrival.response_xml,)
-        # print(response_data)
-        cursor.execute(RESPONSE_INSERT_QUERY, response_data)
-        response_id = int(cursor.fetchone()[0])
         arrival_data = (arrival.line_ref, arrival.direction_ref, arrival.published_line_name, arrival.operator_ref,
                         arrival.destination_ref, arrival.monitoring_ref, arrival.expected_arrival_time, arrival.stop_point_ref, arrival.response_timestamp, arrival.recorded_at, response_id)
         cursor.execute(ARRIVAL_INSERT_QUERY, arrival_data)
