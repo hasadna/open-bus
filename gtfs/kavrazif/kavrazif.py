@@ -48,13 +48,19 @@ def stop_to_station_distance(gtfs, trip_to_route_story):
 def export_stop_station_distance_to_csv(gtfs, output_file, stop_station_distance):
     print("Exporting stop station distance")
     with open(output_file, 'w') as f:
-        f.write("stop_id,station_id,stop_code,station_code,station_distance\n")
+        field_names = ['stop_id', 'station_id', 'stop_code', 'station_code', 'station_distance',
+                       'stop_lat', 'stop_lon', 'station_lat', 'station_lon']
+        writer = csv.DictWriter(f, fieldnames=field_names, lineterminator='\n')
+        writer.writeheader()
         for stop_id, (station_id, station_distance) in stop_station_distance.items():
-            stop_code = gtfs.stops[stop_id].stop_code
-            station_code = gtfs.stops[station_id].stop_code
-            f.write(','.join(str(x) for x in [stop_id, station_id,
-                                              stop_code, station_code,
-                                              station_distance]) + '\n')
+            stop_object = gtfs.stops[stop_id]
+            station_object = gtfs.stops[station_id]
+            writer.writerow({
+                'stop_id': stop_id, 'station_id': station_id,
+                'stop_code': stop_object.stop_code, 'station_code': station_object.stop_code,
+                'station_distance': station_distance,
+                'stop_lat': stop_object.stop_lat, 'stop_lon': stop_object.stop_lon,
+                'station_lat': station_object.stop_lat, 'station_lon': station_object.stop_lon })
     print("Export done")
 
 
@@ -105,6 +111,7 @@ def route_story_to_route(gtfs, trip_to_route_stories, start_date):
 
 def routes_calling_at_stop(gtfs, trip_to_route_stories, start_date):
     """Returns a dictionary from a stop_id to a List[Route] containing all routes calling there"""
+
     def key(r):
         return ''.join(d for d in r.line_number if d.isdigit()), r.route_desc
 
