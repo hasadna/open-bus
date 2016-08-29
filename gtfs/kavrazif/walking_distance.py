@@ -19,7 +19,7 @@ def google_maps_navigation_query(start_point, end_point, api_key):
 
 def process_google_maps_reply(google_json):
     if google_json['status'] != 'OK':
-        raise Exception('status is not OK, status=%s' % google_json['status'])
+        raise Exception('status is not OK, status=%s, json=%s' % (google_json['status'], google_json))
     route = google_json['routes'][0]
     leg = route['legs'][0]
     route_length = leg['distance']['value']
@@ -48,6 +48,11 @@ def graph_hopper_navigation_query(start_point, end_point, api_key):
 
 
 def process_graph_hopper_reply(gh_json):
+    if 'paths' not in gh_json:
+        if 'message' in gh_json:
+            raise Exception('error in gh query: %s' % gh_json['message'])
+        else:
+            raise Exception('Badly formatted json %s' % gh_json)
     path = gh_json['paths'][0]
     length = path['distance']
     points = [GeoPoint(p[1], p[0]) for p in path['points']['coordinates']]
@@ -58,9 +63,10 @@ def gh(start_point, end_point, api_key):
     return process_graph_hopper_reply(graph_hopper_navigation_query(start_point, end_point, api_key))
 
 
-def build_walking_distance_table(stops_file, stations_file, output_file, google_api_key, gh_api_key, max_distance=400):
+def build_walking_distance_table(stops_file, stations_file, output_file, google_api_key, gh_api_key, max_distance=400,
+                                 simulate=False):
     def format_path(list_of_points):
-        return ' '.join('%f %f' % (point.lat, point.long) for point in list_of_points)
+        return ' '.join('%f %f' % (p.lat, p.long) for p in list_of_points)
 
     # read stops data
     table = []
@@ -86,6 +92,12 @@ def build_walking_distance_table(stops_file, stations_file, output_file, google_
     print("Stations with 1 entrance: %d" % len([l for l in station_real_location.values() if len(l) == 1]))
     print("Stations with 2 entrances: %d" % len([l for l in station_real_location.values() if len(l) == 2]))
     print("Stations more than 2 entrances: %d" % len([l for l in station_real_location.values() if len(l) > 2]))
+
+    queries_required = sum(len(station_real_location[stop['station_code']]) for stop in table)
+    print("Total number of queries required=%d" % queries_required)
+
+    if simulate:
+        return
 
     headers = ["stop_id", "station_id", "stop_code", "station_code", "station_distance",
                "stop_lat", "stop_lon",
@@ -119,13 +131,19 @@ def build_walking_distance_table(stops_file, stations_file, output_file, google_
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--google_api_key', dest='google_api_key')
-    parser.add_argument('--gh_api_key', dest='gh_api_key')
+    parser.add_argument('--gh_api_key', dest='gh_api_key',
+                        help="Graph Hopper API key")
     parser.add_argument('--stops_file', dest='stops_file')
     parser.add_argument('--stations_file', dest='stations_file')
     parser.add_argument('--output_file', dest='output_file')
     parser.add_argument('--max_distance', dest='max_distance', type=int,
                         help='Maximum straight line distance to include in results')
+    parser.add_argument('--simulate', help="Print how many API queries are required; don't run any queries",
+                        action='store_true')
+    parser.set_defaults(simulate=False)
+
     args = parser.parse_args()
     build_walking_distance_table(stops_file=args.stops_file, stations_file=args.stations_file,
                                  gh_api_key=args.gh_api_key, google_api_key=args.google_api_key,
-                                 output_file=args.output_file, max_distance=args.max_distance)
+                                 output_file=args.output_file, max_distance=args.max_distance,
+                                 simulate=args.simulate)
