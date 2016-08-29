@@ -1,5 +1,6 @@
 import csv
 from argparse import ArgumentParser
+from collections import defaultdict
 
 import requests
 
@@ -73,37 +74,48 @@ def build_walking_distance_table(stops_file, stations_file, output_file, google_
     print("Read %d stops with straight_line distance <= %d" % (len(table), max_distance))
 
     # getting real coordinates for train stations
-    station_real_location = {}
+    station_real_location = defaultdict(lambda: [])
     with open(stations_file, "r", buffering=-1, encoding="utf8") as g:
-        next(g)  # skip header
-        for line in g:
-            data = line.split(",")
-            station_real_location[data[1]] = GeoPoint(float(data[3]), float(data[4]))
+        reader = csv.DictReader(g)
+        for line in reader:
+            if line['Type'] == 'Entrance':  # we skip exits for now because they make things to complicated
+                station_real_location[line['stop_code']].append(GeoPoint(float(line['latitude']),
+                                                                         float(line['longitude'])))
+
+    print("Read locations for %d train stations" % len(station_real_location))
+    print("Stations with 1 entrance: %d" % len([l for l in station_real_location.values() if len(l) == 1]))
+    print("Stations with 2 entrances: %d" % len([l for l in station_real_location.values() if len(l) == 2]))
+    print("Stations more than 2 entrances: %d" % len([l for l in station_real_location.values() if len(l) > 2]))
 
     headers = ["stop_id", "station_id", "stop_code", "station_code", "station_distance",
-               "stop_lat", "stop_lon", "station_lat", "station_lon",
-               'Google_walking_distance', 'GH_walking_distance', 'Google_directions', 'GH_directions']
+               "stop_lat", "stop_lon",
+               'google_walking_distance', 'gh_walking_distance',
+               'google_station_lat', 'google_station_lon',
+               'gh_station_lat', 'gh_station_lon',
+               'google_directions', 'gh_directions']
 
     with open(output_file, 'w', newline='', encoding='utf8') as f:
         writer = csv.DictWriter(f, fieldnames=headers, lineterminator='\n', extrasaction='ignore')
         writer.writeheader()
         for stop in table:
-            stop['station_point'] = station_real_location[stop['station_code']]
+            # a station may have multiple entrances
+            for point in station_real_location[stop['station_code']]:
+                distance, points = google(stop['stop_point'], point, google_api_key)
+                if distance < stop.get('google_walking_distance', 999999):
+                    stop['google_walking_distance'] = distance
+                    stop['google_directions'] = format_path(points)
+                    stop['google_station_lat'], stop['google_station_lon'] = point.lat, point.long
 
-            distance, points = google(stop['stop_point'], stop['station_point'], google_api_key)
-            stop['Google_walking_distance'] = distance
-            stop['Google_directions'] = format_path(points)
+                distance, points = gh(stop['stop_point'], point, gh_api_key)
+                if distance < stop.get('gh_walking_distance', 999999):
+                    stop['gh_walking_distance'] = distance
+                    stop['gh_directions'] = format_path(points)
+                    stop['gh_station_lat'], stop['gh_station_lon'] = point.lat, point.long
 
-            distance, points = gh(stop['stop_point'], stop['station_point'], gh_api_key)
-            stop['GH_walking_distance'] = distance
-            stop['GH_directions'] = format_path(points)
-
-            stop['station_lat'] = stop['station_point'].lat
-            stop['station_lon'] = stop['station_point'].long
             writer.writerow(stop)
             f.flush()
 
-  
+
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--google_api_key', dest='google_api_key')
