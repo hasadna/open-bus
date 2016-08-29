@@ -1,5 +1,5 @@
 # TODO: fetch all stops from gtfs using get_stops
-# TODO: allow quering with custom time ranges
+# TODO: allow querying with custom time ranges
 
 import argparse
 from core import arrivals, siri_parser, db
@@ -17,10 +17,8 @@ def parse_flags():
                         default="openbus",
                         help="Openbus project DB name")
     parser.add_argument("--db_user", type=str,
-                        default="openbus",
                         help="Openbus project DB user")
     parser.add_argument("--db_password", type=str,
-                        default="openbus",
                         help="Openbus project DB password")
     parser.add_argument("--stops", type=str, nargs='+',  # non-empty list
                         default="41207",
@@ -46,5 +44,6 @@ def main():
         "port": args.db_port
     }
     fetch_and_store_arrivals(connection_details=conn, stops=args.stops)
+
 if __name__ == '__main__':
     main()
