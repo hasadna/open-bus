@@ -259,6 +259,10 @@ class Stop:
     def __hash__(self):
         return hash(self.stop_id)
 
+    @property
+    def town(self):
+        return self.stop_desc.split(":")[2][:-5].strip()
+
     @classmethod
     def from_csv(cls, csv_record):
         stop_id = int(csv_record['stop_id'])
