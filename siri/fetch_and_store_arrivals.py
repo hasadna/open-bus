@@ -16,28 +16,28 @@ def parse_flags():
     parser.add_argument("--db_name", type=str,
                         default="siri",
                         help="Openbus project DB name")
-    parser.add_argument("--db_user", type=str,
-                        default="openbus",
+    parser.add_argument("--db_user", type=str, required=True,
                         help="Openbus project DB user")
-    parser.add_argument("--db_password", type=str,
-                        default="openbus",
+    parser.add_argument("--db_password", type=str, required=True,
                         help="Openbus project DB password")
     parser.add_argument("--stops_file", type=str,
-                        default="stops.txt",
                         help="List of stops to query about, space separated.")
     return parser.parse_args()
 
 
 def fetch_and_store_arrivals(connection_details, stops):
+    conn = db.connect(**connection_details)
     request_xml = arrivals.get_arrivals_request_xml(stops)
     response_xml = arrivals.get_arrivals_response_xml(request_xml)
     parsed_arrivals = siri_parser.parse_siri_xml(response_xml)
-    db.insert_arrivals(parsed_arrivals, db.connect(**connection_details))
+    db.insert_arrivals(parsed_arrivals, conn)
     print("Successfully inserted data")
+
 
 def get_stops(stops_file):
     with open(stops_file) as stops:
         return stops.read().split()
+
 
 def main():
     args = parse_flags()
@@ -50,5 +50,7 @@ def main():
     }
     stops = get_stops(args.stops_file)
     fetch_and_store_arrivals(connection_details=conn, stops=stops)
+
+
 if __name__ == '__main__':
     main()

@@ -11,12 +11,8 @@ DB_SCHEMA_FILENAME = os.path.join(os.path.dirname(
 
 
 def connect(**kwargs):
-    try:
-        conn_string = "dbname={name} user={user} host={host} port={port} password={password}".format(
-            **kwargs)
-        return psycopg2.connect(conn_string)
-    except psycopg2.Error as e:
-        print ("Unable to connect to database", e)
+    conn_string = "dbname={name} user={user} host={host} port={port} password={password}".format(**kwargs)
+    return psycopg2.connect(conn_string)
 
 
 def create(conn):
@@ -35,6 +31,7 @@ def insert_arrivals(bus_arrivals, conn):
     response_id = int(cursor.fetchone()[0])
     for arrival in bus_arrivals:
         arrival_data = (arrival.line_ref, arrival.direction_ref, arrival.published_line_name, arrival.operator_ref,
-                        arrival.destination_ref, arrival.monitoring_ref, arrival.expected_arrival_time, arrival.stop_point_ref, arrival.response_timestamp, arrival.recorded_at, response_id)
+                        arrival.destination_ref, arrival.monitoring_ref, arrival.expected_arrival_time,
+                        arrival.stop_point_ref, arrival.response_timestamp, arrival.recorded_at, response_id)
         cursor.execute(ARRIVAL_INSERT_QUERY, arrival_data)
     conn.commit()
