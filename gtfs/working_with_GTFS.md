@@ -71,4 +71,6 @@ This script uses route stories, so you must generate route stories before runnin
 The script is interactive. It will show you all the lines with the given line number, and ask you to choose which one you want. Also, if the line calls in different stops in different dates, it will ask you to choose which dates you want. 
 
 
-    
+Other random information
+-------------------------
+* stop id vs. stop code:  the stops file contains two fields that look similar, stop_id and stop_code. stop_code is the actual number of the stop in the MoT systems. It appears on the physical signage at the bus stop ([see example](http://img2.tapuz.co.il/CommunaFiles/50250504.jpg]). It is also the number that should be used for SIRI queries. stop_id is just an internal key inside the GTFS, referenced in the stop_times table.  
