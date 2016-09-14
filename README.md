@@ -4,11 +4,19 @@ Open Bus is a project of [The Public Knowledge Workshop](http://http://www.hasad
 
 We use public data to improve bus service - and public transport in general - in Israel.
 
-We currently work on two sub-projects: Real Delays and Bus2Train. In addition, we have side tasks cropping up from time to time, [see our issues](<https://github.com/hasadna/open-bus/issues>).
+We currently work on two sub-projects: 
 
-## Real Delays
-Aggregating real-time bus data and comparing it to the planned bus schedules. The Ministry of Transport publishes both static (planned)  and real-time (actual) trip data. We are working on aggregating data that will allow analysis of bus delays and canceled trips. 
+1. Real Delays: Aggregating real-time bus data and comparing it to the planned bus schedules. 
+2. Bus2Train: Analyze bus service to and from train stations.
 
 
-## Bus2Train
-Analyze bus service to and from train stations. This is a data analysis task that uses (for now) GTFS static data.  
+# Where does the data come from?
+
+1. Planned (static) data: The Ministry of Transport publishes a file containing planned trips data for the next 60 days. [Read this file](https://github.com/hasadna/open-bus/blob/master/gtfs/working_with_GTFS.md) for more information about GTFS and what we do with it. The [gtfs](https://github.com/hasadna/open-bus/tree/master/gtfs) package is where we work on code for reading GTFS, parsing and loading it to DB. 
+2. Online data: the MoT has a webservice that provides real-time data. The webservice is called SIRI SM. [See here](http://he.mot.gov.il/index.php?option=com_content&view=article&id=2243:pub-trn-memchakim&catid=167:pub-trn-dev-info&Itemid=304) for information about it from the ministry of transport. The [siri](https://github.com/hasadna/open-bus/tree/master/siri) package has code for accessing SIRI. To understand what's going on, start at [siri/fetch_and_store_arrivals.py](https://github.com/hasadna/open-bus/blob/master/siri/fetch_and_store_arrivals.py).
+
+
+# Want to help?
+Both of our sub-projects are currently about aggregating and analysing data, so we need mainly Python developpers and data scientists. We also have side tasks that are quite "stand-alone" and are suitable for people stating up. 
+
+Please have a look at [our issues](<https://github.com/hasadna/open-bus/issues>) to see what we need help with. 
