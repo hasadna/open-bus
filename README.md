@@ -19,4 +19,6 @@ We currently work on two sub-projects:
 # Want to help?
 Both of our sub-projects are currently about aggregating and analysing data, so we need mainly Python developpers and data scientists. We also have side tasks that are quite "stand-alone" and are suitable for people stating up. 
 
-Please have a look at [our issues](<https://github.com/hasadna/open-bus/issues>) to see what we need help with. 
+We are using Python 3.5.x . Some of the code requires Postgres SQL. 
+
+To get started, clone the repository, and have a look at [our issues](<https://github.com/hasadna/open-bus/issues>) to see what we need help with. 
