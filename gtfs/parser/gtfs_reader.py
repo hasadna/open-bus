@@ -149,7 +149,16 @@ class Route:
         self.line_number = line_number
         self.route_long_name = route_long_name
         self.route_desc = route_desc
+        # route_types values are {0: 'LightRailway', 2: 'Train', 3: 'Bus', 4: 'SharedTaxi'}
         self.route_type = route_type
+
+    @property
+    def train_route(self):
+        return self.route_type == 2
+
+    @property
+    def bus_route(self):
+        return self.route_type == 3
 
     def __repr__(self):
         return "<Route %d>" % self.route_id
@@ -178,6 +187,9 @@ class Trip:
         self.shape_id = shape_id
         self.stop_times_ids = None
         self.stop_times = None
+
+    def active_on_date(self, on_date):
+        return self.service.start_date <= on_date <= self.service.end_date and on_date.weekday() in self.service.days
 
     @classmethod
     def from_csv(cls, csv_record, routes, services):
