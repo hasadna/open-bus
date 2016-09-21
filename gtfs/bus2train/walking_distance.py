@@ -128,6 +128,14 @@ def build_walking_distance_table(stops_file, stations_file, output_file, google_
             f.flush()
 
 
+def load_walking_distance_table(filename, max_distance=300):
+    with open(filename, encoding='utf8') as f:
+        reader = csv.DictReader(f)
+        return {int(r['stop_id']): int(r['station_id']) for r in reader
+                if float(r['google_walking_distance']) < max_distance or
+                float(r['gh_walking_distance']) < max_distance}
+
+
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--google_api_key', dest='google_api_key')
