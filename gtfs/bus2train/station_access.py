@@ -1,5 +1,5 @@
 from gtfs.parser.gtfs_reader import GTFS, Service
-from gtfs.bus2train.kavrazif import load_train_station_distance, weekdays
+from gtfs.bus2train.utilities import load_train_station_distance, weekdays
 from gtfs.parser import route_stories
 import datetime
 import os
