@@ -1,4 +1,4 @@
-import gtfs.kavrazif.geo as geo
+import gtfs.bus2train.geo as geo
 from collections import namedtuple, defaultdict
 from gtfs.parser.gtfs_reader import *
 from gtfs.parser.route_stories import load_route_stories_from_csv

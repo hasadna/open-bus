@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import requests
 
-from gtfs.kavrazif.geo import GeoPoint
+from gtfs.bus2train.geo import GeoPoint
 
 
 def google_maps_navigation_query(start_point, end_point, api_key):

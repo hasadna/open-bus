@@ -1,6 +1,6 @@
 from gtfs.parser.gtfs_reader import GTFS
 from gtfs.parser.route_stories import load_route_stories_from_csv
-from gtfs.kavrazif.kavrazif import load_train_station_distance, routes_calling_at_stop, route_frequency
+from gtfs.bus2train.kavrazif import load_train_station_distance, routes_calling_at_stop, route_frequency
 from collections import defaultdict
 
 import falcon
