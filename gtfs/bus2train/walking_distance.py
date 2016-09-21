@@ -1,6 +1,6 @@
 import csv
 from argparse import ArgumentParser
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 
 import requests
 
@@ -128,12 +128,16 @@ def build_walking_distance_table(stops_file, stations_file, output_file, google_
             f.flush()
 
 
-def load_walking_distance_table(filename, max_distance=300):
+def load_walking_distance_table(filename):
+    Record = namedtuple('Record', 'station_id straight_line_distance google_distance gh_distance')
+
+    def make_record(r):
+        return Record(int(r['station_id']), float(r['station_distance']), float(r['google_walking_distance']),
+                      float(r['gh_walking_distance']))
+
     with open(filename, encoding='utf8') as f:
         reader = csv.DictReader(f)
-        return {int(r['stop_id']): int(r['station_id']) for r in reader
-                if float(r['google_walking_distance']) < max_distance or
-                float(r['gh_walking_distance']) < max_distance}
+        return {int(r['stop_id']): make_record(r) for r in reader}
 
 
 if __name__ == '__main__':
