@@ -10,7 +10,7 @@ The data in the GTFS includes:
   * list of trips (rides) - when buses travel and where they call - trips, calendar and stop_times tables 
   * geographic coordinates of bus trips, can be used to draw them on the map - shapes table 
 
-[This entity relations diagram](https://github.com/hasadna/open-bus/blob/master/gtfs/gtfs_src_entity_diagram.png) can help you understand the relationships between the tables. For more information read the specification on the [MoT website](<http://he.mot.gov.il/index.php?option=com_content&view=article&id=2244:pub-trn-gtfs&catid=167:pub-trn-dev-info&Itemid=304>).
+[This entity relations diagram](https://github.com/hasadna/open-bus/blob/master/gtfs/gtfs_src_entity_diagram.png) can help you understand the relationships between the tables. For more information read the specification on the [MoT website](<http://he.mot.gov.il/index.php?option=com_content&view=article&id=2244:pub-trn-gtfs&catid=167:pub-trn-dev-info&Itemid=304>), and also [Google's Developers Website](https://developers.google.com/transit/gtfs/reference/).
 
 *Note: the MoT, as public transport regulator, sets the schedule of departures for each bus line (the times when it should leave the first stop). The times in the GTFS for other stops do not bind the operators. There's probably no effort to make sensible estimates of when buses will arrive to each stop.*
 
@@ -74,3 +74,4 @@ The script is interactive. It will show you all the lines with the given line nu
 Other random information
 -------------------------
 * stop id vs. stop code:  the stops file contains two fields that look similar, stop_id and stop_code. stop_code is the actual number of the stop in the MoT systems. It appears on the physical signage at the bus stop ([see example](http://img2.tapuz.co.il/CommunaFiles/50250504.jpg]). It is also the number that should be used for SIRI queries. stop_id is just an internal key inside the GTFS, referenced in the stop_times table.  
+* pickup_type & drop_off_type in stop_times table (and route stories): the values of these fields are a bit confusing. If pickup_type == 0, then pickup is available. If pickup_type == 1, no pickup is avaiblable (so it's a drop off station only). Same goes for drop_off_type. 
