@@ -1,12 +1,13 @@
+import os
 import urllib.request
 import pytz
-import traceback
 from jinja2 import Environment, FileSystemLoader
 from datetime import datetime
 from http.client import IncompleteRead
 
 REQUEST_TEMPLATE_FILE = "request.template"
-REQUEST_TEMPLATE = Environment(loader=FileSystemLoader('templates')).get_template(REQUEST_TEMPLATE_FILE)
+templates_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'templates')
+REQUEST_TEMPLATE = Environment(loader=FileSystemLoader(templates_folder)).get_template(REQUEST_TEMPLATE_FILE)
 HEADERS = {'Content-Type': 'text/xml; charset=utf-8'}
 SIRI_SERVICES_URL = 'http://siri.motrealtime.co.il:8081/Siri/SiriServices'
 HTTP_PROXY = 'http://openbus@192.241.154.128:5035'
