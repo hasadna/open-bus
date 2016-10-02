@@ -101,8 +101,8 @@ def main(gtfs_folder, walking_distance_file, output_folder, on_date):
                   "route_long_name - the name of the route",
                   "arrival - time of arrival to station \ stop",
                   "departure - time of departure from station",
-                  "pickup - 0 if pickup is allowed, 1 if it's a drop off only stop",
-                  "dropoff - 0 if pickup is allowed, 1 if it's a pickup only stop"
+                  "pickup - 0 if pickup is allowed, 1 if it's a drop off only stop (yes, this is counter intuitive)",
+                  "dropoff - 0 if dropoff is allowed, 1 if it's a pickup only stop (yes, this is counter intuitive)"
                   "stop_station_distance - staight line distance between the stop and the associated train station",
                   "google_walking_distance - walking distance to train station, calculated with google maps api"
                   "gh_walking_distance - walking distance to train station, calculated with graph hopper api "
