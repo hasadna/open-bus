@@ -42,5 +42,4 @@ def get_arrivals_request_xml(stops, siri_user):
     """
     timestamp = datetime.now(pytz.timezone("Israel")).isoformat()
     request_xml = REQUEST_TEMPLATE.render(stops=stops, timestamp=timestamp, siri_user=siri_user)
-    print(request_xml)
     return request_xml
