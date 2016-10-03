@@ -33,7 +33,7 @@ def get_arrivals_response_xml(request_xml, use_proxy=False):
         return e.partial
 
 
-def get_arrivals_request_xml(stops):
+def get_arrivals_request_xml(stops, siri_user):
     """
     Args:
         stops - List of stop IDs
@@ -41,5 +41,6 @@ def get_arrivals_request_xml(stops):
         Siri request XML (String)
     """
     timestamp = datetime.now(pytz.timezone("Israel")).isoformat()
-    request_xml = REQUEST_TEMPLATE.render(stops=stops, timestamp=timestamp)
+    request_xml = REQUEST_TEMPLATE.render(stops=stops, timestamp=timestamp, siri_user=siri_user)
+    print(request_xml)
     return request_xml

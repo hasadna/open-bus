@@ -11,6 +11,7 @@ except ImportError as e:
 
 def parse_flags():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--siri_user', type=str, help='User name for SIRI system (RequestorRef)', required=True)
     parser.add_argument("--db_host", type=str,
                         default="localhost",
                         help="Openbus project DB host")
@@ -64,7 +65,7 @@ def write_arrivals_to_file(bus_arrivals, filename):
 
 
 def fetch_arrivals(args, stops):
-    request_xml = arrivals.get_arrivals_request_xml(stops)
+    request_xml = arrivals.get_arrivals_request_xml(stops, args.siri_user)
     response_xml = arrivals.get_arrivals_response_xml(request_xml, args.use_proxy)
     if "User authentication failed".encode('utf-8') in response_xml:
         raise Exception("Error connecting to SIRI: user authentication failed")

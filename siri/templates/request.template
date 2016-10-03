@@ -4,7 +4,7 @@
         <siriWS:GetStopMonitoringService>
             <Request xsi:type="siri:ServiceRequestStructure">
                 <siri:RequestTimestamp>{{ timestamp }}</siri:RequestTimestamp>
-                <siri:RequestorRef xsi:type="siri:ParticipantRefStructure">YG102988</siri:RequestorRef>
+                <siri:RequestorRef xsi:type="siri:ParticipantRefStructure">{{ siri_user }}</siri:RequestorRef>
                 <siri:MessageIdentifier xsi:type="siri:MessageQualifierStructure">0100700:1351669188:4684</siri:MessageIdentifier>
                 {% for stop in stops %}
                 <siri:StopMonitoringRequest version="IL2.6" xsi:type="siri:StopMonitoringRequestStructure">

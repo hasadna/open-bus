@@ -17,7 +17,7 @@ def choose_route_by_line_number(line_number, g):
         if t.route in candidates:
             route_trips_counter[t.route] += 1
 
-    candidates = list(sorted(candidates, key=lambda r: r.agency.agency_id))
+    candidates = list(sorted(candidates, key=lambda r: -1 * route_trips_counter[r]))
 
     print("Choose which route you want for line %s (type option number):" % line_number)
     print("Hint: if there are multiple options matching your preference, you probably want the one with more trips")
