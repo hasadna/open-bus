@@ -272,9 +272,23 @@ class Stop:
     def __hash__(self):
         return hash(self.stop_id)
 
+    # extract address, town, dock & floor from stop description
+    @property
+    def address(self):
+        return self.stop_desc.split(":")[1][:-4].strip()
+
     @property
     def town(self):
         return self.stop_desc.split(":")[2][:-5].strip()
+
+    @property
+    def dock(self):
+        return self.stop_desc.split(":")[3][:-5].strip()
+
+    @property
+    def floor(self):
+        return self.stop_desc.split(":")[4].strip()
+
 
     @classmethod
     def from_csv(cls, csv_record):
