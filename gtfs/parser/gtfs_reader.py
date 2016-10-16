@@ -227,7 +227,8 @@ class Service:
 
 
 class StopTime:
-    # trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type
+    keys = 'trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type'.split(',')
+
     def __init__(self, arrival_time, departure_time, stop_id, stop_sequence, pickup_type, drop_off_type):
         self.drop_off_type = drop_off_type
         self.pickup_type = pickup_type
@@ -251,6 +252,11 @@ class StopTime:
         pickup_type = csv_record['pickup_type']
         drop_off_type = csv_record['drop_off_type']
         return cls(arrival_time, departure_time, stop_id, stop_sequence, pickup_type, drop_off_type)
+
+    @classmethod
+    def from_line(cls, line):
+        tokens = line.strip().split(',')
+        return StopTime.from_csv({key: token for (key, token) in zip (StopTime.keys, tokens)})
 
 
 class Stop:
