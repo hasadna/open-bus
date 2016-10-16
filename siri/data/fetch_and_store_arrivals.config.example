@@ -19,7 +19,7 @@ write_results_to_file = False
 # db connection parameters, ignored if write_results_to_file = True
 db_host = localhost
 db_port = 5432
-db_name = siri
+db_name = obus
 db_user = DBUSER
 db_password = PASSWORD
 

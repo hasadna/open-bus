@@ -10,15 +10,15 @@ You need a postgres database with the correct schema. The schema file is availab
 You need to do something like this:
 
       sudo -u postgres psql
-      create database siri;
-      \connect siri
+      create database obus;
+      \connect obus
       create role <USERNAME> with login password '<PASSWORD>';
       GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO <USERNAME>;
       GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public to <USERNAME>;
       
 Exit the postgres shell (ctrl-D) and then import the schema:
 
-     sudo -u postgres psql siri postgres < schema.sql
+     sudo -u postgres psql obus postgres < schema.sql
      
 
 ### Get the list of stop codes
