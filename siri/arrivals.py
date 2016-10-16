@@ -10,10 +10,9 @@ templates_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'te
 REQUEST_TEMPLATE = Environment(loader=FileSystemLoader(templates_folder)).get_template(REQUEST_TEMPLATE_FILE)
 HEADERS = {'Content-Type': 'text/xml; charset=utf-8'}
 SIRI_SERVICES_URL = 'http://siri.motrealtime.co.il:8081/Siri/SiriServices'
-HTTP_PROXY = 'http://openbus@192.241.154.128:5035'
 
 
-def get_arrivals_response_xml(request_xml, use_proxy=False):
+def get_arrivals_response_xml(request_xml, use_proxy=False, proxy_url=None):
     """
     Args:
         request_xml - Siri request XML (String)
@@ -21,7 +20,8 @@ def get_arrivals_response_xml(request_xml, use_proxy=False):
         Siri response XML (String)
     """
     try:
-        proxy = urllib.request.ProxyHandler({'http': HTTP_PROXY})
+        print("Running get_arrivals_response_xml %s proxy" % ("with" if use_proxy else "without"))
+        proxy = urllib.request.ProxyHandler({'http': proxy_url})
         if use_proxy:
             opener = urllib.request.build_opener(proxy)
             urllib.request.install_opener(opener)

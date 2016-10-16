@@ -1,1 +1,0 @@
-*/5 * * * * python3 fetch_and_store_arrivals.py
