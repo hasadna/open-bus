@@ -24,6 +24,8 @@ def create(conn):
 
 
 def insert_arrivals(bus_arrivals, conn):
+    if len(bus_arrivals) == 0:
+        return
     cursor = conn.cursor()
     # All bus arrivals have the same response xml
     response_xml = bus_arrivals[0].response_xml
