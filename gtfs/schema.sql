@@ -2,7 +2,7 @@
 -- TODO: Make sure type-sizes are fine.
 -- TODO: Check requested type-size for coordinates.
 -- TODO: Check requested type-size for shape_dist_traveled.
-SET ROLE openbus;
+SET ROLE obus;
 
 CREATE TABLE agency
 (
@@ -11,7 +11,7 @@ CREATE TABLE agency
   CONSTRAINT agency_pkey PRIMARY KEY (agency_id )
 );
 ALTER TABLE agency
-  OWNER TO openbus;
+  OWNER TO obus;
 
 
 CREATE TABLE routes
@@ -26,7 +26,7 @@ CREATE TABLE routes
   CONSTRAINT routes_pkey PRIMARY KEY (route_id )
 );
 ALTER TABLE routes
-  OWNER TO openbus;
+  OWNER TO obus;
 CREATE INDEX routes_agency_id
   ON routes
   USING btree
@@ -47,7 +47,7 @@ CREATE TABLE trips
   CONSTRAINT trips_pkey PRIMARY KEY (trip_id )
 );
 ALTER TABLE trips
-  OWNER TO openbus;
+  OWNER TO obus;
 CREATE INDEX trips_direction_id
   ON trips
   USING btree
@@ -81,7 +81,7 @@ CREATE TABLE calendar
   CONSTRAINT calendar_pkey PRIMARY KEY (service_id )
 );
 ALTER TABLE calendar
-  OWNER TO openbus;
+  OWNER TO obus;
 CREATE INDEX calendar_service_id
   ON calendar
   USING btree
@@ -101,7 +101,7 @@ CREATE TABLE stop_times
   CONSTRAINT stop_times_pkey PRIMARY KEY (id )
 );
 ALTER TABLE stop_times
-  OWNER TO openbus;
+  OWNER TO obus;
 CREATE INDEX stop_times_drop_off_type
   ON stop_times
   USING btree
@@ -138,7 +138,7 @@ CREATE TABLE stops
   CONSTRAINT stops_pkey PRIMARY KEY (stop_id )
 );
 ALTER TABLE stops
-  OWNER TO openbus;
+  OWNER TO obus;
 CREATE INDEX stops_location_type
   ON stops
   USING btree
@@ -170,4 +170,4 @@ CREATE TABLE shapes
   CONSTRAINT shapes_pkey PRIMARY KEY (shape_id , shape_pt_sequence )
 );
 ALTER TABLE shapes
-  OWNER TO openbus;
+  OWNER TO obus;
