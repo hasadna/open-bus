@@ -1,6 +1,13 @@
 ## inserting into postgres db
 
-## How to run?
+
+### Important!
+
+**Important: this file explains how to use gtfs.parser.ps_insert. This is a rather slow method and it could take hours to insert a full GTFS file. Please use [insert_gtfs.sh](https://github.com/hasadna/open-bus/blob/master/postgres/insert_gtfs.sh) instead**
+
+
+
+
 
 ### Create a database
 You need a postgres database with the correct schema. The schema file is available under gtfs/schema.sql
