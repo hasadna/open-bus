@@ -57,19 +57,29 @@ Why is this good?
 
 """
 
-import zipfile
-import datetime
 import csv
-import io
-from collections import defaultdict, namedtuple
 import os
-from gtfs.parser.gtfs_reader import GTFS, StopTime
 import sys
-import psutil
+from collections import defaultdict, namedtuple
+from configparser import ConfigParser
+
+from gtfs.parser.gtfs_reader import StopTime
+import logging
+
+try:
+    import psycopg2
+    import psycopg2.extras
+except ImportError as e:
+    print("Failed to import psycopg2, db functionality will fail")
 
 
-def memory_consumption():
-    return psutil.Process(os.getpid()).memory_info().rss // (1024 * 1024)
+def parse_config(config_file_name):
+    with open(config_file_name) as f:
+        # add section header because config parser requires it
+        config_file_content = '[Section]\n' + f.read()
+    config = ConfigParser()
+    config.read_string(config_file_content)
+    return {k: v for (k, v) in config['Section'].items()}
 
 
 def parse_timestamp(timestamp):
@@ -129,109 +139,135 @@ class RouteStory:
         return hash(self.route_story_id)
 
 
-def build_route_stories(gtfs: GTFS):
+TripRouteStory = namedtuple('TripRouteStory', 'start_time route_story')
+
+
+def stop_times_file_generator(stop_times_file):
+    """Yields a sequence of (trip_id, StopTime) tuples read from gtfs stop_times.txt file"""
+
+    def key(line):
+        tokens = line.strip().split(',')
+        return tokens[0], int(tokens[4])
+
+    def line_to_trip_and_stop_time(line):
+        return line.partition(',')[0], StopTime.from_line(line)
+
+    with open(stop_times_file, encoding='utf8') as f:
+        next(f)
+        lines = sorted(f.readlines(), key=key)
+        return (line_to_trip_and_stop_time(line) for line in lines)
+
+
+def stop_times_db_generator(config):
+    def total_records():
+        c = connection.cursor()
+        c.execute("SELECT COUNT(*) FROM stop_times;")
+        return c.fetchone()[0]
+
+    def progress(iterable):
+        for i, value in enumerate(iterable):
+            if i % 1000000 == 0 and i > 0:
+                logging.debug("%dM records read (%.1f%%)" % (i / 1000000, 100 * i / total_records))
+            yield value
+
+    """Yields a sequence of (trip_id, StopTime) tuples read from db"""
+    template = "dbname={d[db_name]} user={d[db_user]} host={d[db_host]} password={d[db_password]}"
+    connection_str = template.format(d=config)
+    logging.debug("Connection to db")
+    connection = psycopg2.connect(connection_str)
+    logging.debug("Fetching total number of records")
+    total_records = total_records()
+    logging.debug("There are %d records in stop_times table" % total_records)
+    logging.debug("Creating cursor")
+    cursor = connection.cursor('read_stop_times_from_db', cursor_factory=psycopg2.extras.DictCursor)
+    logging.debug("Executing select query")
+    cursor.execute("SELECT trip_id,arrival_time,departure_time,stop_id,stop_sequence,drop_off_only,pickup_only" +
+                   " FROM stop_times ORDER BY trip_id, stop_sequence;")
+    logging.debug("Starting iteration")
+    for row in progress(cursor):
+        yield row[0], StopTime(parse_timestamp(row[1]), parse_timestamp(row[2]), row[3], row[4], row[5], row[6])
+    logging.debug("Done iteration. Closing db connection.")
+    connection.close()
+    logging.debug("DB connection closed.")
+
+
+def group_by_trip_id(sequence):
+    """
+    Receives a sequence of (trip_id, stop_time) tuples, where stop_time is a StopTime objects. Yields
+    (trip_id, stop_times), where stop_times is a list of StopTime objects.
+    """
+    trips_count = 0
+    bad_trips_count = 0
+
+    trip_stop_times = []
+    prev_trip_id = None
+    for trip_id, stop_time in sequence:
+        if prev_trip_id is not None and trip_id != prev_trip_id:
+            trips_count += 1
+            if trip_stop_times[0].stop_sequence == 1 and trip_stop_times[-1].stop_sequence == len(trip_stop_times):
+                yield prev_trip_id, trip_stop_times
+            else:
+                logging.error("Bad sequence for trip %s: %s" % (prev_trip_id, trip_stop_times))
+                bad_trips_count += 1
+            trip_stop_times = []
+        prev_trip_id = trip_id
+        trip_stop_times.append(stop_time)
+
+    if len(trip_stop_times) > 0:
+        trips_count += 1
+        yield prev_trip_id, trip_stop_times
+
+    logging.debug("Total number of trips in raw data: %d" % trips_count)
+    logging.debug("Number of bad trips: %d" % bad_trips_count)
+
+
+def build_route_stories(trip_and_stop_times):
     """ Builds route stories. Returns a dictionary from id to RouteStory object, and a dictionary
     from trip to a tuple, (route_story_id, start_time)"""
+    logging.info("Building route stories")
+    route_story_to_id = {}  # Dict[int, RouteStory]
+    trip_to_route_story = {}  # Dict[int, Tuple[int, datetime]]
+    for trip_id, stop_times in trip_and_stop_times:
+        # get the start time in seconds since the start of the day
+        start_time = stop_times[0].arrival_time
+        # convert the StopTime object to RouteStoryStop object; use a tuple because it's hashable
+        route_story_tuple = tuple(RouteStoryStop(stop_time.arrival_time - start_time,
+                                                 stop_time.departure_time - start_time,
+                                                 stop_time.stop_id,
+                                                 stop_time.stop_sequence,
+                                                 stop_time.pickup_type,
+                                                 stop_time.drop_off_type) for stop_time in stop_times)
+        # is it a new route story? if yes, allocate an id
+        if route_story_tuple not in route_story_to_id:
+            route_story_id = len(route_story_to_id) + 1
+            route_story_to_id[route_story_tuple] = route_story_id
+        trip_to_route_story[trip_id] = (route_story_to_id[route_story_tuple], start_time)
 
-    def progenum(iterable, freq):
-        """A primitive progress bar"""
-        i = 0
-        for i, r in enumerate(iterable):
-            yield r
-            if i % freq == 0:
-                print("  ", i, datetime.datetime.now(), memory_consumption())
-        print('Total number of iterations: %d' % i)
-
-    def read_and_sort_stop_times():
-        def key(line):
-            tokens = line.strip().split(',')
-            return tokens[0], int(tokens[4])
-
-        with zipfile.ZipFile(gtfs.filename) as z:
-            with z.open('stop_times.txt') as f:
-                next(f)
-                return sorted(io.TextIOWrapper(f, 'utf8').readlines(), key=key)
-
-    # trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type
-    def trip_stop_times_iterator(stop_time_lines):
-        bad_trip_sequences = set()
-        trip_stop_times = []
-        prev_trip_id = None
-        for line in stop_time_lines:
-            trip_id = line.partition(',')[0]
-            if prev_trip_id is not None and trip_id != prev_trip_id:
-                if trip_stop_times[0].stop_sequence == 1 and trip_stop_times[-1].stop_sequence == len(trip_stop_times):
-                    yield prev_trip_id, trip_stop_times
-                else:
-                    bad_trip_sequences.add(prev_trip_id)
-                trip_stop_times = []
-            prev_trip_id = trip_id
-            trip_stop_times.append(StopTime.from_line(line))
-
-        if len(trip_stop_times) > 0:
-            yield prev_trip_id, trip_stop_times
-
-    def find_missing_trips(available_trips):
-        missing = [trip_id for trip_id in gtfs.trips if trip_id not in available_trips]
-        if len(missing) > 0:
-            print("%s trips have no route story" % len(missing))
-            print("trips with no route stories are: %s" % missing)
-
-    def build(stop_time_lines):
-        route_story_to_id = {}  # Dict[int, RouteStory]
-        trip_to_route_story = {}  # Dict[int, Tuple[int, datetime]]
-
-        print("Building route stories")
-        for trip_id, gtfs_stop_times in progenum(trip_stop_times_iterator(stop_time_lines), 10000):
-            # get the start time in seconds since the start of the day
-            start_time = gtfs_stop_times[0].arrival_time
-            # convert the StopTime object to RouteStoryStop object; use a tuple because it's hashable
-            route_story_tuple = tuple(RouteStoryStop(stop_time.arrival_time - start_time,
-                                                     stop_time.departure_time - start_time,
-                                                     stop_time.stop_id,
-                                                     stop_time.stop_sequence,
-                                                     stop_time.pickup_type,
-                                                     stop_time.drop_off_type) for stop_time in gtfs_stop_times)
-            # is it a new route story? if yes, allocate an id
-            if route_story_tuple not in route_story_to_id:
-                route_story_id = len(route_story_to_id) + 1
-                route_story_to_id[route_story_tuple] = route_story_id
-            trip_to_route_story[trip_id] = (route_story_to_id[route_story_tuple], start_time)
-
-        # convert the route_story_tuples to RouteStory objects
-        route_stories = {route_story_id: RouteStory(route_story_id, route_story_tuple)
-                         for route_story_tuple, route_story_id in route_story_to_id.items()}
-        print("Total number of route stories=%d" % len(route_stories))
-        find_missing_trips(trip_to_route_story.keys())  # this would just print the ids of trips without route story
-
-        return route_stories, trip_to_route_story
-
-    gtfs.load_routes()
-    gtfs.load_trips()
-    print("before reading stop_time lines: %d" % memory_consumption())
-    lines = read_and_sort_stop_times()
-    print("after reading stop_time lines: %d" % memory_consumption())
-    return build(lines)
+    route_stories = {route_story_id: RouteStory(route_story_id, route_story_tuple)
+                     for route_story_tuple, route_story_id in route_story_to_id.items()}
+    logging.info("%d route stories built" % len(route_stories))
+    return route_stories, trip_to_route_story
 
 
 def export_route_stories_to_csv(output_file, route_stories):
-    print("Exporting route story stops")
+    logging.info("Exporting route story stops")
     with open(output_file, 'w') as f:
         f.write("route_story_id,arrival_offset,departure_offset,stop_id,stop_sequence,pickup_type,drop_off_type\n")
         for route_story_id, route_story in route_stories.items():
             for i, stop in enumerate(route_story.stops):
-                f.write(','.join(str(x) for x in [route_story_id,
-                                                  stop.arrival_offset,
-                                                  stop.departure_offset,
-                                                  stop.stop_id,
-                                                  i + 1,
-                                                  stop.pickup_type,
-                                                  stop.drop_off_type]) + '\n')
-    print("Route story export done")
+                values = [route_story_id,
+                          stop.arrival_offset,
+                          stop.departure_offset,
+                          stop.stop_id,
+                          i + 1,
+                          stop.pickup_type,
+                          stop.drop_off_type]
+                f.write(','.join(str(x) if x is not None else '' for x in values) + '\n')
+    logging.info("Route story export done")
 
 
 def export_trip_route_stories_to_csv(output_file, trip_to_route_story):
-    print("exporting %d full trips" % len(trip_to_route_story))
+    logging.info("exporting %d full trips" % len(trip_to_route_story))
     with open(output_file, 'w') as f2:
         fields = ["trip_id", "start_time", "route_story"]
         writer = csv.DictWriter(f2, fieldnames=fields, lineterminator='\n')
@@ -240,10 +276,7 @@ def export_trip_route_stories_to_csv(output_file, trip_to_route_story):
             writer.writerow({"trip_id": trip_id,
                              "start_time": format_time(start_time),
                              "route_story": route_story_id})
-    print("Trips export done.")
-
-
-TripRouteStory = namedtuple('TripRouteStory', 'start_time route_story')
+    logging.info("Trips export done.")
 
 
 def load_route_stories_from_csv(route_stories_file, trip_to_route_story_file):
@@ -272,29 +305,27 @@ def load_route_stories_from_csv(route_stories_file, trip_to_route_story_file):
     return route_stories, trip_to_route_story
 
 
-def generate_route_stories(gtfs_folder):
-    g = GTFS(os.path.join(gtfs_folder, 'israel-public-transportation.zip'))
-    stories, trips = build_route_stories(g)
-    export_route_stories_to_csv(os.path.join(gtfs_folder, 'route_stories.txt'), stories)
-    export_trip_route_stories_to_csv(os.path.join(gtfs_folder, 'trip_to_stories.txt'), trips)
-    return stories, trips
+def main():
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(message)s',
+                        handlers=[logging.StreamHandler(sys.stdout)])
+    config = parse_config(sys.argv[1])
+    if config["source"] == "file":
+        logging.info("Loading data from file", config["source"])
+        source_file_name = config["source_file_name"]
+        source_data = stop_times_file_generator(source_file_name)
+    elif config["source"] == "db":
+        logging.info("Loading data from db")
+        source_data = stop_times_db_generator(config)
+    else:
+        raise Exception("Unknown source type %s" % config["source"])
 
+    stories, trips = build_route_stories(group_by_trip_id(source_data))
 
-def test_route_stories():
-    gtfs_folder = r'../sample'
-    stories, trips = generate_route_stories(gtfs_folder)
-    loaded = load_route_stories_from_csv(os.path.join(gtfs_folder, 'route_stories.txt'),
-                                         os.path.join(gtfs_folder, 'trip_to_stories.txt'))
-    assert stories == loaded[0]
-    assert len(trips) == len(loaded[1])
-    assert trips == {trip_id: (route_story.route_story_id, start_time) for
-                     trip_id, (start_time, route_story) in loaded[1].items()}
+    output_folder = config["output_folder"]
+    export_route_stories_to_csv(os.path.join(output_folder, 'route_stories.txt'), stories)
+    export_trip_route_stories_to_csv(os.path.join(output_folder, 'trip_to_stories.txt'), trips)
 
 
 if __name__ == '__main__':
-    print("welcome to new version")
-    if len(sys.argv) == 1:
-        print("Running test on sample")
-        test_route_stories()
-    else:
-        generate_route_stories(sys.argv[1])
+    main()

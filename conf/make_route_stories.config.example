@@ -1,0 +1,16 @@
+
+# stop times data source, options are file or db
+source = file
+
+# name of stop_files to read. Only used if source == file
+source_file_name = /tmp/gtfs/stop_times.txt
+
+# database connection parameters for reading stop times. Only used if source == db
+db_host = localhost
+db_name = obus
+db_user = USERNAME
+db_password = PASSWORD
+
+# The script creates two files: route_stories.txt and trip_to_route_story.txt
+# They files will be created inside output_folder
+output_folder = /tmp/gtfs
