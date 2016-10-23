@@ -159,8 +159,8 @@ CREATE TABLE calendar
   thursday   BOOLEAN,
   friday     BOOLEAN,
   saturday   BOOLEAN,
-  start_date CHARACTER VARYING(8),
-  end_date   CHARACTER VARYING(8)
+  start_date date,
+  end_date   date
 );
 ALTER TABLE calendar
   OWNER TO obus;

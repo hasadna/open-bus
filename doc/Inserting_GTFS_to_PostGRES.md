@@ -36,7 +36,8 @@ The script now creates the route stories, which are essentially a compressed ver
 
 ## ps_insert.py
 
-1. ps_insert.py assume that the scema already exists, so you need to import the scema first. The schema file is gtfs/schema.sql.
+1. ps_insert.py assume that the scema already exists, so you need to import the scema first.
+The schema file is gtfs/schema.sql. (Note that this isn't identical to the scema used by the shell script.)
 
 2. Unzip the gtfs zip file somewhere. 
 
