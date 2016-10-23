@@ -2,7 +2,7 @@
 What's in the GTFS
 ------------------
 
-GTFS is the format used by the Ministry of Transport to publish planned public transport trips data. It's a set of data tables, published in csv files, and compresses together in a zip file. 
+GTFS is the format used by the Ministry of Transport to publish planned public transport trips data. It's a set of data tables, published in csv files, and compressed together in a zip file. 
 
 The data in the GTFS includes:
 
@@ -15,7 +15,15 @@ The data in the GTFS includes:
 
 *Note: the MoT, as public transport regulator, sets the schedule of departures for each bus line (the times when it should leave the first stop). The times in the GTFS for other stops do not bind the operators. There's probably no effort to make sensible estimates of when buses will arrive to each stop.*
 
-The GTFS is published nightly, and archived by the [Open Train project](<http://gtfs.otrain.org/static/archive/>). 
+The GTFS is published nightly, and archived by the [Open Train project](http://gtfs.otrain.org/static/archive/). 
+
+### GTFS in our DB
+
+We have a script that imports a GTFS file to PostgreSQL.  See [docs/Inserting_GTFS_to_PostGRES.md](docs/Inserting_GTFS_to_PostGRES.md) for information on how to use it.  
+
+Once the data is in the DB, [here are examples](/docs/useful_GTFS_queries.md) for some queries you can run. 
+
+You can use the [Open Budget's re:dash instance](http://data.obudget.org) to access our database, including the GTFS table. 
 
 
 gtfs_reader
@@ -48,16 +56,21 @@ The exception is the `stop_times` table. There's no stop_times dictionary in the
 
 Route stories
 -------------
-Route stories are described in details in the [docstring of the module that computes them](<https://github.com/hasadna/open-bus/blob/master/gtfs/parser/route_stories.py>). The tl;dr is that they are a way to compress the `stop_times` table. To generate route stories from the command line: 
+Route stories are described in details in the [docstring of the module that computes them](https://github.com/hasadna/open-bus/blob/master/gtfs/parser/route_stories.py). The tl;dr is that they are a way to compress the `stop_times` table. 
 
-    python -m gtfs.parser.route_stories gtfs/sample
+Route stories can be created from the GTFS DB or from the original GTFS zip file. To run it on database, it's best to use `postgres/insert_route_stories.sh`. 
 
-The parameter is **the folder** that contains israel-public-transportation.zip . This script will write to files into the same folder: `route_stories.txt` and `trip_to_stories.txt`.
+To run it directly: 
 
+```shell
+python -m gtfs.parser.route_stories <config_file_name>
+```
 Once you created the route stories, you can read them from your code:
 
-    from gtfs.parser.route_stories import load_route_stories_from_csv
-    route_stories, trip_to_route_stories = load_route_stories_from_csv('gtfs/sample/route_stories.txt', 'gtfs/sample/trip_to_stories.txt')
+```python
+from gtfs.parser.route_stories import load_route_stories_from_csv
+route_stories, trip_to_route_stories = load_route_stories_from_csv('gtfs/sample/route_stories.txt', 'gtfs/sample/trip_to_stories.txt')
+```
 
 
 Where does my line call?
@@ -65,9 +78,8 @@ Where does my line call?
 If you have a line number, you can get a list of the stops where it calls. 
 
      python -m gtfs.parser.line_stops_finder --line_number 189 --gtfs_folder gtfs/sample --output_file stops_for_189.txt
-
 The output file will include stop id, stop code, stop name and town. 
-​     
+
 This script uses route stories, so you must generate route stories before running it (see above).
 
 The script is interactive. It will show you all the lines with the given line number, and ask you to choose which one you want. Also, if the line calls in different stops in different dates, it will ask you to choose which dates you want. 
@@ -76,4 +88,4 @@ The script is interactive. It will show you all the lines with the given line nu
 Other random information
 -------------------------
 * stop id vs. stop code:  the stops file contains two fields that look similar, stop_id and stop_code. stop_code is the actual number of the stop in the MoT systems. It appears on the physical signage at the bus stop ([see example](http://img2.tapuz.co.il/CommunaFiles/50250504.jpg]). It is also the number that should be used for SIRI queries. stop_id is just an internal key inside the GTFS, referenced in the stop_times table.  
-* pickup_type & drop_off_type in stop_times table (and route stories): the values of these fields are a bit confusing. If pickup_type == 0, then pickup is available. If pickup_type == 1, no pickup is avaiblable (so it's a drop off station only). Same goes for drop_off_type. 
+* pickup_type & drop_off_type in stop_times table (and route stories): the values of these fields are a bit confusing. If pickup_type == 0, then pickup is available. If pickup_type == 1, no pickup is avaiblable (so it's a drop off station only). Same goes for drop_off_type. The DB import script changes the column name so they make more sense. 
