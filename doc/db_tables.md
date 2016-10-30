@@ -7,7 +7,7 @@ Tables of data extracted from the SIRI service using [fetch_and_store_arrivals](
 
 ## GTFS Tables
 
-Tables loaded from the GTFS file. [More information about GTFS](https://github.com/hasadna/open-bus/blob/master/doc/working_with_GTFS.md). Information about [inserting the GTFS to the DB](https://github.com/hasadna/open-bus/blob/master/doc/Inserting_GTFS_to_PostGRES.md).
+Tables loaded from the GTFS file. [More information about GTFS](https://github.com/hasadna/open-bus/blob/master/doc/working_with_GTFS.md) including an [Entity Relation Diagram](https://github.com/hasadna/open-bus/blob/master/doc/gtfs_src_entity_diagram.png). Information about [inserting the GTFS to the DB](https://github.com/hasadna/open-bus/blob/master/doc/Inserting_GTFS_to_PostGRES.md).
 
 - `agency`
 - `routes`
