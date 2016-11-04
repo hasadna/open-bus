@@ -88,6 +88,18 @@ route_short_name='189' AND
 town = 'חולון';
 ```
 
+Bus by line number and passing through town
+
+```sql
+SELECT routes.route_id, routes.route_short_name, routes.route_long_name, routes.route_desc FROM routes
+JOIN trips ON routes.route_id = trips.route_id
+JOIN stop_times ON trips.trip_id = stop_times.trip_id
+JOIN stops on stop_times.stop_id = stops.stop_id
+WHERE stops.town = 'חולון' 
+AND routes.route_short_name = '189'
+GROUP BY routes.route_id, routes.route_long_name, routes.route_desc;
+```
+
 ## Stop where line calls
 
 Given route_id (which you can find using the previous query)
@@ -102,3 +114,27 @@ join trips on stop_times.trip_id = trips.trip_id
 where trips.route_id = 9813
 ORDER BY stop_times.stop_sequence;
 ```
+## Number of daily trips per route
+
+Given route_id (which you can find using the previous query).
+
+Remember that because of alternatives, there might be two routes with the same line number, doing almost the same route.
+
+```sql
+SELECT  routes.route_short_name, routes.route_long_name, 
+	count(CASE WHEN calendar.sunday THEN 1 END) as SUNDAY,
+	count(CASE WHEN calendar.monday THEN 1 END) as MONDAY,
+	count(CASE WHEN calendar.tuesday THEN 1 END) as TUESDAY,
+    count(CASE WHEN calendar.wednesday THEN 1 END) as WEDNESDAY,
+    count(CASE WHEN calendar.thursday THEN 1 END) as THURSDAY,
+    count(CASE WHEN calendar.friday THEN 1 END) as FRIDAY,
+    count(CASE WHEN calendar.saturday THEN 1 END) as SATURDAY
+FROM calendar
+JOIN trips ON trips.service_id = calendar.service_id
+JOIN routes ON routes.route_id = trips.route_id
+where trips.route_id = 9813
+GROUP BY routes.route_id;
+```
+
+
+
