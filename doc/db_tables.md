@@ -32,4 +32,14 @@ Data generated for the bus2train task.  See [issue #7](https://github.com/hasadn
 
 - `station_walking_distance` has bus stops that are near train stations. It includes the straight line distance, and the length of the walking route using two route services: Google Maps and [Graphopper](https://graphhopper.com/). 
 
-  ​
+## Train passengers counts
+
+  `train_passenger_counts`
+  
+The number of passengers traveling beween each pair of train stations, per month.
+
+We currenly have data for January - April 2016. This data was originally published in Tapuz's Public Transport forum. It seems that it arrives from Israel Railway spokesperson's office, but it's not clear how it was calculated by Isral Railway. The originl file from the forum is [here](https://github.com/daphshez/openbus_data/blob/master/train_station_passengers/passenger%20by%20line%202016-01-04.xlsx). 
+
+Open train project have [an archive of older data published in the same forum](http://otrain.org/files/count/). There are per-station statistics rather than per station pair. 
+
+
