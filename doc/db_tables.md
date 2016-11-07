@@ -1,3 +1,8 @@
+## Re:dash
+You can query all our database tables using re:dash at http://data.obudget.org
+
+Use your Google account to login.
+
 ## SIRI tables
 
 Tables of data extracted from the SIRI service using [fetch_and_store_arrivals](https://github.com/hasadna/open-bus/blob/master/doc/fetch_and_store_arrivals.md). 
@@ -7,7 +12,10 @@ Tables of data extracted from the SIRI service using [fetch_and_store_arrivals](
 
 ## GTFS Tables
 
-Tables loaded from the GTFS file. [More information about GTFS](https://github.com/hasadna/open-bus/blob/master/doc/working_with_GTFS.md) including an [Entity Relation Diagram](https://github.com/hasadna/open-bus/blob/master/doc/gtfs_src_entity_diagram.png). Information about [inserting the GTFS to the DB](https://github.com/hasadna/open-bus/blob/master/doc/Inserting_GTFS_to_PostGRES.md).
+Tables loaded from the GTFS file. 
+  * [More information about GTFS](https://github.com/hasadna/open-bus/blob/master/doc/working_with_GTFS.md) including an [Entity Relation Diagram](https://github.com/hasadna/open-bus/blob/master/doc/gtfs_src_entity_diagram.png). 
+  * Examples of [GTFS-related SQL queries](https://github.com/hasadna/open-bus/blob/master/doc/useful_GTFS_queries.md)
+  * Information about [inserting the GTFS to the DB](https://github.com/hasadna/open-bus/blob/master/doc/Inserting_GTFS_to_PostGRES.md).
 
 - `agency`
 - `routes`
@@ -19,7 +27,7 @@ Tables loaded from the GTFS file. [More information about GTFS](https://github.c
 
 ## Route Stories
 
-Route stories are a compressed version of stop_times. See the d[ocstring of the module that generates them](https://github.com/hasadna/open-bus/blob/master/gtfs/parser/route_stories.py) for more info.
+Route stories are a compressed version of stop_times. See the [docstring of the module that generates them](https://github.com/hasadna/open-bus/blob/master/gtfs/parser/route_stories.py) for more info.
 
 * `route_story_stops`
 * `trip_route_stories` 
