@@ -38,7 +38,8 @@ Data generated for the bus2train task.  See [issue #7](https://github.com/hasadn
 
 - `train_station_exits` has coordinates of the entrances and exits to train stations (the GTFS stops table only have an approximate coordinate in the middle of each station). 
 
-- `station_walking_distance` has bus stops that are near train stations. It includes the straight line distance, and the length of the walking route using two route services: Google Maps and [Graphopper](https://graphhopper.com/). 
+- `station_walking_distance` has bus stops that are near train stations. Each line gives one possible distance between a bus stop and a station. Stop & station are identified by the stop code. `Source` field specify how the distance was retrieved. Current values: Google for Google Maps Routing API, Graphopper for [Graphopper Routing API](https://graphhopper.com/). 'Estimation' will mean distance estimated manually where routing isn't available. 
+
 
 ## Train passengers counts
 
