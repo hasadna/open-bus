@@ -1,105 +1,91 @@
-from bs4 import BeautifulSoup
+from collections import namedtuple
+import xml.etree.ElementTree as ET
+
+import re
+import logging as lg
+
+# these are all the possible fields according to the documentation
+# many of them are usually not supplied (never supplied?)
+monitored_stop_visit_fields = ['recorded_at_time', 'item_identifier', 'monitoring_ref',
+                               'line_ref', 'direction_ref',
+                               'operator_ref', 'published_line_name', 'destination_ref', 'dated_vehicle_journey_ref',
+                               'vehicle_ref', 'confidence_level', 'origin_aimed_departure_time', 'stop_point_ref',
+                               'vehicle_at_stop', 'request_stop', 'destination_display', 'aimed_arrival_time',
+                               'actual_arrival_time', 'expected_arrival_time', 'arrival_status',
+                               'arrival_platform_name', 'arrival_boarding_activity',
+                               'actual_departure_time', 'aimed_departure_time', 'stop_visit_note']
+
+MonitoredStopVisit = namedtuple('MonitoredStopVisit', monitored_stop_visit_fields)
 
 
-class BusArrival(object):
+def parse_siri_reply(raw_xml, request_id=-1):
+    """Parses the reply and returns a list of MonitoredStopVisit instances"""
 
-    def __init__(self,
-                 line_ref,
-                 direction_ref,
-                 published_line_name,
-                 operator_ref,
-                 destination_ref,
-                 monitoring_ref,
-                 expected_arrival_time,
-                 stop_point_ref,
-                 response_timestamp,
-                 recorded_at,
-                 response_xml):
-        self.line_ref = line_ref
-        self.direction_ref = direction_ref
-        self.published_line_name = published_line_name
-        self.operator_ref = operator_ref
-        self.destination_ref = destination_ref
-        self.monitoring_ref = monitoring_ref
-        self.expected_arrival_time = expected_arrival_time
-        self.stop_point_ref = stop_point_ref
-        self.response_timestamp = response_timestamp
-        self.recorded_at = recorded_at
-        self.response_xml = response_xml
+    def remove_namespace_elements(s):
+        return re.sub('<(/?)\w+:([^>]+)>', r'<\1\2>', s)
 
-    def __str__(self):
-        return "BusArrival<%s, %s, %s, %s, %s, %s, %s, %s, %s, %s>" % \
-            (self.line_ref,
-               self.direction_ref,
-               self.published_line_name,
-               self.operator_ref,
-               self.destination_ref,
-               self.monitoring_ref,
-               self.expected_arrival_time,
-               self.stop_point_ref,
-               self.response_timestamp,
-               self.recorded_at)
+    def optional(e, child_tag, default=''):
+        child = e.find(child_tag)
+        return child.text if child is not None else default
 
+    def to_snake_case(name):
+        s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
-def _get_tag_text(tag):
-    """
-        Description:
-            Helper method to extract text
-            out of bs4 elements
-        Args:
-            tag - bs4 element
-        Returns:
-            its inner text if not None
-            otherwise an empty string
-    """
-    return tag.getText() if tag is not None else ""
+    def log_unexpected_children(el, el_id, expected_children):
+        unexpected_tags = [e.tag for e in el.getchildren() if e.tag not in expected_children]
+        if unexpected_tags:
+            lg.warning("Unexpected children %s found (request %s MonitoredStopVisit %s)" % (unexpected_tags,
+                                                                                            request_id, el_id))
 
+    def build_data(el, fields):
+        return {to_snake_case(field_name): optional(el, field_name) for field_name in fields}
 
-def _bus_node_to_busarrival_obj(bus_node,  response_xml):
-    """
-        Args:
-            bus_node - an object taken from Siri XML
-                       ("MonitoredStopVisit") using bs4
+    def element_to_msv(msv_el, el_id):
+        msv_fields = {'RecordedAtTime', 'ItemIdentifier', 'MonitoringRef'}
+        mvj_fields = {'LineRef', 'DirectionRef', 'OperatorRef', 'PublishedLineName', 'DestinationRef',
+                      'DatedVehicleJourneyRef', 'VehicleRef', 'ConfidenceLevel', 'OriginAimedDepartureTime'}
+        mc_fields = {'StopPointRef', 'VehicleAtStop', 'RequestStop', 'DestinationDisplay',
+                     'AimedArrivalTime', 'ActualArrivalTime', 'ExpectedArrivalTime',
+                     'ArrivalStatus', 'ArrivalPlatformName', 'ArrivalBoardingActivity',
+                     'ActualDepartureTime', 'AimedDepartureTime'}
 
-        Returns:
-            An object of type BusArrival with all the necessary information
-            taken from the given bus_node (bs4) object
-    """
-    if bus_node is not None:
-        response_timestamp = bus_node.parent.ResponseTimestamp.getText()
-        published_line_name = bus_node.PublishedLineName.getText()
-        operator_ref = bus_node.OperatorRef.getText()
-        monitoring_ref = bus_node.MonitoringRef.getText()
-        expected_arrival_time = bus_node.ExpectedArrivalTime.getText()
-        stop_point_ref = bus_node.StopPointRef.getText()
-        direction_ref = bus_node.DirectionRef.getText()
-        destination_ref = bus_node.DestinationRef.getText()
-        line_ref = _get_tag_text(bus_node.LineRef)
-        recorded_at = _get_tag_text(bus_node.RecordedAtTime)
-        return BusArrival(line_ref,
-                          direction_ref,
-                          published_line_name,
-                          operator_ref,
-                          destination_ref,
-                          monitoring_ref,
-                          expected_arrival_time,
-                          stop_point_ref,
-                          response_timestamp,
-                          recorded_at,
-                          response_xml)
+        # get required children elements
+        mvj_el = msv_el.find('MonitoredVehicleJourney')
+        if not mvj_el:
+            lg.info('MonitoredVehicleJourney element missing (request %s MonitoredStopVisit %s)' % (request_id, el_id))
+            return
 
+        mc_el = mvj_el.find('MonitoredCall')
+        if not mc_el:
+            lg.info('MonitoredCall element missing (request %s, MonitoredStopVisit %s)' % (request_id, el_id))
+            return
 
-def parse_siri_xml(response_xml):
-    """
-    Args:
-        response_xml - Siri response xml (String)
+        # unexpected children may mean there's a problem with the parsing,
+        log_unexpected_children(msv_el, el_id, msv_fields.union(['MonitoredVehicleJourney', 'StopVisitNote']))
+        log_unexpected_children(mvj_el, el_id, mvj_fields.union(['MonitoredCall']))
+        log_unexpected_children(mc_el, el_id, mc_fields)
 
-    Returns:
-        List of BusArrival objects
-    """
+        data = build_data(msv_el, msv_fields)
+        data.update(build_data(mvj_el, mvj_fields))
+        data.update(build_data(mc_el, mc_fields))
+        # notes gets special treatment because in theory there can be any number of notes
+        data['stop_visit_note'] = ';'.join(stop_visit_note_el.text for stop_visit_note_el
+                                           in msv_el.findall('StopVisitNote'))
 
-    soup = BeautifulSoup(response_xml, "xml")
+        # fix booleans
+        data['vehicle_at_stop'] = True if data['vehicle_at_stop'] == 'true' else False
+        data['request_stop'] = True if data['request_stop'] == 'true' else False
+        # fix times
+        time_fields = ['origin_aimed_departure_time', 'aimed_arrival_time', 'actual_arrival_time',
+                       'actual_departure_time', 'aimed_departure_time']
+        for field in time_fields:
+            data[field] = data[field] if data[field] != '' else None
 
-    errors = soup.find_all("ErrorCondition")  # irrelevant ATM
-    buses = soup.find_all("MonitoredStopVisit")
-    return [_bus_node_to_busarrival_obj(bus, response_xml) for bus in buses]
+        return MonitoredStopVisit(**data)
+
+    x = ET.fromstring(remove_namespace_elements(raw_xml))
+    msv_elements = (e for e in x.iter() if e.tag == 'MonitoredStopVisit')
+    msv_with_nones = (element_to_msv(el, el_id) for (el_id, el) in enumerate(msv_elements))
+    msv = (msv for msv in msv_with_nones if msv)  # remove None results
+    return list(msv)

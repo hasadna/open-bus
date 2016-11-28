@@ -34,20 +34,27 @@ def parse_config(config_file_name):
 
 
 def fetch_and_store_arrivals(args, stops):
+    print("Fetching arrivals")
+    request_xml = arrivals.get_arrivals_request_xml(stops, args.siri_user)
+    response_xml = arrivals.get_arrivals_response_xml(request_xml, args.use_proxy, args.proxy_url)
+    if "User authentication failed" in response_xml:
+        raise Exception("Error connecting to SIRI: user authentication failed")
+    parsed_arrivals = siri_parser.parse_siri_reply(response_xml)
+    print("%d arrivals parsed" % len(parsed_arrivals))
+
     if args.write_results_to_file:
-        print("Running fetch_arrivals and writing results to file %s" % args.output_filename)
-        write_arrivals_to_file(fetch_arrivals(args, stops), args.output_filename)
+        print("Writing results to file %s" % args.output_filename)
+        write_arrivals_to_file(parsed_arrivals, args.output_filename)
     else:
+        print("Writing results to db")
         connection_details = {
             "name": args.db_name,
             "user": args.db_user,
             "password": args.db_password,
-            "host": args.db_host,
-            "port": args.db_port
-        }
+            "host": args.db_host}
         conn = db.connect(**connection_details)
-        print("Running fetch_arrivals and writing results to DB")
-        db.insert_arrivals(fetch_arrivals(args, stops), conn)
+        response_id = db.insert_raw_xml(response_xml, conn)
+        db.insert_arrivals(response_id, parsed_arrivals, conn)
         print("Successfully inserted data")
 
 
@@ -55,29 +62,14 @@ def write_arrivals_to_file(bus_arrivals, filename):
     fieldnames = ["line_ref", "direction_ref", "published_line_name", "operator_ref", "destination_ref",
                   "monitoring_ref", "expected_arrival_time", "stop_point_ref", "response_timestamp", "recorded_at"]
     with open(filename, 'w', encoding='utf8') as f:
-        writer = csv.writer(f, lineterminator='\n')
-        writer.writerow(fieldnames)
+        f.write('response_id,' + ','.join(siri_parser.MonitoredStopVisit._fields) + '\n')
         for arrival in bus_arrivals:
-            arrival_data = (arrival.line_ref, arrival.direction_ref, arrival.published_line_name,
-                            arrival.operator_ref,
-                            arrival.destination_ref, arrival.monitoring_ref, arrival.expected_arrival_time,
-                            arrival.stop_point_ref, arrival.response_timestamp, arrival.recorded_at)
-            writer.writerow(arrival_data)
-
-
-def fetch_arrivals(args, stops):
-    request_xml = arrivals.get_arrivals_request_xml(stops, args.siri_user)
-    response_xml = arrivals.get_arrivals_response_xml(request_xml, args.use_proxy, args.proxy_url)
-    if "User authentication failed".encode('utf-8') in response_xml:
-        raise Exception("Error connecting to SIRI: user authentication failed")
-    parsed_arrivals = siri_parser.parse_siri_xml(response_xml)
-    print("%d arrivals parsed" % len(parsed_arrivals))
-    return parsed_arrivals
+            f.write(','.join(arrival) + '\n')
 
 
 def get_stops(stops_file):
     with open(stops_file) as stops:
-        return [r['stop_code'] for r in  csv.DictReader(stops)]
+        return [r['stop_code'] for r in csv.DictReader(stops)]
 
 
 def main():

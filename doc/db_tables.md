@@ -7,15 +7,15 @@ Use your Google account to login.
 
 Tables of data extracted from the SIRI service using [fetch_and_store_arrivals](https://github.com/hasadna/open-bus/blob/master/doc/fetch_and_store_arrivals.md). 
 
-- `responses` - raw responses 
-- `arrivals` - parsed response
+- `siri_raw_responses` - raw responses xml
+- `siri_arrivals` - parsed response
 
 ## GTFS Tables
 
 Tables loaded from the GTFS file. 
-  * [More information about GTFS](https://github.com/hasadna/open-bus/blob/master/doc/working_with_GTFS.md) including an [Entity Relation Diagram](https://github.com/hasadna/open-bus/blob/master/doc/gtfs_src_entity_diagram.png). 
-  * Examples of [GTFS-related SQL queries](https://github.com/hasadna/open-bus/blob/master/doc/useful_GTFS_queries.md)
-  * Information about [inserting the GTFS to the DB](https://github.com/hasadna/open-bus/blob/master/doc/Inserting_GTFS_to_PostGRES.md).
+* [More information about GTFS](https://github.com/hasadna/open-bus/blob/master/doc/working_with_GTFS.md) including an [Entity Relation Diagram](https://github.com/hasadna/open-bus/blob/master/doc/gtfs_src_entity_diagram.png). 
+* Examples of [GTFS-related SQL queries](https://github.com/hasadna/open-bus/blob/master/doc/useful_GTFS_queries.md)
+    * Information about [inserting the GTFS to the DB](https://github.com/hasadna/open-bus/blob/master/doc/Inserting_GTFS_to_PostGRES.md).
 
 - `agency`
 - `routes`
@@ -44,7 +44,7 @@ Data generated for the bus2train task.  See [issue #7](https://github.com/hasadn
 ## Train passengers counts
 
   `train_passenger_counts`
-  
+
 The number of passengers traveling beween each pair of train stations, per month.
 
 We currenly have data for January - April 2016. This data was originally published in Tapuz's Public Transport forum. It seems that it arrives from Israel Railway spokesperson's office, but it's not clear how it was calculated by Isral Railway. The originl file from the forum is [here](https://github.com/daphshez/openbus_data/blob/master/train_station_passengers/passenger%20by%20line%202016-01-04.xlsx). 

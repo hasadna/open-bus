@@ -5,7 +5,7 @@ from jinja2 import Environment, FileSystemLoader
 from datetime import datetime
 from http.client import IncompleteRead
 
-REQUEST_TEMPLATE_FILE = "request.template"
+REQUEST_TEMPLATE_FILE = "request.template.xml"
 templates_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'templates')
 REQUEST_TEMPLATE = Environment(loader=FileSystemLoader(templates_folder)).get_template(REQUEST_TEMPLATE_FILE)
 HEADERS = {'Content-Type': 'text/xml; charset=utf-8'}
@@ -27,7 +27,7 @@ def get_arrivals_response_xml(request_xml, use_proxy=False, proxy_url=None):
             urllib.request.install_opener(opener)
         req = urllib.request.Request(SIRI_SERVICES_URL, headers=HEADERS, data=request_xml.encode('utf8'))
         res = urllib.request.urlopen(req).read()
-        return res
+        return res.decode('utf-8')
     except IncompleteRead as e:
         print("http.client.IncompleteRead happened on sending SIRI request:", e)
         return e.partial
