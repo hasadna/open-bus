@@ -7,7 +7,7 @@ fi
 
 export PGPASSWORD=$3
 
-mkdir /tmp/gtfs
+mkdir -p /tmp/gtfs
 
 time unzip -o -d /tmp/gtfs $1
 
