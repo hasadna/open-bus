@@ -3,8 +3,9 @@ from argparse import ArgumentParser
 from collections import defaultdict, namedtuple
 
 import requests
+import datetime
 
-from gtfs.bus2train.geo import GeoPoint
+from geo import GeoPoint
 
 
 def google_maps_navigation_query(start_point, end_point, api_key):
@@ -22,7 +23,7 @@ def process_google_maps_reply(google_json):
         raise Exception('status is not OK, status=%s, json=%s' % (google_json['status'], google_json))
     route = google_json['routes'][0]
     leg = route['legs'][0]
-    route_length = leg['distance']['value']
+    route_length = round(leg['distance']['value'])
     # encoded_polyline = route['overview_polyline']['points']
     points_dicts = [leg["start_location"]] + [step["end_location"] for step in leg["steps"]]
     points = [GeoPoint(p['lat'], p['lng']) for p in points_dicts]
@@ -54,7 +55,7 @@ def process_graph_hopper_reply(gh_json):
         else:
             raise Exception('Badly formatted json %s' % gh_json)
     path = gh_json['paths'][0]
-    length = path['distance']
+    length = round(path['distance'])
     points = [GeoPoint(p[1], p[0]) for p in path['points']['coordinates']]
     return length, points
 
@@ -73,8 +74,8 @@ def build_walking_distance_table(stops_file, stations_file, output_file, google_
     with open(stops_file, "r", encoding='utf8') as f:
         reader = csv.DictReader(f)
         for data in reader:
-            data['station_distance'] = float(data['station_distance'])
-            if data['stop_id'] != data['station_id'] and data['station_distance'] <= max_distance:
+            data['station_distance'] = float(data['train_station_distance'])
+            if data['stop_code'] != data['nearest_train_station'] and int(data['train_station_distance']) <= max_distance:
                 data['stop_point'] = GeoPoint(data['stop_lat'], data['stop_lon'])
                 table.append(data)
     print("Read %d stops with straight_line distance <= %d" % (len(table), max_distance))
@@ -84,47 +85,58 @@ def build_walking_distance_table(stops_file, stations_file, output_file, google_
     with open(stations_file, "r", buffering=-1, encoding="utf8") as g:
         reader = csv.DictReader(g)
         for line in reader:
-            if line['Type'] == 'Entrance':  # we skip exits for now because they make things to complicated
-                station_real_location[line['stop_code']].append(GeoPoint(float(line['latitude']),
-                                                                         float(line['longitude'])))
+            if line['exit_only'] == 'False':  # we skip exits for now because they make things to complicated
+                station_real_location[line['stop_code']].append(GeoPoint(float(line['exit_lat']),
+                                                                         float(line['exit_lon'])))
 
     print("Read locations for %d train stations" % len(station_real_location))
     print("Stations with 1 entrance: %d" % len([l for l in station_real_location.values() if len(l) == 1]))
     print("Stations with 2 entrances: %d" % len([l for l in station_real_location.values() if len(l) == 2]))
     print("Stations more than 2 entrances: %d" % len([l for l in station_real_location.values() if len(l) > 2]))
 
-    queries_required = sum(len(station_real_location[stop['station_code']]) for stop in table)
+    queries_required = sum(len(station_real_location[stop['nearest_train_station']]) for stop in table)
     print("Total number of queries required=%d" % queries_required)
 
     if simulate:
         return
 
-    headers = ["stop_id", "station_id", "stop_code", "station_code", "station_distance",
-               "stop_lat", "stop_lon",
-               'google_walking_distance', 'gh_walking_distance',
-               'google_station_lat', 'google_station_lon',
-               'gh_station_lat', 'gh_station_lon',
-               'google_directions', 'gh_directions']
+    # create station_walking_distance table
+    headers = ['bus_stop_code', 'bus_stop_lat', 'bus_stop_lon', 'train_station_code', 'train_station_entrace_id',
+               'train_station_lat', 'train_station_lon', 'distance_in_meters', 'distance_source',
+               'distance_calcated_on','notes']
 
     with open(output_file, 'w', newline='', encoding='utf8') as f:
         writer = csv.DictWriter(f, fieldnames=headers, lineterminator='\n', extrasaction='ignore')
         writer.writeheader()
         for stop in table:
+            # change fields names to station_walking_distance names
+            stop['bus_stop_code'] = stop['stop_code']
+            stop['bus_stop_lat'] = stop['stop_lat']
+            stop['bus_stop_lon'] = stop['stop_lon']
+            stop['train_station_code'] = stop['nearest_train_station']
+            stop['distance_calcated_on'] = datetime.datetime.now().strftime("%d/%m/%Y")
+
+            # calculate with Google
+            stop['distance_source'] = 'Google'
             # a station may have multiple entrances
-            for point in station_real_location[stop['station_code']]:
+            for point in station_real_location[stop['nearest_train_station']]:
+                stop['train_station_lat'], stop['train_station_lon'] = point.lat, point.long
                 distance, points = google(stop['stop_point'], point, google_api_key)
-                if distance < stop.get('google_walking_distance', 999999):
-                    stop['google_walking_distance'] = distance
-                    stop['google_directions'] = format_path(points)
-                    stop['google_station_lat'], stop['google_station_lon'] = point.lat, point.long
-
-                distance, points = gh(stop['stop_point'], point, gh_api_key)
-                if distance < stop.get('gh_walking_distance', 999999):
-                    stop['gh_walking_distance'] = distance
-                    stop['gh_directions'] = format_path(points)
-                    stop['gh_station_lat'], stop['gh_station_lon'] = point.lat, point.long
-
+                if distance < stop.get('distance_in_meters', 999999):
+                    stop['distance_in_meters'] = distance
+                    stop['notes'] = format_path(points)
             writer.writerow(stop)
+
+            # calculate with Graphopper
+            stop['distance_source'] = 'Graphopper'
+            for point in station_real_location[stop['nearest_train_station']]:
+                stop['train_station_lat'], stop['train_station_lon'] = point.lat, point.long
+                distance, points = gh(stop['stop_point'], point, gh_api_key)
+                if distance < stop.get('distance_in_meters', 999999):
+                    stop['distance_in_meters'] = distance
+                    stop['notes'] = format_path(points)
+            writer.writerow(stop)
+
             f.flush()
 
 
