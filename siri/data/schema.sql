@@ -31,7 +31,9 @@ CREATE TABLE IF NOT EXISTS siri_arrivals (
   actual_departure_time       TIMESTAMP WITH TIME ZONE,
   aimed_departure_time        TIMESTAMP WITH TIME ZONE,
   stop_visit_note             TEXT,
-  response_id                 INT REFERENCES siri_raw_responses (id) NOT NULL
+  response_id                 INT REFERENCES siri_raw_responses (id) NOT NULL,
+  vehicle_location_lat        VARCHAR(18),
+  vehicle_location_lon        VARCHAR(18)
 );
 
 

@@ -13,13 +13,16 @@
                 <siri:MessageIdentifier xsi:type="siri:MessageQualifierStructure">0100700:1351669188:4684
                 </siri:MessageIdentifier>
                 {% for stop in stops %}
-                <siri:StopMonitoringRequest version="IL2.6" xsi:type="siri:StopMonitoringRequestStructure">
+                <siri:StopMonitoringRequest version="IL2.7" xsi:type="siri:StopMonitoringRequestStructure">
                     <siri:RequestTimestamp>{{ timestamp }}</siri:RequestTimestamp>
                     <siri:MessageIdentifier xsi:type="siri:MessageQualifierStructure"></siri:MessageIdentifier>
-                    <siri:PreviewInterval>PT10M</siri:PreviewInterval>
+                    <siri:PreviewInterval>PT60M</siri:PreviewInterval>
                     <siri:MonitoringRef xsi:type="siri:MonitoringRefStructure">
                         {{ stop }}
                     </siri:MonitoringRef>
+                    {% if route %}
+                    <siri:LineRef>{{ route }}</siri:LineRef>
+                    {% endif %}
                     <siri:MaximumStopVisits>1000</siri:MaximumStopVisits>
                 </siri:StopMonitoringRequest>
                 {% endfor %}

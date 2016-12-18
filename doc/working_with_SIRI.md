@@ -59,7 +59,7 @@ Example:
 
 fields: 
 
-- Version - SIRI version. Current MoT production version is IL2.7 (11/2016).
+- Version - SIRI version. Current MoT production version is IL2.7 (11/2016). **It's important to use 2.7 rather than earlier versions to get the Vehicle Location field**
 - RequestTimestamp 
 - MessageIdentifier (optional) -The reply will contain the same identifier, so they can be paired up if necessary.
 - Preview-Interval (optional) - ??, default 30 minutes
@@ -74,7 +74,7 @@ fields:
 Example:
 
 ```xml
-<siri:StopMonitoringRequest version="IL2.6" xsi:type="siri:StopMonitoringRequestStructure">
+<siri:StopMonitoringRequest version="IL2.7" xsi:type="siri:StopMonitoringRequestStructure">
   <siri:RequestTimestamp>2012-10-31T09:39:39.480+02:00</siri:RequestTimestamp>
   <siri:MessageIdentifier xsi:type="siri:MessageQualifierStructure">0</siri:MessageIdentifier>
   <siri:PreviewInterval>PT1H</siri:PreviewInterval>
@@ -174,7 +174,10 @@ There are four possible payloads, but only Monitored Stop Visit is relevant to o
   - Frame Vehicle Journey Ref . Dated Vehicle Journey Ref - trip_id from the GTFS
   - Vehicle Ref - a unique id of the vehicle, like the registration plate number 
   - Journey Progress Group . Confidence Level - reliability of the prediction. Default value probablyReliable. Other possible values: certain, veryReliable, reliable, probablyReliable, unconfirmed.
-  - Progress Data, Vehicle Location -  ?
+  - Progress Data - ?
+  - Vehicle Location - current coordinate of the vehicle. Only available when the vehicle is on the move. Data structure with the two following sub-nodes:
+    - Longitude
+    - Latitude
   - Origin Aimed Departure Time - the planned departure time of the trip.
   - Monitored call, data structure with the following fields (**all fields are optional**):
     - Stop Point Ref - stop code for which this result was calculated, matches stop code in GTFS
@@ -195,25 +198,28 @@ There are four possible payloads, but only Monitored Stop Visit is relevant to o
 Example:
 
 ```xml
-<ns6:MonitoredStopVisit>
-  <ns6:RecordedAtTime>2012-10-31T09:39:10.114+02:00</ns6:RecordedAtTime>
-  <ns6:ItemIdentifier>1075565  39795 15 001:3160 39795</ns6:ItemIdentifier>
-  <ns6:MonitoringRef>39795</ns6:MonitoringRef>
-  <ns6:MonitoredVehicleJourney>
-    <ns6:LineRef>1075565</ns6:LineRef>
-    <ns6:DirectionRef>1</ns6:DirectionRef>
-    <ns6:PublishedLineName>1</ns6:PublishedLineName>
-    <ns6:OperatorRef>15</ns6:OperatorRef>
-    <ns6:DestinationRef>39995</ns6:DestinationRef>
-    <ns6:ConfidenceLevel>probablyReliable</ns6:ConfidenceLevel>
-    <ns6:MonitoredCall>
-      <ns6:StopPointRef>39795</ns6:StopPointRef>
-      <ns6:VehicleAtStop>false</ns6:VehicleAtStop>
-      <ns6:ExpectedArrivalTime>2012-10-31T09:44:00.000+02:00</ns6:ExpectedArrivalTime>
-      <ns6:ArrivalStatus>noReport</ns6:ArrivalStatus>
-    </ns6:MonitoredCall>
-  </ns6:MonitoredVehicleJourney>
-</ns6:MonitoredStopVisit>
+<ns3:MonitoredStopVisit>
+  <ns3:RecordedAtTime>2016-12-18T11:40:13.000+02:00</ns3:RecordedAtTime>
+  <ns3:ItemIdentifier>1053816062</ns3:ItemIdentifier>
+  <ns3:MonitoringRef>21827</ns3:MonitoringRef>
+  <ns3:MonitoredVehicleJourney>
+      <ns3:LineRef>9813</ns3:LineRef>
+      <ns3:DirectionRef>2</ns3:DirectionRef>
+      <ns3:PublishedLineName>189</ns3:PublishedLineName>
+      <ns3:OperatorRef>5</ns3:OperatorRef>
+      <ns3:DestinationRef>26807</ns3:DestinationRef>
+      <ns3:OriginAimedDepartureTime>2016-12-18T10:22:00.000+02:00</ns3:OriginAimedDepartureTime>
+      <ns3:VehicleLocation>
+        <ns3:Longitude>34.829524993896484</ns3:Longitude>                    
+        <ns3:Latitude>32.10695266723633</ns3:Latitude>
+      </ns3:VehicleLocation>
+      <ns3:VehicleRef>634</ns3:VehicleRef>
+      <ns3:MonitoredCall>
+        <ns3:StopPointRef>21827</ns3:StopPointRef>
+        <ns3:ExpectedArrivalTime>2016-12-18T11:41:00.000+02:00</ns3:ExpectedArrivalTime>
+      </ns3:MonitoredCall>
+  </ns3:MonitoredVehicleJourney>
+</ns3:MonitoredStopVisit>
 ```
 
 
