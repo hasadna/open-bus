@@ -15,6 +15,13 @@ import argparse
 import csv
 
 
+# def output_excel(ratio, typ, output_folder, day):  # type: bus_train or passenger_train
+#     ratio['average'] = ratio.mean(axis=1)
+#     path = output_folder + "\\ratio_" + typ + "_" + day + ".csv"
+#     ratio.to_excel(path, float_format='%.2f')
+#     print("Created and saved: ratio " + typ + "_" + day)
+
+
 def output_ratio(ratio, typ, output_folder, day):  # type: bus_train or passenger_train
     ratio['average'] = ratio.mean(axis=1)
     path = output_folder + "\\ratio_" + typ + "_" + day + ".csv"
@@ -147,6 +154,8 @@ def main(all_buses, all_trains, all_passengers, output_folder, dont_fix_times):
         # ratio passengers-trains
         ratio = calculate_ratio_passengers_buses(tbl_passengers, tbl_bus)
         output_ratio(ratio, 'passenger_bus', output_folder, day)
+        # output_excel(ratio, 'passenger_bus', output_folder, day)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

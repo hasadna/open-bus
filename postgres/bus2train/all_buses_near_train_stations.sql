@@ -14,7 +14,8 @@
                    stop_name)
 
 /* extract all bus times near train station */
-SELECT walking_with_station_name.train_station_code           AS train_stop,
+SELECT DISTINCT
+       walking_with_station_name.train_station_code           AS train_stop,
        walking_with_station_name.stop_name                    AS train_stop_name,
        stops.stop_name                                        AS bus_stop_name,
        Date_part('hour', stop_times.arrival_time :: interval) AS hour,
@@ -26,7 +27,9 @@ SELECT walking_with_station_name.train_station_code           AS train_stop,
        calendar.wednesday                                     AS bus_wednesday,
        calendar.thursday                                      AS bus_thursday,
        calendar.friday                                        AS bus_friday,
-       calendar.saturday                                      AS bus_saturday
+       calendar.saturday                                      AS bus_saturday,
+       trips.Direction_id                                     AS direction_id
+
 FROM   stops
        join stop_times
          ON stops.stop_id = stop_times.stop_id
@@ -38,6 +41,8 @@ FROM   stops
          ON calendar.service_id = trips.service_id
        join walking_with_station_name
          ON walking_with_station_name.bus_stop_code = stops.stop_code
-WHERE  calendar.end_date > Make_date(2016, 11, 4) /*change to current date*/
+WHERE  calendar.end_date > Make_date(2016, 12, 8) /*change to current date*/
+         AND  calendar.start_date <= Make_date(2016,12,8) /*change to current date*/
        AND routes.agency_id != 2
-       AND ( walking_with_station_name.walking_distance <= 300 )
+       AND stop_times.drop_off_only is false
+       AND ( walking_with_station_name.walking_distance <= 350 )
