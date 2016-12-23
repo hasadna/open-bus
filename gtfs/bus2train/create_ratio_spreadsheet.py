@@ -15,13 +15,6 @@ import argparse
 import csv
 
 
-# def output_excel(ratio, typ, output_folder, day):  # type: bus_train or passenger_train
-#     ratio['average'] = ratio.mean(axis=1)
-#     path = output_folder + "\\ratio_" + typ + "_" + day + ".csv"
-#     ratio.to_excel(path, float_format='%.2f')
-#     print("Created and saved: ratio " + typ + "_" + day)
-
-
 def output_ratio(ratio, typ, output_folder, day):  # type: bus_train or passenger_train
     ratio['average'] = ratio.mean(axis=1)
     path = output_folder + "\\ratio_" + typ + "_" + day + ".csv"
@@ -37,13 +30,15 @@ def output_pivot(tbl_bus, tbl_train, tbl_passengers, output_folder, day):
     tbl_passengers.to_csv(output_folder + "\\passengers_" + day + ".csv", float_format='%.2f')
     print("Created and saved: passengers " + day)
 
+# later combine two functions
+
 
 def calculate_ratio_buses_trains(tbl_bus, tbl_train):
-    ratio_table = pd.DataFrame().reindex_like(tbl_bus)
-    for i in range(0, 26):
+    ratio_table = pd.DataFrame().reindex_like(tbl_train)
+    for i in range(0, 24):
         if i in tbl_bus.columns and i in tbl_train.columns:
             ratio_table[i] = tbl_bus[i] / tbl_train[i]
-    ratio_table = ratio_table.replace(np.inf,np.nan, regex=True)
+    ratio_table = ratio_table.replace(np.inf, np.nan, regex=True)
     ratio_table = ratio_table.drop('All', 1)
     ratio_table = ratio_table.drop('All', 0)
     return ratio_table
@@ -51,21 +46,20 @@ def calculate_ratio_buses_trains(tbl_bus, tbl_train):
 
 def calculate_ratio_passengers_buses(tbl_passengers, tbl_bus):
     ratio_table = pd.DataFrame().reindex_like(tbl_passengers)
-    for i in range(0, 25):
+    for i in range(0, 24):
         if i in tbl_passengers.columns and i in tbl_bus.columns:
             ratio_table[i] = tbl_passengers[i] / tbl_bus[i]
-    ratio_table = ratio_table.replace(np.inf,np.nan, regex=True)
+    ratio_table = ratio_table.replace(np.inf, np.nan, regex=True)
     ratio_table = ratio_table.drop('All', 1)
     ratio_table = ratio_table.drop('All', 0)
     return ratio_table
 
 
-
 def create_pivot(buses, trains, passengers):
     tbl_bus = buses.pivot_table(values='bus_time', index='train_stop', columns='hour',
-                                 aggfunc=lambda x: x.value_counts().count(), fill_value=0, margins=True)
+                                 aggfunc=len, fill_value=0, margins=True)
     tbl_train = trains.pivot_table(values='train_time', index='stop_code', columns='hour',
-                                    aggfunc=lambda x: x.value_counts().count(), fill_value=0, margins=True)
+                                    aggfunc=len, fill_value=0, margins=True)
     tbl_passengers = passengers.pivot_table(values='avg', index='station_code', columns='hour',
                                             fill_value=0, margins=True)
     return tbl_bus, tbl_train, tbl_passengers
@@ -78,6 +72,7 @@ def load_data(all_buses, all_trains, all_passengers):
     return trains, buses, passengers
 
 
+# this part is associated with the SQL query so if any change made in query please change here too.
 def fix_time_train(all_trains):
     text = ''
     count = 0
@@ -92,7 +87,7 @@ def fix_time_train(all_trains):
                 # fix hour
                 lst[3] = (float(line[3])-24)
                 # fix days
-                days = line[4:]
+                days = line[4:11]
                 for i in range(7):
                     lst[i+4] = days[i-1]
                 count += 1
@@ -117,7 +112,7 @@ def fix_time_buses(all_buses):
                 # fix hour
                 lst[3] = (float(line[3])-24)
                 # fix days
-                days = line[6:]
+                days = line[6:13]
                 for i in range(7):
                     lst[i+6] = days[i-1]
                 count += 1
@@ -154,7 +149,6 @@ def main(all_buses, all_trains, all_passengers, output_folder, dont_fix_times):
         # ratio passengers-trains
         ratio = calculate_ratio_passengers_buses(tbl_passengers, tbl_bus)
         output_ratio(ratio, 'passenger_bus', output_folder, day)
-        # output_excel(ratio, 'passenger_bus', output_folder, day)
 
 
 if __name__ == '__main__':

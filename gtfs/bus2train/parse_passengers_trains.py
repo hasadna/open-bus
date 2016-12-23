@@ -24,12 +24,15 @@ def main(data_path, dict_path,output_path):
     station_dict = create_dict_of_stations(dict_path)
     with open(data_path, 'r', encoding='utf8') as f:
         reader = csv.reader(f)
+        line =  next(reader, None)  # skip header
+        line = ','.join(map(str, line)) + '\n'
+        text += line
         for line in reader:
             if len(line) < 4:  # fix missing values
                 line.append('')
             if line[0] != "destination_station":
                 line[0] = station_dict[line[0]]  # Change Rakevet Israel names convention to GTFS MOT stop_code
-                day = calendar.day_name[datetime.strptime(line[1], '%d/%m/%Y').weekday()]  # extract day name
+                day = calendar.day_name[datetime.strptime(line[1], '%d-%m-%Y').weekday()]  # extract day name
                 line.append(day)
             else:
                 line[0] = 'stop_code'  # change destination_station to stop_code
