@@ -6,6 +6,10 @@ siri_user = SIRIUSER
 # All other columns will be ignored. see data/stop_code_sample.csv
 stops_file = FILENAME
 
+# Route_id from gtfs, if you only want to query a single bus line
+# Leave empty to query all the buses stopping in each station
+route_id =
+
 # Whether to use proxy
 use_proxy = False
 

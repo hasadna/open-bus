@@ -28,7 +28,7 @@ python3 -m gtfs.parser.route_stories $CONFIG_FILE_NAME
 export PGPASSWORD=$2
 
 # run route story insert
-time psql -h 127.0.0.1 -U $2 obus < insert_route_stories.sql
+time psql -h 127.0.0.1 -U $2 obus < ./postgres/insert_route_stories.sql
 
 
 

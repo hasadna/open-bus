@@ -32,7 +32,6 @@ def output_pivot(tbl_bus, tbl_train, tbl_passengers, output_folder, day):
 
 # later combine two functions
 
-
 def calculate_ratio_buses_trains(tbl_bus, tbl_train):
     ratio_table = pd.DataFrame().reindex_like(tbl_train)
     for i in range(0, 24):
@@ -54,7 +53,6 @@ def calculate_ratio_passengers_buses(tbl_passengers, tbl_bus):
     ratio_table = ratio_table.drop('All', 0)
     return ratio_table
 
-
 def create_pivot(buses, trains, passengers):
     tbl_bus = buses.pivot_table(values='bus_time', index='train_stop', columns='hour',
                                  aggfunc=len, fill_value=0, margins=True)
@@ -73,6 +71,7 @@ def load_data(all_buses, all_trains, all_passengers):
 
 
 # this part is associated with the SQL query so if any change made in query please change here too.
+
 def fix_time_train(all_trains):
     text = ''
     count = 0
@@ -149,7 +148,6 @@ def main(all_buses, all_trains, all_passengers, output_folder, dont_fix_times):
         # ratio passengers-trains
         ratio = calculate_ratio_passengers_buses(tbl_passengers, tbl_bus)
         output_ratio(ratio, 'passenger_bus', output_folder, day)
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
