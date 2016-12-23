@@ -56,6 +56,11 @@ def create_pivot(buses, trains, passengers):
     tbl_passengers = passengers.pivot_table(values='avg', index='station_code', columns='hour',
                                             fill_value=0, margins=True)
     tbl_passengers = tbl_passengers.reindex(index=TRAIN_STATIONS, fill_value=0)  # to fill stations with missing data
+    # fix weired problem with margin that happens only with passengers
+    tbl_passengers = tbl_passengers.drop('All', 1)
+    tbl_passengers = tbl_passengers.drop('All', 0)
+    tbl_passengers['All'] = tbl_passengers.sum(axis=1)
+    tbl_passengers.loc['All'] = tbl_passengers.sum()
     return tbl_bus, tbl_train, tbl_passengers
 
 
