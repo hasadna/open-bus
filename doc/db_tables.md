@@ -43,12 +43,20 @@ Data generated for the bus2train task.  See [issue #7](https://github.com/hasadn
 
 ## Train passengers counts
 
-  `train_passenger_counts`
+  `train passengers per hour`
 
-The number of passengers traveling beween each pair of train stations, per month.
+The number of passengers arriving \ leaving a station, per:
 
-We currenly have data for January - April 2016. This data was originally published in Tapuz's Public Transport forum. It seems that it arrives from Israel Railway spokesperson's office, but it's not clear how it was calculated by Isral Railway. The originl file from the forum is [here](https://github.com/daphshez/openbus_data/blob/master/train_station_passengers/passenger%20by%20line%202016-01-04.xlsx). 
+- Station (station_code, get full station data from stops table)
+- Date
+- Hour 
 
-Open train project have [an archive of older data published in the same forum](http://otrain.org/files/count/). There are per-station statistics rather than per station pair. 
+Data currently available for April-November 2016, received from Israel Railways using a FOI request. Raw Excel file as received from IR [here]([https://drive.google.com/drive/u/0/folders/0B9FEqRIWfmxLZllpdzlndVh2TVE](https://drive.google.com/drive/u/0/folders/0B9FEqRIWfmxLZllpdzlndVh2TVE)), csv extracted from Excel [here](https://drive.google.com/open?id=0B9FEqRIWfmxLMDl4VnBKcU1Qd0E). 
+
+Currently only data for passengers *leaving* stations was loaded into DB (hence leaving=true for all records). 
+
+`train_passenger_counts`
+
+The number of passengers traveling beween each pair of train stations, per month. We currenly have data for January - April 2016. This data was originally published in Tapuz's Public Transport forum. It seems that it arrives from Israel Railway spokesperson's office, but it's not clear how it was calculated by Isral Railway. The originl file from the forum is [here](https://github.com/daphshez/openbus_data/blob/master/train_station_passengers/passenger%20by%20line%202016-01-04.xlsx).  Open train project have [an archive of older data published in the same forum](http://otrain.org/files/count/). There are per-station statistics rather than per station pair. 
 
 
