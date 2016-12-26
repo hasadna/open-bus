@@ -36,7 +36,7 @@ def calculate_ratio_buses_trains(tbl_bus, tbl_train):
     for i in range(0, 26):
         if i in tbl_bus.columns and i in tbl_train.columns:
             ratio_table[i] = tbl_bus[i] / tbl_train[i]
-    ratio_table = ratio_table.replace(np.inf,np.nan, regex=True)
+    ratio_table = ratio_table.replace(np.inf, np.nan, regex=True)
     ratio_table = ratio_table.drop('All', 1)
     ratio_table = ratio_table.drop('All', 0)
     return ratio_table
@@ -47,18 +47,17 @@ def calculate_ratio_passengers_buses(tbl_passengers, tbl_bus):
     for i in range(0, 25):
         if i in tbl_passengers.columns and i in tbl_bus.columns:
             ratio_table[i] = tbl_passengers[i] / tbl_bus[i]
-    ratio_table = ratio_table.replace(np.inf,np.nan, regex=True)
+    ratio_table = ratio_table.replace(np.inf, np.nan, regex=True)
     ratio_table = ratio_table.drop('All', 1)
     ratio_table = ratio_table.drop('All', 0)
     return ratio_table
 
 
-
 def create_pivot(buses, trains, passengers):
     tbl_bus = buses.pivot_table(values='bus_time', index='train_stop', columns='hour',
-                                 aggfunc=lambda x: x.value_counts().count(), fill_value=0, margins=True)
+                                aggfunc=lambda x: x.value_counts().count(), fill_value=0, margins=True)
     tbl_train = trains.pivot_table(values='train_time', index='stop_code', columns='hour',
-                                    aggfunc=lambda x: x.value_counts().count(), fill_value=0, margins=True)
+                                   aggfunc=lambda x: x.value_counts().count(), fill_value=0, margins=True)
     tbl_passengers = passengers.pivot_table(values='avg', index='station_code', columns='hour',
                                             fill_value=0, margins=True)
     return tbl_bus, tbl_train, tbl_passengers
@@ -83,11 +82,11 @@ def fix_time_train(all_trains):
             lst = line
             if float(line[3]) >= 24:
                 # fix hour
-                lst[3] = (float(line[3])-24)
+                lst[3] = (float(line[3]) - 24)
                 # fix days
                 days = line[4:]
                 for i in range(7):
-                    lst[i+4] = days[i-1]
+                    lst[i + 4] = days[i - 1]
                 count += 1
             lst = ','.join(map(str, lst)) + '\n'
             text += lst
@@ -108,11 +107,11 @@ def fix_time_buses(all_buses):
             lst = line
             if float(line[3]) >= 24:
                 # fix hour
-                lst[3] = (float(line[3])-24)
+                lst[3] = (float(line[3]) - 24)
                 # fix days
                 days = line[6:]
                 for i in range(7):
-                    lst[i+6] = days[i-1]
+                    lst[i + 6] = days[i - 1]
                 count += 1
             lst = ','.join(map(str, lst)) + '\n'
             text += lst
@@ -128,7 +127,7 @@ def main(all_buses, all_trains, all_passengers, output_folder, dont_fix_times):
         changes = fix_time_train(all_trains)
         print("Finished fixing trains times, %d rows were changed" % changes)
 
-    trains, buses, passengers = load_data(all_buses = all_buses, all_trains = all_trains, all_passengers = all_passengers)
+    trains, buses, passengers = load_data(all_buses=all_buses, all_trains=all_trains, all_passengers=all_passengers)
     print("Data uploaded")
 
     for day in ('sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'):
@@ -148,6 +147,7 @@ def main(all_buses, all_trains, all_passengers, output_folder, dont_fix_times):
         ratio = calculate_ratio_passengers_buses(tbl_passengers, tbl_bus)
         output_ratio(ratio, 'passenger_bus', output_folder, day)
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--all_buses', required=True)
@@ -159,4 +159,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     main(all_buses=args.all_buses, all_trains=args.all_trains, all_passengers=args.all_passengers,
-        output_folder=args.output_folder, dont_fix_times=args.dont_fix_times)
+         output_folder=args.output_folder, dont_fix_times=args.dont_fix_times)
