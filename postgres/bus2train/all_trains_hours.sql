@@ -10,6 +10,8 @@ SELECT DISTINCT
        calendar.thursday                                              AS train_thursday,
        calendar.friday                                                AS train_friday,
        calendar.saturday                                              AS train_saturday,
+       calednar.start_date                                    AS start_date,
+       calendar.end_date                                      AS end_date,
        trips.Direction_id                                             AS direction_id
 
 FROM   stops

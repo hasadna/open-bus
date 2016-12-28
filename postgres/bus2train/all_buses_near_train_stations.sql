@@ -28,6 +28,9 @@ SELECT DISTINCT
        calendar.thursday                                      AS bus_thursday,
        calendar.friday                                        AS bus_friday,
        calendar.saturday                                      AS bus_saturday,
+       routes.route_desc                                      AS bus_route_makat,
+       calednar.start_date                                    AS start_date,
+       calendar.end_date                                      AS end_date,
        trips.Direction_id                                     AS direction_id
 
 FROM   stops
@@ -42,7 +45,7 @@ FROM   stops
        join walking_with_station_name
          ON walking_with_station_name.bus_stop_code = stops.stop_code
 WHERE  calendar.end_date > Make_date(2016, 12, 8) /*change to current date*/
-         AND  calendar.start_date <= Make_date(2016,12,8) /*change to current date*/
+         AND  calendar.start_date < Make_date(2016,12,16) /*change to current date*/
        AND routes.agency_id != 2
        AND stop_times.drop_off_only is false
        AND ( walking_with_station_name.walking_distance <= 350 )
