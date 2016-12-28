@@ -6,11 +6,10 @@ The script does 3 things:
 3. add column Day
 """
 
-import csv
-import argparse
-from datetime import datetime
-<< << << < HEAD
 import io
+import csv
+from datetime import datetime
+import argparse
 
 train_station_to_code = """
 אופקים	17109
