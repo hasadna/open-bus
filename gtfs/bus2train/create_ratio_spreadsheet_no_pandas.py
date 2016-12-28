@@ -106,7 +106,42 @@ def station_super_set(tbls):
     return set(row['station_name'] for table in tbls for row in table)
 
 
-def main(all_buses, all_trains, all_passengers, output_folder, dont_fix_times, start_date):
+def passengers_and_buses_per_hour_non_pivoted(output_folder, buses, trains, passengers, all_stations):
+    """Creates a csv with station, day of week, hour of day, average passengers and number of buses"""
+    output_file = os.path.join(output_folder, 'buses_and_passengers_per_station_per_day_per_hour.csv')
+
+    def build_count(tbl):
+        c = Counter()
+        for r in tbl:
+            stop_code = r['station_name']
+            hour = r['hour']
+            for day in (day for day in WEEKDAYS if r[day]):
+                c[(stop_code, hour, day)] += 1
+        return c
+
+    # aggregate by train, day & hour
+    buses_counter = build_count(buses)
+    trains_counter = build_count(trains)
+    passengers_counter = {(r['station_name'], int(r['hour']), r['day'].lower()): r['avg'] for r in passengers}
+
+    with open(output_file, 'w', encoding='utf8') as out_f:
+        writer = csv.DictWriter(out_f,
+                                fieldnames=['station_name', 'hour', 'day', 'passengers', 'buses', 'trains'],
+                                lineterminator='\n')
+        writer.writeheader()
+        for station in all_stations:
+            for day in WEEKDAYS:
+                for hour in range(24):
+                    k = (station, hour, day)
+                    writer.writerow({'station_name': station,
+                                     'hour': hour,
+                                     'day': day,
+                                     'passengers': '%.2f' % float(passengers_counter.get(k, 0)),
+                                     'buses': buses_counter[k],
+                                     'trains': trains_counter[k]})
+
+
+def main(all_buses, all_trains, all_passengers, output_folder, start_date):
     print("Loading data")
     trains, buses, passengers = load_data(tbl=all_trains), load_data(tbl=all_buses), load_data(tbl=all_passengers)
 
@@ -116,17 +151,17 @@ def main(all_buses, all_trains, all_passengers, output_folder, dont_fix_times, s
     passengers = apply_to_field(rename_fields(passengers), 'hour', int)
     passengers = apply_to_field(passengers, 'avg', lambda s: float(s) if s != '' else 0)
 
-    if not dont_fix_times:
-        print("Fixing times")
-        fix_times(buses)
-        fix_times(trains)
+    fix_times(buses)
+    fix_times(trains)
 
     all_stations = station_super_set([trains, buses, passengers])
     print("There are %d stations" % len(all_stations))
 
     date_range = [datetime.datetime.strptime(start_date, '%Y-%m-%d').date() + datetime.timedelta(days=d)
                   for d in range(7)]
-    print("Working on days between %s and %s" %(date_range[0], date_range[-1]))
+    print("Working on days between %s and %s" % (date_range[0], date_range[-1]))
+
+    passengers_and_buses_per_hour_non_pivoted(output_folder, buses, trains, passengers, all_stations)
 
     for date in date_range:
         date_str = date.strftime('%Y-%m-%d')
@@ -146,6 +181,7 @@ def main(all_buses, all_trains, all_passengers, output_folder, dont_fix_times, s
         # ratio passengers-trains
         output_pivot(os.path.join(output_folder, 'passenger_bus_%s.csv' % day),
                      calculate_ratio(passengers_day, buses_day))
+
     print("All Done!")
 
 
@@ -168,13 +204,12 @@ if __name__ == '__main__':
     parser.add_argument('--all_trains', required=True)
     parser.add_argument('--all_passengers', required=True)
     parser.add_argument('--output_folder', required=True)
-    parser.add_argument('--dont_fix_times')
     parser.add_argument('--start_date', help="First day of the week to look at; yyyy-mm-dd format")
     parser.add_argument('--gsheet_secret')
     parser.set_defaults(dont_fix_times=False)
 
     args = parser.parse_args()
     main(all_buses=args.all_buses, all_trains=args.all_trains, all_passengers=args.all_passengers,
-         output_folder=args.output_folder, dont_fix_times=args.dont_fix_times, start_date=args.start_date)
+         output_folder=args.output_folder,  start_date=args.start_date)
     if args.gsheet_secret:
         to_google_sheets(args.output_folder, args.gsheet_secret)
