@@ -76,7 +76,6 @@ def make_first_row_bold_request(sheet_id):
     }}
 
 
-
 def from_gsheet(spreadsheet_id):
     """Returns data the from all the sheets in the spreadsheet, as a list of raws
 
@@ -187,3 +186,25 @@ def gsheet_to_csvs(spreadsheet_id, output_folder):
             writer = csv.writer(f, lineterminator='\n')
             for r in range_data:
                 writer.writerow(r)
+
+
+def auto_fit_column_width(spreadsheet_id, client_secret_path=CLIENT_SECRET):
+    """The width auto-fit isn't"""
+    credentials = get_credentials(client_secret_path)
+    sheets = discovery.build('sheets', 'v4', http=credentials.authorize(Http()))
+    sheet_res = sheets.spreadsheets().get(spreadsheetId=spreadsheet_id, includeGridData=False).execute()
+    sheet_ids = [s['properties']['sheetId'] for s in sheet_res['sheets']]
+    column_counts = [s['properties']['gridProperties']['columnCount'] for s in sheet_res['sheets']]
+    requests = [
+        {
+            "autoResizeDimensions": {
+                "dimensions": {
+                    "sheetId": sheetId,
+                    "dimension": "COLUMNS",
+                    "startIndex": 0,
+                    "endIndex": columns
+                }
+            }
+        } for sheetId, columns in zip(sheet_ids, column_counts)
+        ]
+    sheets.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body={'requests': requests}).execute()

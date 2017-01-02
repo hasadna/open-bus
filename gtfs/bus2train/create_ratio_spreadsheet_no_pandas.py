@@ -17,24 +17,33 @@ import argparse
 import csv
 from collections import Counter
 import os
-from gtfs.bus2train.gsheet_tools import csvs_to_gsheet
+from gtfs.bus2train.gsheet_tools import csvs_to_gsheet, auto_fit_column_width
 import datetime
 
 WEEKDAYS = ('sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday')
 
 
-def output_pivot(filename, tbl):
+def output_pivot(filename, tbl, aggregates=[]):
+    def prepare(x):
+        return '' if x is None else ('%.2f' % x if type(x) == float else x)
+
     print("Writing", filename)
     with open(filename, 'w', encoding='utf8') as f:
         writer = csv.writer(f, lineterminator='\n')
-        writer.writerow(["station"] + [str(h) for h in range(24)])
+        writer.writerow(["station"] + [str(h) for h in range(24)] + aggregates)
         for station in sorted(tbl):
-            writer.writerow([station] + [tbl[station][h] for h in range(24)])
+            writer.writerow([station] + [prepare(tbl[station][h]) for h in range(24)] +
+                            [prepare(tbl[station][a]) for a in aggregates])
+
+
+def add_agg_row(tbl, agg_func, agg_name):
+    for k in tbl:
+        tbl[k][agg_name] = agg_func(tbl[k].values())
 
 
 def calculate_ratio(tbl_a, tbl_b):
     """This function assumes to two tables have the same keys """
-    return {k1: {k2: '%.02f' % (tbl_a[k1][k2] / tbl_b[k1][k2]) if tbl_b[k1][k2] != 0 else ''
+    return {k1: {k2: tbl_a[k1][k2] / tbl_b[k1][k2] if tbl_b[k1][k2] != 0 else None
                  for k2 in tbl_a[k1]}
             for k1 in tbl_a}
 
@@ -51,7 +60,7 @@ def create_pivot(tbl, all_stations):
 def create_pivot_passengers(tbl, all_stations):
     counter = Counter()
     summer = Counter()
-    for r in tbl:
+    for r in tbl :
         counter[(r['station_name'], r['hour'])] += 1
         summer[(r['station_name'], r['hour'])] += r['avg']
     return {station: {hour: summer.get((station, hour), 0) / counter.get((station, hour), 1)
@@ -171,31 +180,38 @@ def main(all_buses, all_trains, all_passengers, output_folder, start_date):
         trains_day = create_pivot(filter_by_day(trains, date_str, day), all_stations)
         buses_day = create_pivot(filter_by_day(buses, date_str, day), all_stations)
         passengers_day = create_pivot_passengers(filter_by_day_passengers(passengers, day), all_stations)
-        output_pivot(os.path.join(output_folder, 'buses_%s.csv' % day), buses_day)
-        output_pivot(os.path.join(output_folder, 'trains_%s.csv' % day), trains_day)
-        output_pivot(os.path.join(output_folder, 'passengers_%s.csv' % day), passengers_day)
+
+        add_agg_row(trains_day, sum, 'Sum')
+        add_agg_row(buses_day, sum, 'Sum')
+        add_agg_row(passengers_day, sum, 'Sum')
+
+        output_pivot(os.path.join(output_folder, 'buses_%s.csv' % day), buses_day, ['Sum'])
+        output_pivot(os.path.join(output_folder, 'trains_%s.csv' % day), trains_day, ['Sum'])
+        output_pivot(os.path.join(output_folder, 'passengers_%s.csv' % day), passengers_day, ['Sum'])
+
+        avg = lambda l: sum(x for x in l if x is not None) / sum(1 for x in l if x is not None)
 
         # ratio buses-trains
-        output_pivot(os.path.join(output_folder, 'bus_train_%s.csv' % day), calculate_ratio(buses_day, trains_day))
+        bus_to_train = calculate_ratio(buses_day, trains_day)
+        add_agg_row(bus_to_train, avg, 'Avg')
+        output_pivot(os.path.join(output_folder, 'bus_train_%s.csv' % day), bus_to_train, ['Avg'])
 
         # ratio passengers-trains
-        output_pivot(os.path.join(output_folder, 'passenger_bus_%s.csv' % day),
-                     calculate_ratio(passengers_day, buses_day))
+        passenger_to_train = calculate_ratio(passengers_day, buses_day)
+        add_agg_row(passenger_to_train, avg, 'Avg')
+        output_pivot(os.path.join(output_folder, 'passenger_bus_%s.csv' % day), passenger_to_train, ['Avg'])
 
     print("All Done!")
 
 
 def to_google_sheets(output_folder, client_secret_path):
-    csvs_to_gsheet('Trains', [os.path.join(output_folder, 'trains_%s.csv' % day) for day in WEEKDAYS],
-                   WEEKDAYS, client_secret_path=client_secret_path)
-    csvs_to_gsheet('Buses', [os.path.join(output_folder, 'buses_%s.csv' % day) for day in WEEKDAYS],
-                   WEEKDAYS, client_secret_path=client_secret_path)
-    csvs_to_gsheet('Passengers', [os.path.join(output_folder, 'passengers_%s.csv' % day) for day in WEEKDAYS],
-                   WEEKDAYS, client_secret_path=client_secret_path)
-    csvs_to_gsheet('Bus/Train', [os.path.join(output_folder, 'bus_train_%s.csv' % day) for day in WEEKDAYS],
-                   WEEKDAYS, client_secret_path=client_secret_path)
-    csvs_to_gsheet('Passenger/Bus', [os.path.join(output_folder, 'passenger_bus_%s.csv' % day) for day in WEEKDAYS],
-                   WEEKDAYS, client_secret_path=client_secret_path)
+    names = ('Trains', 'Buses', 'Passengers', 'Bus/Train', 'Passengers/Buses')
+    base_file_names = ('trains_%s.csv', 'buses_%s.csv', 'passengers_%s.csv', 'bus_train_%s.csv', 'passenger_bus_%s.csv')
+    for name, base_file_name in zip(names, base_file_names):
+        spreadsheet_id = csvs_to_gsheet(name,
+                                        [os.path.join(output_folder, base_file_name % day) for day in WEEKDAYS],
+                                        WEEKDAYS, client_secret_path=client_secret_path)
+        auto_fit_column_width(spreadsheet_id, client_secret_path)
 
 
 if __name__ == '__main__':
@@ -210,6 +226,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     main(all_buses=args.all_buses, all_trains=args.all_trains, all_passengers=args.all_passengers,
-         output_folder=args.output_folder,  start_date=args.start_date)
+         output_folder=args.output_folder, start_date=args.start_date)
     if args.gsheet_secret:
         to_google_sheets(args.output_folder, args.gsheet_secret)
