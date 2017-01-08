@@ -23,6 +23,18 @@ import datetime
 WEEKDAYS = ('sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday')
 
 
+def print_all_trips(filename, tbl, buses=False):
+    fields = ["station_code", 'station_name', 'arrival_time', "hour", "direction_id"]
+    if buses:
+        fields += ['bus_route', 'bus_route_desc', 'bus_stop_name']
+    tbl = sorted((r for r in tbl), key=lambda r: (r['station_name'], r['arrival_time']))
+    with open(filename, 'w', encoding='utf8') as f:
+        writer = csv.DictWriter(f, fieldnames=fields, lineterminator='\n', extrasaction='ignore')
+        writer.writeheader()
+        for r in tbl:
+            writer.writerow(r)
+
+
 def output_pivot(filename, tbl, aggregates=[]):
     def prepare(x):
         return '' if x is None else ('%.2f' % x if type(x) == float else x)
@@ -60,7 +72,7 @@ def create_pivot(tbl, all_stations):
 def create_pivot_passengers(tbl, all_stations):
     counter = Counter()
     summer = Counter()
-    for r in tbl :
+    for r in tbl:
         counter[(r['station_name'], r['hour'])] += 1
         summer[(r['station_name'], r['hour'])] += r['avg']
     return {station: {hour: summer.get((station, hour), 0) / counter.get((station, hour), 1)
@@ -72,6 +84,24 @@ def load_data(tbl):
     with open(tbl, 'r', encoding='utf8') as f:
         reader = csv.DictReader(f)
         return [r for r in reader]
+
+
+def load_train_or_bus_data(file_name):
+    tbl = load_data(file_name)
+    tbl = rename_fields(tbl)
+    tbl = apply_to_field(tbl, 'hour', lambda s: int(float(s)))
+    for day in WEEKDAYS:
+        tbl = apply_to_field(tbl, day, lambda b: b.lower() == "true")
+    fix_times(tbl)
+    return tbl
+
+
+def load_passengers_data(file_name):
+    tbl = load_data(file_name)
+    tbl = rename_fields(tbl)
+    tbl = apply_to_field(tbl, 'hour', lambda s: int(float(s)))
+    tbl = apply_to_field(tbl, 'avg', lambda s: float(s) if s != '' else 0)
+    return tbl
 
 
 def rename_fields(tbl):
@@ -150,18 +180,15 @@ def passengers_and_buses_per_hour_non_pivoted(output_folder, buses, trains, pass
                                      'trains': trains_counter[k]})
 
 
-def main(all_buses, all_trains, all_passengers, output_folder, start_date):
+def main(all_buses_filename, all_trains_filename, all_passengers_filename, output_folder, start_date):
+    def avg(l):
+        s = sum(1 for x in l if x is not None)
+        return sum(x for x in l if x is not None) / s if s != 0 else None
+
     print("Loading data")
-    trains, buses, passengers = load_data(tbl=all_trains), load_data(tbl=all_buses), load_data(tbl=all_passengers)
-
-    print("Cleaning data")
-    trains = apply_to_field(rename_fields(trains), 'hour', lambda s: int(float(s)))
-    buses = apply_to_field(rename_fields(buses), 'hour', lambda s: int(float(s)))
-    passengers = apply_to_field(rename_fields(passengers), 'hour', int)
-    passengers = apply_to_field(passengers, 'avg', lambda s: float(s) if s != '' else 0)
-
-    fix_times(buses)
-    fix_times(trains)
+    trains = load_train_or_bus_data(all_buses_filename)
+    buses = load_train_or_bus_data(all_trains_filename)
+    passengers = load_passengers_data(all_passengers_filename)
 
     all_stations = station_super_set([trains, buses, passengers])
     print("There are %d stations" % len(all_stations))
@@ -175,10 +202,14 @@ def main(all_buses, all_trains, all_passengers, output_folder, start_date):
     for date in date_range:
         date_str = date.strftime('%Y-%m-%d')
         day = date.strftime('%A').lower()
-        print(date_str, day)
+        daily_trains = filter_by_day(trains, date_str, day)
+        print_all_trips(os.path.join(output_folder, 'all_trains_%s.csv' % day), daily_trains)
+        daily_bus = filter_by_day(buses, date_str, day)
+        print_all_trips(os.path.join(output_folder, 'all_buses_%s.csv' % day), daily_trains, buses=True)
+        print(date_str, day, '%d train journeys' % len(daily_trains), '%d bus journeys' % len(daily_bus))
         # create sub data frame with only buses/trains in specific day
-        trains_day = create_pivot(filter_by_day(trains, date_str, day), all_stations)
-        buses_day = create_pivot(filter_by_day(buses, date_str, day), all_stations)
+        trains_day = create_pivot(daily_trains, all_stations)
+        buses_day = create_pivot(daily_bus, all_stations)
         passengers_day = create_pivot_passengers(filter_by_day_passengers(passengers, day), all_stations)
 
         add_agg_row(trains_day, sum, 'Sum')
@@ -188,8 +219,6 @@ def main(all_buses, all_trains, all_passengers, output_folder, start_date):
         output_pivot(os.path.join(output_folder, 'buses_%s.csv' % day), buses_day, ['Sum'])
         output_pivot(os.path.join(output_folder, 'trains_%s.csv' % day), trains_day, ['Sum'])
         output_pivot(os.path.join(output_folder, 'passengers_%s.csv' % day), passengers_day, ['Sum'])
-
-        avg = lambda l: sum(x for x in l if x is not None) / sum(1 for x in l if x is not None)
 
         # ratio buses-trains
         bus_to_train = calculate_ratio(buses_day, trains_day)
@@ -225,7 +254,9 @@ if __name__ == '__main__':
     parser.set_defaults(dont_fix_times=False)
 
     args = parser.parse_args()
-    main(all_buses=args.all_buses, all_trains=args.all_trains, all_passengers=args.all_passengers,
+    main(all_buses_filename=args.all_buses,
+         all_trains_filename=args.all_trains,
+         all_passengers_filename=args.all_passengers,
          output_folder=args.output_folder, start_date=args.start_date)
     if args.gsheet_secret:
         to_google_sheets(args.output_folder, args.gsheet_secret)
