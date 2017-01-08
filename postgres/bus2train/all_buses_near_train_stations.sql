@@ -29,7 +29,7 @@ SELECT DISTINCT
        calendar.friday                                        AS bus_friday,
        calendar.saturday                                      AS bus_saturday,
        routes.route_desc                                      AS bus_route_makat,
-       calednar.start_date                                    AS start_date,
+      calendar.start_date                                    AS start_date,
        calendar.end_date                                      AS end_date,
        trips.Direction_id                                     AS direction_id
 
