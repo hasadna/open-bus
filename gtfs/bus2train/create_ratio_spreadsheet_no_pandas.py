@@ -239,7 +239,7 @@ def to_google_sheets(output_folder, client_secret_path):
     for name, base_file_name in zip(names, base_file_names):
         spreadsheet_id = csvs_to_gsheet(name,
                                         [os.path.join(output_folder, base_file_name % day) for day in WEEKDAYS],
-                                        WEEKDAYS, client_secret_path=client_secret_path)
+                                        [s[:3] for s in WEEKDAYS], client_secret_path=client_secret_path)
         auto_fit_column_width(spreadsheet_id, client_secret_path)
 
 

@@ -173,10 +173,10 @@ def csvs_to_gsheet(spreadsheet_name, file_names, sheet_names=None, encoding='utf
     assert len(set(sheet_names)) == len(sheet_names), "Repeating values in sheet names %s" % sheet_names
 
     data = {}
-    for file_name in file_names:
+    for sheet_name, file_name in zip(sheet_names, file_names):
         print("Importing %s" % file_name)
         with open(file_name, 'r', encoding=encoding) as f:
-            data[get_sheet_name(file_name)] = [tuple(r) for r in csv.reader(f)]
+            data[sheet_name] = [tuple(r) for r in csv.reader(f)]
     return to_gsheet(spreadsheet_name, data, client_secret_path)
 
 
