@@ -15,11 +15,16 @@ from oauth2client.file import Storage
 from itertools import zip_longest
 import csv
 
-CLIENT_SECRET = os.path.join(os.path.dirname(__file__), 'client_secret.json')
+CLIENT_SECRET = os.path.join(os.path.dirname(__file__), 'CLIENT_SECRET.json')
 SCOPES = 'https://www.googleapis.com/auth/spreadsheets'
 
 Flags = namedtuple('Flags', 'auth_host_name noauth_local_webserver auth_host_port logging_level')
 default_flags = Flags('localhost', 'store_true', [8080, 8090], 'DEBUG')
+
+#colors
+YELLOW = {"blue": 0.678, "green": 1, "red": 1}
+RED = {"blue": 0.502, "green": 0.502, "red": 0.941}
+GREEN = {"blue": 0.541, "green": 0.733, "red": 0.341}
 
 
 def get_credentials(client_secret_path=CLIENT_SECRET):
@@ -132,7 +137,7 @@ def to_gsheet(spreadsheet_name, data, client_secret_path=CLIENT_SECRET):
         sheets.spreadsheets().values().update(spreadsheetId=spreadsheet_id,
                                               range=sheet_name,
                                               body={'values': records},
-                                              valueInputOption='RAW').execute()
+                                              valueInputOption='USER_ENTERED').execute()
 
     return spreadsheet_id
 
@@ -150,7 +155,7 @@ def add_sheet(spreadsheet_id, sheet_name, records):
     sheets.spreadsheets().values().update(spreadsheetId=spreadsheet_id,
                                           range=sheet_name,
                                           body={'values': records},
-                                          valueInputOption='RAW').execute()
+                                          valueInputOption='USER_ENTERED').execute()
 
 
 def csvs_to_gsheet(spreadsheet_name, file_names, sheet_names=None, encoding='utf-8', client_secret_path=CLIENT_SECRET):
@@ -208,3 +213,71 @@ def auto_fit_column_width(spreadsheet_id, client_secret_path=CLIENT_SECRET):
         } for sheetId, columns in zip(sheet_ids, column_counts)
         ]
     sheets.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body={'requests': requests}).execute()
+
+
+def make_range(sheet_id, n_rows, n_columns, all_sheet, index):
+    if all_sheet:
+        return {
+              "sheetId": sheet_id,
+              "startRowIndex": 1,
+              "endRowIndex": n_rows+1,
+              "startColumnIndex": 1,
+              "endColumnIndex": n_columns - 1,
+            }
+    else:
+        return {
+            "sheetId": sheet_id,
+            "startRowIndex": index,
+            "endRowIndex": index + 1,
+            "startColumnIndex": 1,
+            "endColumnIndex": n_columns - 1,
+        }
+
+
+def make_format_rule(sheet_id, n_columns, all_sheet, larger_green, n_rows, index=None):
+    if larger_green:
+        max = GREEN
+        min = RED
+    else:
+        max = RED
+        min = GREEN
+    return {"addConditionalFormatRule": {
+        "rule": {
+          "ranges": [make_range(sheet_id=sheet_id, n_rows=n_rows, n_columns=n_columns,
+                                all_sheet=all_sheet, index=index)],
+          "gradientRule": {
+            "minpoint": {
+              "color": min,
+              "type": "MIN"
+            },
+            "maxpoint": {
+              "color": max,
+              "type": "MAX"
+            },
+            "midpoint":{
+                "color": YELLOW,
+                "type": "percentile",
+                "value":"50"
+            }
+          }
+        },
+        "index": 0}}
+
+
+def conditional_formatting(spreadsheet_id, type, rows, client_secret_path=CLIENT_SECRET, larger_green = True):
+    credentials = get_credentials(client_secret_path)
+    service = discovery.build('sheets', 'v4', http=credentials.authorize(Http()))
+    requests = []
+    res = service.spreadsheets().get(spreadsheetId=spreadsheet_id, includeGridData=False).execute()
+    for i in range(7):
+        sheet_id = res['sheets'][i]['properties']['sheetId']
+        columns = res['sheets'][i]['properties']['gridProperties']['columnCount']
+        if type == 'ROW':
+            for row in range(1, rows+1):
+                requests.append(make_format_rule(sheet_id=sheet_id, index=row, n_rows=rows, n_columns=columns,
+                                                 all_sheet=False, larger_green=larger_green))
+        elif type == 'SHEET':
+            requests.append(make_format_rule(sheet_id = sheet_id, n_rows=rows, n_columns=columns,
+
+                                             all_sheet=True,larger_green=larger_green))
+    service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body={'requests': requests}).execute()
