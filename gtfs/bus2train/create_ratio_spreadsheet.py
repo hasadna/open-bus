@@ -129,6 +129,9 @@ def main(all_buses, all_trains, all_passengers, min_time, output_folder, client_
     print("Finished fixing")
 
     print("\nCreating Pivots...")
+
+    summary_table = pd.DataFrame()
+
     for day in WEEKDAYS:
         print("---------"+day+"---------")
         # create sub data frame with only buses/trains in specific day
@@ -150,6 +153,10 @@ def main(all_buses, all_trains, all_passengers, min_time, output_folder, client_
         tbl_no_bus = create_pivot(table=no_bus, columns='hour', aggfunc=len, index='stop_name',
                                       values='waiting_time', fill_value=0, summary_func='avg')
 
+        summary_table['buses_'+day]=tbl_bus['All']
+        summary_table['trains_'+day]=tbl_train['All']
+        summary_table['passengers_'+day]=tbl_passengers['All']
+
         # output pivots
         output_table_to_csv(tbl_bus, type='bus', precsion=0, output_folder=output_folder, day=day)
         output_table_to_csv(tbl_train, type='train', precsion=0, output_folder=output_folder, day=day)
@@ -159,10 +166,13 @@ def main(all_buses, all_trains, all_passengers, min_time, output_folder, client_
         # ratio buses-trains
         ratio_tbl = calculate_ratio(tbl_bus, tbl_train)
         output_table_to_csv(ratio_tbl, type='ratio_bus_train', precsion=2, output_folder=output_folder, day=day)
+        summary_table['ratio_bus_train_'+day]=ratio_tbl['average']
+
 
         # ratio passengers-trains
         ratio_tbl = calculate_ratio(tbl_passengers, tbl_bus)
         output_table_to_csv(ratio_tbl, type='ratio_passengers_bus', precsion=2, output_folder=output_folder, day=day)
+        summary_table['ratio_passengers_bus_'+day]=ratio_tbl['average']
 
         # ratio train with no bus to all trains
         ratio_tbl = calculate_ratio(tbl_no_bus, tbl_train)
@@ -170,6 +180,9 @@ def main(all_buses, all_trains, all_passengers, min_time, output_folder, client_
         ratio_tbl = ratio_tbl.drop('average', 1)
         ratio_tbl = ratio_tbl.replace(np.NaN, 0, regex=True)
         output_table_to_csv(ratio_tbl, type='no_bus', precsion=2, output_folder=output_folder, day=day)
+
+    summary_table.sort(columns=None, axis=1, inplace=True)
+    output_table_to_csv(summary_table, type='summary', precsion=0, output_folder=output_folder, day='all')
 
     print("All pivots and ratios created!")
     if client_secret != '':
