@@ -23,6 +23,33 @@ the `siri` package contains the code for connecting to the service, retrieving d
   - siri_arrivals - parsed data from all the [Monitored Stop Visit] xml entities (see below).
 - `fetch_and_store_arrivals.py` - a script that uses the three other modules to fetch and store data on a given list of stops.
 
+### Running the fetch and store with crontab
+
+- Pull a version of the repository to the obus server.
+
+- Create a stops file: a csv file with a column named `stop_code`. All other columns will be ignored.
+
+- Copy `fetch_and_store_arrivals.config.example` from the `/conf` folder. Update SIRIUSER, FILENAME, DBUSER & PASSWORD. For the rest the defaults should be ok.
+
+- Create a script for running fetch and store with your configuration, something like:
+
+  ```bash
+  #! /bin/bash
+
+  export PYTHONPATH=/path/to/repository/open-bus
+
+  python3 -m siri.fetch_and_store_arrivals /path/to/config/fetch_and_store_arrivals.config
+
+  ```
+
+- Test your work by running the script. 
+
+- Add the script to crontab. Run `crontab -e` and add something like (read crontab doc to understand!)
+
+  ```
+  */2 5-23,0-1 * * 7,1-5 /path/tp/script/fetch_and_store.sh >& /tmp/fetch_arrivals.log
+  ```
+
 ## Protocol: requests
 
 The request is called `Stop Monitoring Request`. It's a request for information on the next arrivals to a given stop. Each request is for one stop (*or one pre-define set of stops, I don't know what that means). Several stop monitoring requests can be sent together in one `Service Request`.
