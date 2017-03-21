@@ -5,10 +5,49 @@ Use your Google account to login.
 
 ## SIRI tables
 
-Tables of data extracted from the SIRI service using [fetch_and_store_arrivals](https://github.com/hasadna/open-bus/blob/master/doc/fetch_and_store_arrivals.md). 
+Tables of data extracted from the SIRI service using [fetch_and_store_arrivals](https://github.com/hasadna/open-bus/blob/master/doc/fetch_and_store_arrivals.md). See `working_with_SIRI.md` for more information about the SIRI protocol. 
 
 - `siri_raw_responses` - raw responses xml
+
 - `siri_arrivals` - parsed response
+
+### SIRI arrivals
+
+This table shows how the fields in the database relate to the SIRI response fields. See `working_with_SIRI.md` for more information about the SIRI response fields. 
+
+| Database                      | SIRI                                     | Description                              |
+| ----------------------------- | ---------------------------------------- | ---------------------------------------- |
+| `id`                          | -                                        | database auto increment identifier       |
+| `recorded_at_time`            | `MonitoredStopVisit.RecordedAtTime`      | time stamp                               |
+| `item_identifier`             | `MonitoredStopVisit.ItemIdentifier`      | ?                                        |
+| `monitoring_ref`              | `MonitoredStopVisit.MonitoringRef`       | ?                                        |
+| `line_ref`                    | `MonitoredVehicleJourney.LineRef`        | GTFS route code                          |
+| `direction_ref`               | `MonitoredVehicleJourney.DirectionRef`   | probably direction from GTFS routes table (values are 1, 2 or 3) |
+| `operator_ref`                | `MonitoredVehicleJourney.OperatorRef`    | GTFS agency id                           |
+| `published_line_name`         | `MonitoredVehicleJourney.PublishedLineName` | Line number as it appears to the public (e.g. on the bus) |
+| `destination_ref`             | `MonitoredVehicleJourney.DestinationRef` | GTFS stop code of the destination (last stop) |
+| `dated_vehicle_journey_ref`   | `MonitoredVehicleJourney.DatedVehicleJourneyRef` | **should be** the GTFS trip id, in practice always empty |
+| `vehicle_ref`                 | `MonitoredVehicleJourney.VehicleRef`     | Vehicle identifier, usually vehicle registration number (but in Dan an internal "machine number") |
+| `confidence_level`            | `MonitoredVehicleJourney.ConfidenceLevel` | always empty                             |
+| `origin_aimed_departure_time` | `MonitoredVehicleJourney.OriginAimedDepartureTime` | **probably** the planned departure time from the first stop. If true, could be matched to find the trip in the GTFS. |
+| `stop_point_ref`              | `MonitoredCall.StopPointRef`             | Stop code for which the rest of the Monitor Call information applies. |
+| `vehicle_at_stop`             | `MonitoredCall.VehicleAtStop`            | Boolean field - is the bus currently in the stop. |
+| `request_stop`                | `MonitoredCall.RequestStop`              | always false                             |
+| `destination_display`         | `MonitoredCall.DestinationDisplay`       | always empty                             |
+| `aimed_arrival_time`          | `MonitoredCall.AimedArrivalTime`         | Planned arrival time to stop (according to GTFS?) |
+| `actual_arrival_time`         | `MonitoredCall.ActualArrivalTime`        | always empty                             |
+| `expected_arrival_time`       | `MonitoredCall.ExpectedArrivalTime`      | Current estimated arrival time to stop (time to be displayed on signs / apps) |
+| `arrival_status`              | `MonitoredCall.ArrivalStatus`            | delayed, onTime or empty                 |
+| `arrival_platform_name`       | `MonitoredCall.ArrivalPlatformName`      | always empty                             |
+| `arrival_boarding_activity`   | `MonitoredCall.ArrivalBoardingActivity`  | always empty                             |
+| `actual_departure_time`       | `MonitoredCall.ActualDepartureTime`      | always empty                             |
+| `aimed_departure_time`        | `MonitoredCall.AimedDepartureTime`       | always empty                             |
+| `stop_visit_note`             | `MonitoredVehicleJourney.StopVisitNote`  | always empty                             |
+| `response_id`                 | -                                        | Foreign key for matching raw in SIRI_raw_responses |
+| `vehicle_location_lat`        | `MonitoredVehicleJourney.VehicleLocation.Latitude` | Location of the vehicle                  |
+| `vehicle_location_lon`        | `MonitoredVehicleJourney.VehicleLocation.Longitude` | Location of the vehicle                  |
+
+
 
 ## GTFS Tables
 
