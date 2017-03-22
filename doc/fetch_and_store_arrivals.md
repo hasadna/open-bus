@@ -33,4 +33,21 @@ This should now work:
 
        python3 -m siri.fetch_and_store_arrivals <your configuration file name>
 
-​      
+## Running with crontab
+
+- Create a script for running fetch and store with your configuration, something like:
+  ```bash
+  #! /bin/bash
+
+  export PYTHONPATH=/path/to/repository/open-bus
+
+  python3 -m siri.fetch_and_store_arrivals /path/to/config/fetch_and_store_arrivals.config
+
+  ```
+- Test your work by running the script. 
+
+- Add the script to crontab. Run `crontab -e` and add something like (read crontab doc to understand!)
+
+  ```
+  */2 5-23,0-1 * * 7,1-5 /path/tp/script/fetch_and_store.sh >& /tmp/fetch_arrivals.log
+  ```
