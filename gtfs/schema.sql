@@ -170,4 +170,4 @@ CREATE TABLE gtfs_shapes
   CONSTRAINT shapes_pkey PRIMARY KEY (shape_id , shape_pt_sequence )
 );
 ALTER TABLE gtfs_shapes
-  OWNER TO obus;
+OWNER TO obus;
