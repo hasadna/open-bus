@@ -2,19 +2,19 @@
 -- TODO: Make sure type-sizes are fine.
 -- TODO: Check requested type-size for coordinates.
 -- TODO: Check requested type-size for shape_dist_traveled.
-SET ROLE openbus;
+SET ROLE obus;
 
-CREATE TABLE agency
+CREATE TABLE gtfs_agency
 (
   agency_id integer NOT NULL,
   agency_name character varying(100) NOT NULL,
   CONSTRAINT agency_pkey PRIMARY KEY (agency_id )
 );
-ALTER TABLE agency
-  OWNER TO openbus;
+ALTER TABLE gtfs_agency
+  OWNER TO obus;
 
 
-CREATE TABLE routes
+CREATE TABLE gtfs_routes
 (
   route_id integer NOT NULL,
   agency_id integer,
@@ -25,19 +25,19 @@ CREATE TABLE routes
   route_color character varying(9), -- Can be an Enum.
   CONSTRAINT routes_pkey PRIMARY KEY (route_id )
 );
-ALTER TABLE routes
-  OWNER TO openbus;
+ALTER TABLE gtfs_routes
+  OWNER TO obus;
 CREATE INDEX routes_agency_id
-  ON routes
+  ON gtfs_routes
   USING btree
   (agency_id );
 CREATE INDEX routes_route_type
-  ON routes
+  ON gtfs_routes
   USING btree
   (route_type );
 
   
-CREATE TABLE trips
+CREATE TABLE gtfs_trips
 (
   trip_id character varying(50) NOT NULL,
   route_id integer,
@@ -46,27 +46,27 @@ CREATE TABLE trips
   shape_id integer,
   CONSTRAINT trips_pkey PRIMARY KEY (trip_id )
 );
-ALTER TABLE trips
-  OWNER TO openbus;
+ALTER TABLE gtfs_trips
+  OWNER TO obus;
 CREATE INDEX trips_direction_id
-  ON trips
+  ON gtfs_trips
   USING btree
   (direction_id );
 CREATE INDEX trips_route_id
-  ON trips
+  ON gtfs_trips
   USING btree
   (route_id );
 CREATE INDEX trips_service_id
-  ON trips
+  ON gtfs_trips
   USING btree
   (service_id );
 CREATE INDEX trips_shape_id
-  ON trips
+  ON gtfs_trips
   USING btree
   (shape_id );
 
   
-CREATE TABLE calendar
+CREATE TABLE gtfs_calendar
 (
   service_id integer NOT NULL,
   sunday boolean,
@@ -80,15 +80,15 @@ CREATE TABLE calendar
   end_date character varying(8),
   CONSTRAINT calendar_pkey PRIMARY KEY (service_id )
 );
-ALTER TABLE calendar
-  OWNER TO openbus;
+ALTER TABLE gtfs_calendar
+  OWNER TO obus;
 CREATE INDEX calendar_service_id
-  ON calendar
+  ON gtfs_calendar
   USING btree
   (service_id ); 
   
   
-CREATE TABLE stop_times
+CREATE TABLE gtfs_stop_times
 (
   id serial NOT NULL,
   trip_id character varying(50),
@@ -100,31 +100,31 @@ CREATE TABLE stop_times
   drop_off_type boolean,
   CONSTRAINT stop_times_pkey PRIMARY KEY (id )
 );
-ALTER TABLE stop_times
-  OWNER TO openbus;
+ALTER TABLE gtfs_stop_times
+  OWNER TO obus;
 CREATE INDEX stop_times_drop_off_type
-  ON stop_times
+  ON gtfs_stop_times
   USING btree
   (drop_off_type );
 CREATE INDEX stop_times_pickup_type
-  ON stop_times
+  ON gtfs_stop_times
   USING btree
   (pickup_type );
 CREATE INDEX stop_times_stop_id
-  ON stop_times
+  ON gtfs_stop_times
   USING btree
   (stop_id );
 CREATE INDEX stop_times_stop_sequence
-  ON stop_times
+  ON gtfs_stop_times
   USING btree
   (stop_sequence );
 CREATE INDEX stop_times_trip_id
-  ON stop_times
+  ON gtfs_stop_times
   USING btree
   (trip_id );
   
   
-CREATE TABLE stops
+CREATE TABLE gtfs_stops
 (
   stop_id integer NOT NULL,
   stop_code integer,
@@ -137,31 +137,31 @@ CREATE TABLE stops
   zone_id character varying(255),
   CONSTRAINT stops_pkey PRIMARY KEY (stop_id )
 );
-ALTER TABLE stops
-  OWNER TO openbus;
+ALTER TABLE gtfs_stops
+  OWNER TO obus;
 CREATE INDEX stops_location_type
-  ON stops
+  ON gtfs_stops
   USING btree
   (location_type );
 CREATE INDEX stops_parent_station
-  ON stops
+  ON gtfs_stops
   USING btree
   (parent_station );
 CREATE INDEX stops_stop_lat
-  ON stops
+  ON gtfs_stops
   USING btree
   (stop_lat );
 CREATE INDEX stops_stop_lon
-  ON stops
+  ON gtfs_stops
   USING btree
   (stop_lon );
 CREATE INDEX stops_zone_id
-  ON stops
+  ON gtfs_stops
   USING btree
   (zone_id COLLATE pg_catalog."default" );
 
 
-CREATE TABLE shapes
+CREATE TABLE gtfs_shapes
 (
   shape_id integer NOT NULL,
   shape_pt_sequence integer NOT NULL,
@@ -169,5 +169,5 @@ CREATE TABLE shapes
   shape_pt_lon numeric(8,6) NOT NULL,
   CONSTRAINT shapes_pkey PRIMARY KEY (shape_id , shape_pt_sequence )
 );
-ALTER TABLE shapes
-  OWNER TO openbus;
+ALTER TABLE gtfs_shapes
+OWNER TO obus;
