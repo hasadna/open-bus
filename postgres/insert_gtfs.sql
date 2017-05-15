@@ -3,33 +3,33 @@
 
 
 -- drop old tables
-DROP TABLE IF EXISTS agency;
-DROP TABLE IF EXISTS routes;
-DROP TABLE IF EXISTS trips;
-DROP TABLE IF EXISTS calendar;
-DROP TABLE IF EXISTS stop_times;
-DROP TABLE IF EXISTS stops;
-DROP TABLE IF EXISTS shapes;
+DROP TABLE IF EXISTS gtfs_agency;
+DROP TABLE IF EXISTS gtfs_routes;
+DROP TABLE IF EXISTS gtfs_trips;
+DROP TABLE IF EXISTS gtfs_calendar;
+DROP TABLE IF EXISTS gtfs_stop_times;
+DROP TABLE IF EXISTS gtfs_stops;
+DROP TABLE IF EXISTS gtfs_shapes;
 
 ---- agencies ----
 \echo ********** importing agencies **********
 
-CREATE TABLE agency
+CREATE TABLE gtfs_agency
 (
   agency_id   INTEGER                NOT NULL,
   agency_name CHARACTER VARYING(100) NOT NULL,
   CONSTRAINT agency_pkey PRIMARY KEY (agency_id)
 );
-ALTER TABLE agency
+ALTER TABLE gtfs_agency
   OWNER TO obus;
 
-\copy agency from '/tmp/gtfs/agency_for_db.txt' DELIMITER ',' CSV HEADER;
+\copy gtfs_agency from '/tmp/gtfs/agency_for_db.txt' DELIMITER ',' CSV HEADER;
 
 
 -- routes --
 \echo ********** importing routes **********
 
-CREATE TABLE routes
+CREATE TABLE gtfs_routes
 (
   route_id         INTEGER NOT NULL,
   agency_id        INTEGER,
@@ -40,29 +40,29 @@ CREATE TABLE routes
   route_color      CHARACTER VARYING(9) -- Can be an Enum.
 
 );
-ALTER TABLE routes
+ALTER TABLE gtfs_routes
   OWNER TO obus;
 
 
 
-\copy routes from '/tmp/gtfs/routes.txt' DELIMITER ',' CSV HEADER;
+\copy gtfs_routes from '/tmp/gtfs/routes.txt' DELIMITER ',' CSV HEADER;
 
 
-ALTER TABLE routes
+ALTER TABLE gtfs_routes
   ADD CONSTRAINT routes_pkey PRIMARY KEY (route_id);
 CREATE INDEX routes_agency_id
-  ON routes
+  ON gtfs_routes
   USING BTREE
   (agency_id);
 CREATE INDEX routes_route_type
-  ON routes
+  ON gtfs_routes
   USING BTREE
   (route_type);
 
 -- stops --
 \echo ********** importing stops **********
 
-CREATE TABLE stops
+CREATE TABLE gtfs_stops
 (
   stop_id        INTEGER NOT NULL,
   stop_code      INTEGER NOT NULL,
@@ -76,36 +76,36 @@ CREATE TABLE stops
   address        CHARACTER VARYING(50),
   town           CHARACTER VARYING(50)
 );
-ALTER TABLE stops
+ALTER TABLE gtfs_stops
   OWNER TO obus;
 
-\copy stops(stop_id, stop_code, stop_name, stop_desc, stop_lat, stop_lon, location_type, parent_station, zone_id) from '/tmp/gtfs/stops.txt' DELIMITER ',' CSV HEADER;
+\copy gtfs_stops(stop_id, stop_code, stop_name, stop_desc, stop_lat, stop_lon, location_type, parent_station, zone_id) from '/tmp/gtfs/stops.txt' DELIMITER ',' CSV HEADER;
 
-UPDATE stops
+UPDATE gtfs_stops
 SET address = left(trim(split_part(stop_desc, ':', 2)), -4),
   town      = left(trim(split_part(stop_desc, ':', 3)), -5);
 
-ALTER TABLE stops
+ALTER TABLE gtfs_stops
   ADD CONSTRAINT stops_pkey PRIMARY KEY (stop_id);
 
 CREATE INDEX stops_stop_code
-  ON stops
+  ON gtfs_stops
   USING BTREE
   (stop_code);
 CREATE INDEX stops_location_type
-  ON stops
+  ON gtfs_stops
   USING BTREE
   (location_type);
 CREATE INDEX stops_parent_station
-  ON stops
+  ON gtfs_stops
   USING BTREE
   (parent_station);
 CREATE INDEX stops_zone_id
-  ON stops
+  ON gtfs_stops
   USING BTREE
   (zone_id COLLATE pg_catalog."default");
 CREATE INDEX stops_town
-  ON stops
+  ON gtfs_stops
   USING BTREE
   (town);
 
@@ -114,7 +114,7 @@ CREATE INDEX stops_town
 -- trips --
 \echo ********** importing trips **********
 
-CREATE TABLE trips
+CREATE TABLE gtfs_trips
 (
   route_id     INTEGER,
   service_id   INTEGER,
@@ -122,34 +122,34 @@ CREATE TABLE trips
   direction_id INTEGER,
   shape_id     INTEGER
 );
-ALTER TABLE trips
+ALTER TABLE gtfs_trips
   OWNER TO obus;
 
-\copy trips from '/tmp/gtfs/trips.txt' DELIMITER ',' CSV HEADER;
+\copy gtfs_trips from '/tmp/gtfs/trips.txt' DELIMITER ',' CSV HEADER;
 
 
-ALTER TABLE trips
+ALTER TABLE gtfs_trips
   ADD CONSTRAINT trips_pkey PRIMARY KEY (trip_id);
 CREATE INDEX trips_direction_id
-  ON trips
+  ON gtfs_trips
   USING BTREE
   (direction_id);
 CREATE INDEX trips_route_id
-  ON trips
+  ON gtfs_trips
   USING BTREE
   (route_id);
 CREATE INDEX trips_service_id
-  ON trips
+  ON gtfs_trips
   USING BTREE
   (service_id);
 CREATE INDEX trips_shape_id
-  ON trips
+  ON gtfs_trips
   USING BTREE
   (shape_id);
 
 -- calendar --
 \echo ********** importing calendar **********
-CREATE TABLE calendar
+CREATE TABLE gtfs_calendar
 (
   service_id INTEGER NOT NULL,
   sunday     BOOLEAN,
@@ -162,23 +162,23 @@ CREATE TABLE calendar
   start_date date,
   end_date   date
 );
-ALTER TABLE calendar
+ALTER TABLE gtfs_calendar
   OWNER TO obus;
 
-\copy calendar from '/tmp/gtfs/calendar.txt' DELIMITER ',' CSV HEADER;
+\copy gtfs_calendar from '/tmp/gtfs/calendar.txt' DELIMITER ',' CSV HEADER;
 
 
-ALTER TABLE calendar
+ALTER TABLE gtfs_calendar
   ADD CONSTRAINT calendar_pkey PRIMARY KEY (service_id);
 CREATE INDEX calendar_service_id
-  ON calendar
+  ON gtfs_calendar
   USING BTREE
   (service_id);
 
 -- stop_times --
 \echo ********** importing stop times **********
 
-CREATE TABLE stop_times
+CREATE TABLE gtfs_stop_times
 (
   trip_id             CHARACTER VARYING(50),
   arrival_time        CHARACTER VARYING(8),
@@ -190,20 +190,20 @@ CREATE TABLE stop_times
   shape_dist_traveled INTEGER
 
 );
-ALTER TABLE stop_times
+ALTER TABLE gtfs_stop_times
   OWNER TO obus;
 
-\copy stop_times from '/tmp/gtfs/stop_times.txt' DELIMITER ',' CSV HEADER;
+\copy gtfs_stop_times from '/tmp/gtfs/stop_times.txt' DELIMITER ',' CSV HEADER;
 
 -- renamed the fields to something more self explanatory
 -- It's not a mistake! see GTFS documentation.
-ALTER TABLE stop_times RENAME pickup_type TO drop_off_only;
-ALTER TABLE stop_times RENAME drop_off_type TO pickup_only;
+ALTER TABLE gtfs_stop_times RENAME pickup_type TO drop_off_only;
+ALTER TABLE gtfs_stop_times RENAME drop_off_type TO pickup_only;
 
 
 -- indexes are very expensive on this huge table, so let's only create indexes we need we know
 CREATE INDEX stop_times_trip_id
-  ON stop_times
+  ON gtfs_stop_times
   USING BTREE
   (trip_id);
 
@@ -221,17 +221,17 @@ CREATE INDEX stop_times_trip_id
 -- shapes --
 \echo ********** importing shapes **********
 
-CREATE TABLE shapes
+CREATE TABLE gtfs_shapes
 (
   shape_id          INTEGER       NOT NULL,
   shape_pt_lat      NUMERIC(8, 6) NOT NULL,
   shape_pt_lon      NUMERIC(8, 6) NOT NULL,
   shape_pt_sequence INTEGER       NOT NULL
 );
-ALTER TABLE shapes
+ALTER TABLE gtfs_shapes
   OWNER TO obus;
 
-\copy shapes from '/tmp/gtfs/shapes.txt' DELIMITER ',' CSV HEADER;
+\copy gtfs_shapes from '/tmp/gtfs/shapes.txt' DELIMITER ',' CSV HEADER;
 
 ALTER TABLE shapes
   ADD CONSTRAINT shapes_pkey PRIMARY KEY (shape_id, shape_pt_sequence);
