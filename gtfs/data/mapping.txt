@@ -1,8 +1,8 @@
-TABLE agency
+TABLE gtfs_agency
 agency_id integer NOT NULL
 agency_name character varying(100) NOT NULL
 
-TABLE routes
+TABLE gtfs_routes
 route_id integer NOT NULL
 agency_id integer
 route_short_name character varying(50)
@@ -11,14 +11,14 @@ route_desc character varying(10)
 route_type integer NOT NULL -- Should be an Enum.
 route_color character varying(9) -- Can be an Enum.
 
-TABLE trips
+TABLE gtfs_trips
 trip_id character varying(50) NOT NULL
 route_id integer
 service_id integer
 direction_id integer
 shape_id integer
 
-TABLE calendar
+TABLE gtfs_calendar
 service_id integer NOT NULL
 sunday boolean
 monday boolean
@@ -30,7 +30,7 @@ saturday boolean
 start_date character varying(8)
 end_date character varying(8)
 
-TABLE stop_times
+TABLE gtfs_stop_times
 trip_id integer
 arrival_time character varying(8)
 departure_time character varying(8)
@@ -39,7 +39,7 @@ stop_sequence integer
 pickup_type boolean
 drop_off_type boolean
 
-TABLE stops
+TABLE gtfs_stops
 stop_id integer NOT NULL
 stop_code integer
 stop_name character varying(255)
@@ -50,7 +50,7 @@ location_type boolean -- Should be an Enum.
 parent_station integer -- Should be an Enum.
 zone_id character varying(255)
 
-TABLE shapes
+TABLE gtfs_shapes
 shape_id integer NOT NULL
 shape_pt_sequence integer NOT NULL
 shape_pt_lat numeric(86) NOT NULL
