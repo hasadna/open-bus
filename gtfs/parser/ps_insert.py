@@ -68,7 +68,7 @@ def load_mapping(mapping_file):
 
 
 def get_table_name(file_path):
-    return os.path.splitext(os.path.basename(file_path))[0]
+    return "gtfs_" + os.path.splitext(os.path.basename(file_path))[0]
 
 
 def progenum(iterable, freq):
