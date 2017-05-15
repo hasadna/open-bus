@@ -182,7 +182,7 @@ def stop_times_db_generator(config):
     cursor = connection.cursor('read_stop_times_from_db', cursor_factory=psycopg2.extras.DictCursor)
     logging.debug("Executing select query")
     cursor.execute("SELECT trip_id,arrival_time,departure_time,stop_id,stop_sequence,drop_off_only,pickup_only" +
-                   " FROM stop_times ORDER BY trip_id, stop_sequence;")
+                   " FROM gtfs_stop_times ORDER BY trip_id, stop_sequence;")
     logging.debug("Starting iteration")
     for row in progress(cursor):
         yield row[0], StopTime(parse_timestamp(row[1]), parse_timestamp(row[2]), row[3], row[4], row[5], row[6])

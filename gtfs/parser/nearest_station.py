@@ -15,11 +15,11 @@ def parse_config(config_file_name):
 
 def find_nearest_station(cursor):
     logging.debug("Find nearest station starts ")
-    query = """SELECT DISTINCT(stops.stop_code), stops.stop_lat, stops.stop_lon FROM routes
-    JOIN trips ON trips.route_id = routes.route_id
-    JOIN trip_route_story ON trips.trip_id = trip_route_story.trip_id
+    query = """SELECT DISTINCT(gtfs_stops.stop_code), gtfs_stops.stop_lat, gtfs_stops.stop_lon FROM gtfs_routes
+    JOIN gtfs_trips ON gtfs_trips.route_id = gtfs_routes.route_id
+    JOIN trip_route_story ON gtfs_trips.trip_id = trip_route_story.trip_id
     JOIN route_story_stops ON route_story_stops.route_story_id = trip_route_story.route_story_id
-    JOIN stops ON route_story_stops.stop_id = stops.stop_id WHERE route_type=2 ;"""
+    JOIN gtfs_stops ON route_story_stops.stop_id = gtfs_stops.stop_id WHERE route_type=2 ;"""
     cursor.execute(query)
     stations = {r[0]: GeoPoint(r[1], r[2]) for r in cursor}
     logging.debug("There are %d train stations" % len(stations))
@@ -31,7 +31,7 @@ def find_nearest_station(cursor):
         min_station = distance_and_stop[min_distance]
         return min_distance, min_station
 
-    cursor.execute("SELECT stop_code, stop_lat, stop_lon FROM stops;")
+    cursor.execute("SELECT stop_code, stop_lat, stop_lon FROM gtfs_stops;")
     logging.debug("Finding nearest train station")
     return {r[0]: nearest_station(GeoPoint(r[1], r[2])) for r in cursor}
 
@@ -47,15 +47,15 @@ def update_stops_table(config):
             for key, value in find_nearest_station(cursor).items()]
     logging.debug("Altering stops table: adding nearest_station and station_distance fields")
     try:
-        cursor.execute('ALTER TABLE stops ADD COLUMN nearest_train_station INTEGER;')
+        cursor.execute('ALTER TABLE gtfs_stops ADD COLUMN nearest_train_station INTEGER;')
     except psycopg2.ProgrammingError as e:
         logging.warning(e)
     try:
-        cursor.execute('ALTER TABLE stops ADD COLUMN train_station_distance INTEGER;')
+        cursor.execute('ALTER TABLE gtfs_stops ADD COLUMN train_station_distance INTEGER;')
     except psycopg2.ProgrammingError as e:
         logging.warning(e)
     logging.debug("Executing update query on stops table")
-    cursor.executemany('''UPDATE stops SET nearest_train_station = %(station_code)s,
+    cursor.executemany('''UPDATE gtfs_stops SET nearest_train_station = %(station_code)s,
                           train_station_distance = %(station_distance)s
                           WHERE stop_code=%(stop_code)s;''', rows)
     logging.debug("Closing connection")
