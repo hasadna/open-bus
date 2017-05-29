@@ -6,10 +6,10 @@ GTFS is the format used by the Ministry of Transport to publish planned public t
 
 The data in the GTFS includes:
 
-* list of public transport routes (lines) - routes table
-* list of bus stops and train stations - stops table
-    * list of trips (rides) - when buses travel and where they call - trips, calendar and stop_times tables 
-    * geographic coordinates of bus trips, can be used to draw them on the map - shapes table 
+ * list of public transport routes (lines) - routes table
+ * list of bus stops and train stations - stops table
+ * list of trips (rides) - when buses travel and where they call - trips, calendar and stop_times tables 
+ * geographic coordinates of bus trips, can be used to draw them on the map - shapes table 
 
 [This entity relations diagram](https://github.com/hasadna/open-bus/blob/master/doc/gtfs_src_entity_diagram.png) can help you understand the relationships between the tables. For more information read the specification on the [MoT website](http://he.mot.gov.il/index.php?option=com_content&view=article&id=2244:pub-trn-gtfs&catid=167:pub-trn-dev-info&Itemid=304), and also [Google's Developers Website](https://developers.google.com/transit/gtfs/reference/).
 
