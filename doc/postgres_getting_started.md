@@ -21,7 +21,7 @@ There are two ways to set up a postgres server:
 based on this [tutorial](https://github.com/hasadna/open-bus/blob/dfeaea67d8c4ed51bd0a4b0c30cffbac095ff81b/gtfs/local_db/README.md)
 ### Linux:
 1. Install Docker. Preferably follow this [tutorial](https://docs.docker.com/engine/installation/linux/ubuntu/)
-2. Create a new folder with the files: `init_dump_load.sh` and download latest db dump found [here](https://drive.google.com/open?id=0B9FEqRIWfmxLdUI1Zk5SZFB0bzg) as `dump.dmp`
+2. Create a new folder with the files: [`init_dump_load.sh`](https://github.com/hasadna/open-bus/blob/master/gtfs/local_db/init_dump_load.sh) and download latest db dump found [here](https://drive.google.com/open?id=0B9FEqRIWfmxLdUI1Zk5SZFB0bzg) as `dump.dmp`
 3. Run in the folder the follwing command: `docker run -d --name db -v $(pwd):/docker-entrypoint-initdb.d -p 5432:5432 postgres`
 4. Now you have a docker container which runs a postgreSQL db with open bus data! confirm the container is actually running with command `docker ps`
 5. Connect to db using: `psql -h localhost -p 5432 -U obus obus`
@@ -29,7 +29,7 @@ based on this [tutorial](https://github.com/hasadna/open-bus/blob/dfeaea67d8c4ed
 ### Windows:
 1. Install Docker for windows using this [tutorial](https://docs.docker.com/docker-for-windows/install/#download-docker-for-windows)
 * Note: you may need to install Docker Toolbox
-2. Create a new folder with these files: `init_dump_load.sh` and download latest db dump found [here](https://drive.google.com/open?id=0B9FEqRIWfmxLdUI1Zk5SZFB0bzg) as `dump.dmp`
+2. Create a new folder with these files: [`init_dump_load.sh`](https://github.com/hasadna/open-bus/blob/master/gtfs/local_db/init_dump_load.sh) and download latest db dump found [here](https://drive.google.com/open?id=0B9FEqRIWfmxLdUI1Zk5SZFB0bzg) as `dump.dmp`
 3. Run Docker Quickstart Terminal
 4. In the terminal change to the directory you created and run the follwing command: `docker run -d --name db -v $(pwd):/docker-entrypoint-initdb.d -p 5432:5432 postgres`
 5. Now you have a docker container which runs a postgreSQL db with open bus data! confirm the container is actually running with command `docker ps`
