@@ -1,7 +1,9 @@
-# Getting Started with PostGRES
+# Getting Started with PostGRES 
 
-There are two ways to do it:
-1) Installing PostGRES & psql
+In this tutorial you will set up your postgres server with a dump of open bus db.
+
+There are two ways to set up a postgres server:
+1) Installing PostGRES & pgadmin
 2) Running Docker Image
 
 ## Installing PostGRES & pgadmin
