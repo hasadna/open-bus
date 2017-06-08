@@ -10,7 +10,8 @@ There are two ways to set up a postgres server:
 
 ### Windows:
 1. Install postgreSQL using this [tutorial](http://www.postgresqltutorial.com/install-postgresql/).
-2. Install pgadmin using this [tutorial](http://www.postgresqltutorial.com/connect-to-postgresql-database/).
+2. Install pgadmin from [here](https://www.postgresql.org/ftp/pgadmin/pgadmin4/v1.5/windows/).
+   Tutorial can be found here[tutorial](http://www.postgresqltutorial.com/connect-to-postgresql-database/).
 3. Download DB dump from [here](https://drive.google.com/open?id=0B9FEqRIWfmxLdUI1Zk5SZFB0bzg).
 4. Uploading the Dump using pgadmin:
 5. Create a new database using `CREATE DATABASE obus;` in command line or via pgadmin gui.
