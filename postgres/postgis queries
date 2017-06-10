@@ -1,0 +1,9 @@
+--query adding vehicle_location_point to siri_arrivals (see issue #30)
+
+-- Create column:
+SELECT AddGeometryColumn ('siri_arrivals','vehicle_location_point',4326,'POINT',2);
+
+--Populate data:
+update siri_arrivals 
+set vehicle_location_point = ST_SetSRID(ST_MakePoint(cast(vehicle_location_lon as double precision), cast(vehicle_location_lat as double precision)),4326)
+where vehicle_location_lon !='';
