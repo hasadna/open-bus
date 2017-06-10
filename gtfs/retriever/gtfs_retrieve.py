@@ -43,3 +43,6 @@ def download_gtfs_file(force=False):
     
     print('GTFS file retrieved to ', local_dir)
     return local_dir
+
+
+download_gtfs_file()
