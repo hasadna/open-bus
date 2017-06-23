@@ -22,17 +22,17 @@ CREATE TABLE gtfs_shape_lines AS
   
 -- Add route offset to siri_arrivals (see issue #26)
 --Adding offset column 
-ALTER TABLE siri_arrivals_filtered
+ALTER TABLE siri_arrivals
 ADD route_offset float8;
 
 -- Populate data 
-with join_result as (SELECT id, ST_LineLocatePoint(shape_line, siri_arrivals_filtered.vehicle_location_point) as line_locate_point_value
-FROM siri_arrivals_filtered
-JOIN gtfs_trips ON gtfs_trips.trip_id = siri_arrivals_filtered.trip_id_from_gtfs
+with join_result as (SELECT id, ST_LineLocatePoint(shape_line, siri_arrivals.vehicle_location_point) as line_locate_point_value
+FROM siri_arrivals
+JOIN gtfs_trips ON gtfs_trips.trip_id = siri_arrivals.trip_id_from_gtfs
 JOIN gtfs_shape_lines ON gtfs_trips.shape_id = gtfs_shape_lines.shape_id)
  
-update siri_arrivals_filtered 
+update siri_arrivals 
 set route_offset = join_result.line_locate_point_value
 from join_result
-where siri_arrivals_filtered.id = join_result.id
+where siri_arrivals.id = join_result.id
 
