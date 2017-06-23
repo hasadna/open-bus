@@ -1,6 +1,8 @@
 -- For more information about this query, refer to issue #24
+-- Note: running this query on open-bus server won't work on a big table of siri_arrivals due to lack of memory. Can run up to 3 million row at a time.
+-- Later we will use this query when each siri response is received.
 
-ALTER TABLE siri_arrivals_filtered ADD COLUMN trip_id_from_gtfs varchar(50);
+ALTER TABLE siri_arrivals ADD COLUMN trip_id_from_gtfs varchar(50);
 
 WITH SIRI_GTFS
      AS (
@@ -16,7 +18,7 @@ from
         date_trunc('day', origin_aimed_departure_time) as siri_departure_date,
          extract (dow from origin_aimed_departure_time)::int as siri_dow_int,
          to_char (origin_aimed_departure_time AT TIME ZONE 'IST', 'HH24:MI:SS') as siri_departure_time
-    from siri_arrivals_filtered
+    from siri_arrivals
 --    where line_ref = 7020 -- commented out, used for debugging and reducing datasize
     ) as siri
 
@@ -48,7 +50,7 @@ and siri_departure_date >= gtfs.start_date and siri_departure_date <= gtfs.end_d
 -- where siri_departure_date = '2017-01-02'::date -- commented out, used for debugging and reducing datasize
 )
 
-UPDATE siri_arrivals_filtered
+UPDATE siri_arrivals
 SET trip_id_from_gtfs =  SIRI_GTFS.trip_id
 from SIRI_GTFS
-where siri_gtfs.id = siri_arrivals_filtered.id
+where siri_gtfs.id = siri_arrivals.id
