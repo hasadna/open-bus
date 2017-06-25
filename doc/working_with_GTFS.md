@@ -6,10 +6,10 @@ GTFS is the format used by the Ministry of Transport to publish planned public t
 
 The data in the GTFS includes:
 
- * list of public transport routes (lines) - routes table
- * list of bus stops and train stations - stops table
- * list of trips (rides) - when buses travel and where they call - trips, calendar and stop_times tables 
- * geographic coordinates of bus trips, can be used to draw them on the map - shapes table 
+* list of public transport routes (lines) - routes table
+* list of bus stops and train stations - stops table
+* list of trips (rides) - when buses travel and where they call - trips, calendar and stop_times tables 
+* geographic coordinates of bus trips, can be used to draw them on the map - shapes table 
 
 [This entity relations diagram](https://github.com/hasadna/open-bus/blob/master/doc/gtfs_src_entity_diagram.png) can help you understand the relationships between the tables. For more information read the specification on the [MoT website](http://he.mot.gov.il/index.php?option=com_content&view=article&id=2244:pub-trn-gtfs&catid=167:pub-trn-dev-info&Itemid=304), and also [Google's Developers Website](https://developers.google.com/transit/gtfs/reference/).
 
@@ -87,5 +87,8 @@ The script is interactive. It will show you all the lines with the given line nu
 
 Other random information
 -------------------------
-* stop id vs. stop code:  the stops file contains two fields that look similar, stop_id and stop_code. stop_code is the actual number of the stop in the MoT systems. It appears on the physical signage at the bus stop ([see example](http://img2.tapuz.co.il/CommunaFiles/50250504.jpg]). It is also the number that should be used for SIRI queries. stop_id is just an internal key inside the GTFS, referenced in the stop_times table.  
-* pickup_type & drop_off_type in stop_times table (and route stories): the values of these fields are a bit confusing. If pickup_type == 0, then pickup is available. If pickup_type == 1, no pickup is avaiblable (so it's a drop off station only). Same goes for drop_off_type. The DB import script changes the column name so they make more sense. 
+* `stop_id` vs. `stop_code`:  
+  * Stops table contains two fields that look similar, stop_id and stop_code. stop_code is the actual number of the stop in the MoT systems. It appears on the physical signage at the bus stop. It is also the number that should be used for SIRI queries. stop_id is just an internal key inside the GTFS, referenced in the stop_times table.  
+  * However - stop_code isn't unique - central stations have one stop_code, and all different platforms / floors in them will share the same stop_code. 
+* `trip_id`: Trip ids are composed of two parts, separated by underscore (e.g.: `337972_020117`). The first part is (probably) an internal ID used in the MoT systems. It is stable (so if the trip stops for a few days and resumes, it will have the same first part). The second part is the start date of the trip, identical to the `start_date` field in the matching service. This means that trips `337972_020117`  in the file for 2017-01-02 is probably the same trip as `337972_030117` in the file for 2017-01-03. 
+* pickup_type & drop_off_type in stop_times table (and route stories): the values of these fields are a bit confusing. If pickup_type == 0, then pickup is available. If pickup_type == 1, no pickup is available (so it's a drop off station only). Same goes for drop_off_type. The DB import script changes the column name so they make more sense. 
