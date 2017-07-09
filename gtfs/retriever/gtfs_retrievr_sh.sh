@@ -1,8 +1,8 @@
 
 MOTS_URL=ftp://gtfs.mot.gov.il
 FILE_NAME=israel-public-transportation.zip
-GTFS_DATA_DIR=$1 '#/srv/gtfs_archive'
-LOG_FILE=$2 '#/var/log/gtfs_archive.log'
+GTFS_DATA_DIR=$1 
+LOG_FILE=$2 
 DATE=`date "+%Y%m%d"`
 ARCHIVE_FILE=$GTFS_DATA_DIR/$DATE.zip
 
