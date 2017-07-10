@@ -2,7 +2,7 @@
 -- Note: running this query on open-bus server won't work on a big table of siri_arrivals due to lack of memory. Can run up to 3 million row at a time.
 -- Later we will use this query when each siri response is received.
 
-ALTER TABLE siri_arrivals ADD COLUMN trip_id_from_gtfs varchar(50);
+ALTER TABLE siri_arrivals ADD COLUMN trip_id_from_gtfs varchar(20);
 
 WITH SIRI_GTFS
      AS (
