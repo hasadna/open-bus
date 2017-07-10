@@ -15,7 +15,7 @@ There are two ways to set up a postgres server:
 3. Download DB dump from [here](https://drive.google.com/drive/u/0/folders/0B9FEqRIWfmxLaFRPY2I5Y2V4UkU).
 4. Uploading the Dump using pgadmin:
 5. Create role obus.
-6. Create a new database using `CREATE DATABASE obus;` in command line or via pgadmin gui. Make sure role obus has owner on the database.
+6. Create a new database named obus. Make sure role obus has owner on the database.
 7. Right click on database name in pgadmin and press Restore.
 8. Select dump file and in format choose `Costum or tar`.
 
