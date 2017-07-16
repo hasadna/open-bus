@@ -54,8 +54,11 @@ def parse_siri_reply(raw_xml, request_id=-1):
 
     def extract_location(mvj_el):
         location_el = mvj_el.find('VehicleLocation')
-        return {'vehicle_location_lat': optional(location_el, 'Latitude')[:18],
-                'vehicle_location_lon':  optional(location_el, 'Longitude')[:18]}
+        # convert location fields into float and round.
+        vehicle_location_lat = optional(location_el, 'Latitude')[:18]
+        vehicle_location_lon = optional(location_el, 'Longitude')[:18]
+        return {'vehicle_location_lat': round(float(vehicle_location_lat),10) if vehicle_location_lat != '' else None,
+                'vehicle_location_lon':  round(float(vehicle_location_lon),10) if vehicle_location_lon != '' else None}
 
     def element_to_msv(msv_el, el_id):
         msv_fields = {'RecordedAtTime', 'ItemIdentifier', 'MonitoringRef'}
@@ -85,13 +88,13 @@ def parse_siri_reply(raw_xml, request_id=-1):
         data.update(extract_children(mc_el, mc_fields))
         # Location gets a special treatment because it has two children nodes
         data.update(extract_location(mvj_el))
-        # notes gets special treatment because in theory there can be any number of notes
+        # notes gets special treatment because in theory there can be any number of notes - currently not used
         # data['stop_visit_note'] = ';'.join(stop_visit_note_el.text for stop_visit_note_el
         #                                    in msv_el.findall('StopVisitNote'))
 
         # fix booleans
         data['vehicle_at_stop'] = True if data['vehicle_at_stop'] == 'true' else False
-        # data['request_stop'] = True if data['request_stop'] == 'true' else False
+        # data['request_stop'] = True if data['request_stop'] == 'true' else False # currently not used
         # fix times
         time_fields = ['origin_aimed_departure_time','aimed_arrival_time']
         for field in time_fields:
