@@ -57,8 +57,8 @@ def parse_siri_reply(raw_xml, request_id=-1):
         # convert location fields into float and round.
         vehicle_location_lat = optional(location_el, 'Latitude')[:18]
         vehicle_location_lon = optional(location_el, 'Longitude')[:18]
-        return {'vehicle_location_lat': round(float(vehicle_location_lat),10) if vehicle_location_lat != '' else None,
-                'vehicle_location_lon':  round(float(vehicle_location_lon),10) if vehicle_location_lon != '' else None}
+        return {'vehicle_location_lat': round(float(vehicle_location_lat),5) if vehicle_location_lat != '' else None,
+                'vehicle_location_lon':  round(float(vehicle_location_lon),5) if vehicle_location_lon != '' else None}
 
     def element_to_msv(msv_el, el_id):
         msv_fields = {'RecordedAtTime', 'ItemIdentifier', 'MonitoringRef'}
