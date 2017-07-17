@@ -4,17 +4,22 @@ import xml.etree.ElementTree as ET
 import re
 import logging as lg
 
-# these are all the fields we try to extract from the reply
-# many of them are usually not supplied (never supplied?)
+# these are unused fields: (see https://github.com/hasadna/open-bus/blob/f7de04d88eab183a277d5fc3ae6f459d47ea8545/doc/db_tables.md)
+# if you wish to add them make sure to change the code and DB accordingly
+unused_fields = ['request_stop', 'destination_display',
+                 'actual_arrival_time',  'arrival_status',
+                 'arrival_platform_name', 'arrival_boarding_activity',
+                 'actual_departure_time', 'aimed_departure_time', 'stop_visit_note',
+                 'confidence_level']
+
+# these are the extracted fields:
 monitored_stop_visit_fields = ['recorded_at_time', 'item_identifier', 'monitoring_ref',
                                'line_ref', 'direction_ref',
                                'operator_ref', 'published_line_name', 'destination_ref', 'dated_vehicle_journey_ref',
-                               'vehicle_ref', 'confidence_level', 'origin_aimed_departure_time', 'stop_point_ref',
-                               'vehicle_at_stop', 'request_stop', 'destination_display', 'aimed_arrival_time',
-                               'actual_arrival_time', 'expected_arrival_time', 'arrival_status',
-                               'arrival_platform_name', 'arrival_boarding_activity',
-                               'actual_departure_time', 'aimed_departure_time', 'stop_visit_note',
-                               'vehicle_location_lat', 'vehicle_location_lon']
+                               'vehicle_ref', 'origin_aimed_departure_time', 'stop_point_ref',
+                               'vehicle_at_stop', 'aimed_arrival_time',
+                                'expected_arrival_time', 'vehicle_location_lat', 'vehicle_location_lon']
+
 
 MonitoredStopVisit = namedtuple('MonitoredStopVisit', monitored_stop_visit_fields)
 
@@ -49,17 +54,18 @@ def parse_siri_reply(raw_xml, request_id=-1):
 
     def extract_location(mvj_el):
         location_el = mvj_el.find('VehicleLocation')
-        return {'vehicle_location_lat': optional(location_el, 'Latitude')[:18],
-                'vehicle_location_lon':  optional(location_el, 'Longitude')[:18]}
+        # convert location fields into float and round.
+        vehicle_location_lat = optional(location_el, 'Latitude')[:18]
+        vehicle_location_lon = optional(location_el, 'Longitude')[:18]
+        return {'vehicle_location_lat': round(float(vehicle_location_lat),5) if vehicle_location_lat != '' else None,
+                'vehicle_location_lon':  round(float(vehicle_location_lon),5) if vehicle_location_lon != '' else None}
 
     def element_to_msv(msv_el, el_id):
         msv_fields = {'RecordedAtTime', 'ItemIdentifier', 'MonitoringRef'}
         mvj_fields = {'LineRef', 'DirectionRef', 'OperatorRef', 'PublishedLineName', 'DestinationRef',
-                      'DatedVehicleJourneyRef', 'VehicleRef', 'ConfidenceLevel', 'OriginAimedDepartureTime'}
-        mc_fields = {'StopPointRef', 'VehicleAtStop', 'RequestStop', 'DestinationDisplay',
-                     'AimedArrivalTime', 'ActualArrivalTime', 'ExpectedArrivalTime',
-                     'ArrivalStatus', 'ArrivalPlatformName', 'ArrivalBoardingActivity',
-                     'ActualDepartureTime', 'AimedDepartureTime'}
+                      'DatedVehicleJourneyRef', 'VehicleRef', 'OriginAimedDepartureTime'}
+        mc_fields = {'StopPointRef', 'VehicleAtStop',
+                     'AimedArrivalTime', 'ExpectedArrivalTime'}
 
         # get required children elements
         mvj_el = msv_el.find('MonitoredVehicleJourney')
@@ -82,16 +88,15 @@ def parse_siri_reply(raw_xml, request_id=-1):
         data.update(extract_children(mc_el, mc_fields))
         # Location gets a special treatment because it has two children nodes
         data.update(extract_location(mvj_el))
-        # notes gets special treatment because in theory there can be any number of notes
-        data['stop_visit_note'] = ';'.join(stop_visit_note_el.text for stop_visit_note_el
-                                           in msv_el.findall('StopVisitNote'))
+        # notes gets special treatment because in theory there can be any number of notes - currently not used
+        # data['stop_visit_note'] = ';'.join(stop_visit_note_el.text for stop_visit_note_el
+        #                                    in msv_el.findall('StopVisitNote'))
 
         # fix booleans
         data['vehicle_at_stop'] = True if data['vehicle_at_stop'] == 'true' else False
-        data['request_stop'] = True if data['request_stop'] == 'true' else False
+        # data['request_stop'] = True if data['request_stop'] == 'true' else False # currently not used
         # fix times
-        time_fields = ['origin_aimed_departure_time', 'aimed_arrival_time', 'actual_arrival_time',
-                       'actual_departure_time', 'aimed_departure_time']
+        time_fields = ['origin_aimed_departure_time','aimed_arrival_time']
         for field in time_fields:
             data[field] = data[field] if data[field] != '' else None
 
