@@ -71,7 +71,7 @@ def download_gtfs_file(connection, force=False):
     tmp_file = '/tmp/' + file_name
 
     print('Downloading GTFS to tmp file...')
-    gtfs_utils.ftp_get_file(MOT_FTP, FILE_NAME, tmp_file)
+    ftp_get_file(MOT_FTP, FILE_NAME, tmp_file)
 
     if not force:
         tmp_md5 = md5_for_file(tmp_file)
