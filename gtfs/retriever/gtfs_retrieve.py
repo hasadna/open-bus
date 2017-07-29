@@ -8,7 +8,6 @@ from configparser import ConfigParser
 from boto3.session import Session
 from sys import argv
 from ftplib import FTP
-import gtfs_utils
 import datetime
 import hashlib
 import os
