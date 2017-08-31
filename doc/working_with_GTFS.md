@@ -19,9 +19,9 @@ The GTFS is published nightly, and archived by the [Open Train project](http://g
 
 ### GTFS in our DB
 
-We have a script that imports a GTFS file to PostgreSQL.  See [docs/Inserting_GTFS_to_PostGRES.md](docs/Inserting_GTFS_to_PostGRES.md) for information on how to use it.  
+We have a script that imports a GTFS file to PostgreSQL.  See [Inserting_GTFS_to_PostGRES.md](Inserting_GTFS_to_PostGRES.md) for information on how to use it.  
 
-Once the data is in the DB, [here are examples](/docs/useful_GTFS_queries.md) for some queries you can run. 
+Once the data is in the DB, [here are examples](useful_GTFS_queries.md) for some queries you can run. 
 
 You can use the [Open Budget's re:dash instance](http://data.obudget.org) to access our database, including the GTFS table. 
 

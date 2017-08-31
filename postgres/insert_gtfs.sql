@@ -242,7 +242,7 @@ ALTER TABLE gtfs_shapes
 
 \copy gtfs_shapes from '/tmp/gtfs/shapes.txt' DELIMITER ',' CSV HEADER;
 
-ALTER TABLE shapes
+ALTER TABLE gtfs_shapes
   ADD CONSTRAINT shapes_pkey PRIMARY KEY (shape_id, shape_pt_sequence);
 
 -- make sure re:dash can access the new tables
