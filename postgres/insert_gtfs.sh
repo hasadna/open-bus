@@ -7,6 +7,11 @@ fi
 
 export PGPASSWORD=$3
 
+if [ ! -f $1 ]; then
+    echo "File not found. Aborting."
+    exit -1
+fi
+
 mkdir -p /tmp/gtfs
 
 time unzip -o -d /tmp/gtfs $1
