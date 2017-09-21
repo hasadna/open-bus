@@ -6,7 +6,7 @@ SELECT AddGeometryColumn ('siri_arrivals','vehicle_location_point',4326,'POINT',
 --Populate data:
 update siri_arrivals 
 set vehicle_location_point = ST_SetSRID(ST_MakePoint(cast(vehicle_location_lon as double precision), cast(vehicle_location_lat as double precision)),4326)
-where vehicle_location_lon !='';
+where vehicle_location_lon is not null;
 
 -- Query adding a table of shapes as line objects (see issue #29)
 -- The query creates a point object from the shape point coordinates. Than it groups all the points by shape id, orders them and creates a line from them.
@@ -29,7 +29,7 @@ ADD route_offset float8;
 with join_result as (SELECT id, ST_LineLocatePoint(shape_line, ST_SetSRID(ST_MakePoint(cast(vehicle_location_lon as double precision), cast(vehicle_location_lat as double precision)),4326)) as line_locate_point_value
 FROM siri_arrivals
 JOIN gtfs_trips ON gtfs_trips.trip_id = siri_arrivals.trip_id_from_gtfs
-JOIN gtfs_shape_lines ON gtfs_trips.shape_id = gtfs_shape_lines.shape_id where vehicle_location_lon !='')
+JOIN gtfs_shape_lines ON gtfs_trips.shape_id = gtfs_shape_lines.shape_id where vehicle_location_lon is not null)
  
 update siri_arrivals 
 set route_offset = join_result.line_locate_point_value

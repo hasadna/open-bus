@@ -2,7 +2,7 @@
 -- Note: running this query on open-bus server won't work on a big table of siri_arrivals due to lack of memory. Can run up to 3 million row at a time.
 -- Later we will use this query when each siri response is received.
 
-ALTER TABLE siri_arrivals ADD COLUMN trip_id_from_gtfs varchar(20);
+ALTER TABLE siri_arrivals ADD COLUMN IF NOT EXISTS trip_id_from_gtfs varchar(20);
 
 WITH SIRI_GTFS
      AS (
@@ -19,7 +19,8 @@ from
          extract (dow from origin_aimed_departure_time)::int as siri_dow_int,
          to_char (origin_aimed_departure_time AT TIME ZONE 'IST', 'HH24:MI:SS') as siri_departure_time
     from siri_arrivals
---    where line_ref = 7020 -- commented out, used for debugging and reducing datasize
+-- added to decrease size of query. will run daily.
+    where Recorded_at_time::date = make_date(:v3,:v2,:v1) and vehicle_location_lat is not null
     ) as siri
 
 join
