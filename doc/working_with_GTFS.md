@@ -25,6 +25,7 @@ Once the data is in the DB, [here are examples](useful_GTFS_queries.md) for some
 
 You can use the [Open Budget's re:dash instance](http://data.obudget.org) to access our database, including the GTFS table. 
 
+To find out what date the GTFS was uploded check out the `gtfs_update_history` table.
 
 gtfs_reader
 -----------
