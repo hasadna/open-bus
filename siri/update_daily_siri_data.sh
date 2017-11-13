@@ -12,8 +12,8 @@ export PGPASSWORD=$2
 day="$(date +'%d')"
 month="$(date +'%m')"
 year="$(date +'%Y')"
-
-echo updating for date: $day'-'$month'-'$year
+full_date = year-$month-$day
+echo updating for date: full_date
 
 gtfs_file='/tmp/gtfs_'$year'-'$month'-'$day'.zip'
 aws s3 cp s3://s3.obus.hasadna.org.il/$year-$month-$day.zip $gtfs_file
@@ -21,7 +21,7 @@ aws s3 cp s3://s3.obus.hasadna.org.il/$year-$month-$day.zip $gtfs_file
 PATH=$HOME/open-bus/postgres:$PATH
 cd $HOME/open-bus/postgres
 
-insert_gtfs.sh $gtfs_file $1 $2
+insert_gtfs.sh $gtfs_file $1 $2 $full_date
 rm $gtfs_file
 echo uploaded gtfs file
 
