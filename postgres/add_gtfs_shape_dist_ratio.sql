@@ -1,4 +1,4 @@
-ALTER TABLE gtfs_stop_times ADD COLUMN shape_dist_ratio REAL;
+--ALTER TABLE gtfs_stop_times ADD COLUMN shape_dist_ratio REAL;
 
 UPDATE gtfs_stop_times
 SET shape_dist_ratio = (1.0*shape_dist_traveled) /
