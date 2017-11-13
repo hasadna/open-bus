@@ -247,3 +247,5 @@ ALTER TABLE gtfs_shapes
 
 -- make sure re:dash can access the new tables
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO redash;
+
+INSERT INTO gtfs_update_history(update_date,gtfs_date) VALUES (current_timestamp, make_date(:v1,:v2,:v3));

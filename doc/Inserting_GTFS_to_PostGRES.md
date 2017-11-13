@@ -10,7 +10,7 @@ more flexible.
 
 ## insert_gtfs.sh
 
-`insert_gtfs.s`h receives three command line parameter: path to gtfs zip file, database user and database password.
+`insert_gtfs.sh` receives four command line parameter: path to gtfs zip file, database user, database password and gtfs date (format YYYY-MM-DD).
 
 Notes:
 
