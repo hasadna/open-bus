@@ -46,8 +46,12 @@ This table shows how the fields in the database relate to the SIRI response fiel
 | `response_id`                 | -                                        | Foreign key for matching raw in SIRI_raw_responses |
 | `vehicle_location_lat`        | `MonitoredVehicleJourney.VehicleLocation.Latitude` | Location of the vehicle                  |
 | `vehicle_location_lon`        | `MonitoredVehicleJourney.VehicleLocation.Longitude` | Location of the vehicle                  |
+| `trip_id_from_gtfs`           | -                                        | trip id matched by `adding_trip_id_to_siri_from_gtfs.sql`|
+| `route_offset`                | -                                        |  the location of the vechile comparing to the route in percentage. |
 
+### SIRI Real Time Arrivales
 
+Table created by (add here). The table contains the estimated arrival time by trip id based on the siri arrivals table.
 
 ## GTFS Tables
 
