@@ -2,8 +2,8 @@
 
 #This script will be used temporary for uploading daily the gtfs and updating siri data
 
-if [ "$#" -ne 2 ]; then
-    echo "Usage: update_daily_siri_data.sh db_username db_password"
+if [ "$#" -ne 3 ]; then
+    echo "Usage: update_daily_siri_data.sh db_username db_password aws_bucket"
     exit -1
 fi
 
@@ -16,7 +16,7 @@ fullDate=$year-$month-$day
 echo updating for date: $fullDate
 
 gtfs_file='/tmp/gtfs_'$year'-'$month'-'$day'.zip'
-aws s3 cp s3://s3.obus.hasadna.org.il/$year-$month-$day.zip $gtfs_file
+aws s3 cp $3/$year-$month-$day.zip $gtfs_file
 
 PATH=$HOME/open-bus/postgres:$PATH
 cd $HOME/open-bus/postgres
