@@ -9,11 +9,11 @@ fi
 
 export PGPASSWORD=$2
 
-day="$(date +'%d')"
-month="$(date +'%m')"
-year="$(date +'%Y')"
-full_date = year-$month-$day
-echo updating for date: full_date
+day="$(date --date='1 days ago' +'%d')"
+month="$(date --date='1 days ago' +'%m')"
+year="$(date --date='1 days ago' +'%Y')"
+fullDate=$year-$month-$day
+echo updating for date: $fullDate
 
 gtfs_file='/tmp/gtfs_'$year'-'$month'-'$day'.zip'
 aws s3 cp s3://s3.obus.hasadna.org.il/$year-$month-$day.zip $gtfs_file
