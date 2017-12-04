@@ -21,7 +21,7 @@ aws s3 cp $3/$year-$month-$day.zip $gtfs_file
 PATH=$HOME/open-bus/postgres:$PATH
 cd $HOME/open-bus/postgres
 
-insert_gtfs.sh $gtfs_file $1 $2 $full_date
+insert_gtfs.sh $gtfs_file $1 $2 $fullDate
 rm $gtfs_file
 echo uploaded gtfs file
 
