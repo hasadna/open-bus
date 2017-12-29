@@ -116,11 +116,12 @@ CREATE INDEX stops_town
 
 CREATE TABLE gtfs_trips
 (
-  route_id     INTEGER,
-  service_id   INTEGER,
-  trip_id      CHARACTER VARYING(50) NOT NULL,
-  direction_id INTEGER,
-  shape_id     INTEGER
+  route_id      INTEGER,
+  service_id    INTEGER,
+  trip_id       CHARACTER VARYING(50) NOT NULL,
+  trip_headsign TEXT,
+  direction_id  INTEGER,
+  shape_id      INTEGER
 );
 ALTER TABLE gtfs_trips
   OWNER TO obus;
