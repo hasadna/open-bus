@@ -2,8 +2,8 @@
 
 #This script will be used temporary for uploading daily the gtfs and updating siri data
 
-if [ "$#" -ne 3 ]; then
-    echo "Usage: update_daily_siri_data.sh db_username db_password aws_bucket"
+if [ "$#" -ne 4 ]; then
+    echo "Usage: update_daily_siri_data.sh db_username db_password aws_bucket analysis_config"
     exit -1
 fi
 
@@ -37,4 +37,5 @@ echo added trip id
 psql -h 127.0.0.1 -U $1 -d obus -v v1=$day -v v2=$month -v v3=$year -f add_route_offset.sql
 echo added route offset
 
-#add here script when bus arrived
+python3 $HOME/open-bus/siri/analyseRealTime/Main.py -c $3 -d $fullDate
+echo calculated estimated arrival time
