@@ -119,14 +119,14 @@ CREATE TABLE gtfs_trips
   route_id      INTEGER,
   service_id    INTEGER,
   trip_id       CHARACTER VARYING(50) NOT NULL,
-  trip_headsign TEXT,
+  trip_headsign CHARACTER VARYING(50),
   direction_id  INTEGER,
   shape_id      INTEGER
 );
 ALTER TABLE gtfs_trips
   OWNER TO obus;
 
-\copy gtfs_trips from '/tmp/gtfs/trips.txt' DELIMITER ',' CSV HEADER;
+\copy gtfs_trips from '/tmp/gtfs/trips.txt' DELIMITER ',' QUOTE E'\b' CSV HEADER;
 
 
 ALTER TABLE gtfs_trips
