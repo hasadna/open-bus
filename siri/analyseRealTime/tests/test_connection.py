@@ -4,7 +4,7 @@ import ConfigFileParser
 import Cruds
 import RealTimeArrivals
 
-conn_config = ConfigFileParser.get_connection_parameters('../configurations.config')
+conn_config = ConfigFileParser.get_connection_parameters('../../../../conn.config')
 
 class Connection(unittest.TestCase):
     def test_connection_establishment(self):

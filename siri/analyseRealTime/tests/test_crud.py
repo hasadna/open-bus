@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import RealTimeArrivals
 
-conn_config = ConfigFileParser.get_connection_parameters('../configurations.config')
+conn_config = ConfigFileParser.get_connection_parameters('../../../../conn.config')
 
 class MyTestCase(unittest.TestCase):
     def test_read_gtfs(self):
@@ -40,10 +40,10 @@ class MyTestCase(unittest.TestCase):
         # test type elem
         self.assertTrue(all([isinstance(i, excpected_type_elem) for i in data]))
 
-    def test_wrire_arrivals(self):
-        with Cruds.Connection(**conn_config) as c:
-            trip = RealTimeArrivals.Trip(trip_date=datetime.date(2017, 7, 31), trip_id='27782048_310717', crud=Cruds.CrudPostgresql(c))
-            trip()
+    #def test_wrire_arrivals(self):
+    #    with Cruds.Connection(**conn_config) as c:
+    #        trip = RealTimeArrivals.Trip(trip_date=datetime.date(2017, 7, 31), trip_id='27782048_310717', crud=Cruds.CrudPostgresql(c))
+    #        trip()
 
     def test_threadpool(self):
         pool = ThreadPoolExecutor()

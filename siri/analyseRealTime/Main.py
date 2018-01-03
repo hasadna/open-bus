@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
 import datetime
-import sys
-import Cruds
-import ConfigFileParser
 import logging
+import sys
 
+import ConfigFileParser
+import Cruds
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -23,9 +23,6 @@ stdoutHandler.setLevel(logging.DEBUG)
 
 logger.addHandler(stdoutHandler)
 logger.addHandler(fileHandler)
-
-
-logger.warning('often makes a very good meal of %s', 'visiting tourists')
 
 configs = ConfigFileParser.wrapper(sys.argv)
 
