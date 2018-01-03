@@ -1,8 +1,5 @@
 import datetime
-
 import psycopg2
-from sshtunnel import SSHTunnelForwarder
-
 import RealTimeArrivals
 from RealTimeArrivals import Stop, Record
 
@@ -12,19 +9,9 @@ class InvalidDbState(ValueError):
         return 'The state of db is invalid'
 
 class Connection:
-    def __init__(self,database_pass = None,database_user=None,database_name = None,bind_port=None,bind_address=None,ssh_username = None,remote_server = None , **kwargs):
-
-        print(kwargs)
-
-        self._database_pass = kwargs.get('database_pass', database_pass)
-        self._database_user = kwargs.get('database_user', database_user)
-        self._database_name = kwargs.get('database_name', database_name)
-        self._bind_port = kwargs.get('bind_port', bind_port)
-        self._bind_address = kwargs.get('bind_address', bind_address)
-        self._ssh_username = kwargs.get('ssh_username', ssh_username)
-        self._remote_server = kwargs.get('remote_server', remote_server)
+    def __init__(self,**kwargs):
+        self._connection_configuration = kwargs
         self.conn = None
-        self._server = None
 
     def __enter__(self):
         self.conn = self._init_connection_to_server()
@@ -33,32 +20,15 @@ class Connection:
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.conn:
             self.conn.close()
-        if self._server:
-            self._server.close()
 
     # this method should return valid db connection.
     def _init_connection_to_server(self):
-
-        print ('{} {}'.format(self._bind_address, self._bind_port))
-        self._server = SSHTunnelForwarder(
-            self._remote_server,
-            ssh_username=self._ssh_username,
-            remote_bind_address=(self._bind_address, self._bind_port))
-        self._server.start()
-
-        params = dict(user=self._database_user, database=self._database_name, password=self._database_pass,
-                      host=self._server.local_bind_host, port=self._server.local_bind_port)
-
-        return psycopg2.connect(**params)
-
+        return psycopg2.connect(**self._connection_configuration)
 
 class Crud:
     def __init__(self, connection=None):
         if connection:
             self.conn = connection.conn
-
-            # def read_stops(self, arg=None):
-            #   return None
 
     def read_records_from_siri(self, trip_id, trip_date):
         return None
