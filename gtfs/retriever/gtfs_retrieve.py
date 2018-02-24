@@ -18,7 +18,7 @@ import operator
 import pytz
 
 MOT_FTP = 'gtfs.mot.gov.il'
-FILE_NAME = 'israel-public-transportation.zip'
+GTFS_FILE_NAME = 'israel-public-transportation.zip'
 DEBUG_FILE_NAME = 'Tariff.zip'
 PICKLE_FILE_NAME = 'gtfs-downloads-pickle.p'
 
@@ -35,8 +35,9 @@ def get_local_date_and_time_hyphen_delimited():
     return t.strftime('%Y-%m-%d-%H-%M-%S')
 
 
-def ftp_get_file(local_path, host = MOT_FTP, remote_path = DEBUG_FILE_NAME):
+def ftp_get_file(local_path, host = MOT_FTP, remote_path = GTFS_FILE_NAME):
     """ get file remote_name from FTP host host and copied it into local_path"""
+    print("Starting to download from host %s: %s => %s" % (host, remote_path, local_path))
     f = FTP(host)
     f.login()
     fh = open(local_path, 'wb')
@@ -46,7 +47,7 @@ def ftp_get_file(local_path, host = MOT_FTP, remote_path = DEBUG_FILE_NAME):
     print("Retrieved from host %s: %s => %s" % (host, remote_path, local_path))
 
 
-def get_uptodateness(local_timestamp, host = MOT_FTP, remote_file_name = FILE_NAME):
+def get_uptodateness(local_timestamp, host = MOT_FTP, remote_file_name = GTFS_FILE_NAME):
     """" returns true if remote file timestamp is newer than local_timestamp """
     conn = FTP(host)
     conn.login()
@@ -107,13 +108,13 @@ def parse_config(config_file_name):
     return config_dict
 
 
-def upload_gtfs_file_to_s3_bucket(connection, force=False):
+def upload_gtfs_file_to_s3_bucket(connection, file_name, force=False):
     """ download gtfs zip file from mot, and upload to s3 Bucket """
-    file_name = get_utc_date() + '.zip'
+    # file_name = get_utc_date() + '.zip'
     tmp_file = '/tmp/' + file_name
 
     print('Downloading GTFS to tmp file...')
-    ftp_get_file(MOT_FTP, FILE_NAME, tmp_file)
+    ftp_get_file(MOT_FTP, GTFS_FILE_NAME, tmp_file)
 
     if not force:
         tmp_md5 = md5_for_file(tmp_file)
@@ -199,16 +200,15 @@ def main():
     # parser.print_help()
     args = parser.parse_args()
 
+    epoch_now = int(time.time())
+    filename = datetime.datetime.now().strftime('GTFS-%Y-%m-%dT%H-%M-%S') + '.zip'
+
     if args.aws_config_file_name:
-        print("got --aws")
         args = parse_config(args.aws_config_file_name)
         connection = connect_to_bucket(args)
-        upload_gtfs_file_to_s3_bucket(connection)
+        upload_gtfs_file_to_s3_bucket(connection, filename)
 
     if args.destination_directory:
-        print("got -d")
-        epoch_now = int(time.time())
-        filename = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S') + '.zip'
 
         dest_dir = check_if_path_exists(args.destination_directory)
 
@@ -222,16 +222,19 @@ def main():
             # if dict is empty set to 0
             latest_local_timestamp = 1000000 # equals to: 1970-01-12 15:46:40
 
-        if get_uptodateness(latest_local_timestamp, MOT_FTP, DEBUG_FILE_NAME) or args.force_download:
-            print("new file have been found on " + MOT_FTP + " or '-f' flag is on")
-            ftp_get_file(file_path, MOT_FTP, DEBUG_FILE_NAME)
+        remote_file_name = GTFS_FILE_NAME
+        if get_uptodateness(latest_local_timestamp, MOT_FTP, remote_file_name) or args.force_download:
+            print("New file have been found on " + MOT_FTP + " or the '-f' flag is on")
+            ftp_get_file(file_path, MOT_FTP, remote_file_name)
             file_md5 = md5_for_file(file_path)
             # check if md5 already exists and add it if so
             if not (file_md5 in dl_files_dict):
                 save_and_dump_pickle_dict(filename, epoch_now, file_md5, dl_files_dict)
             else:
-                print("the downloaded file already exists (according to md5 check), removing")
+                print("The downloaded file already exists (according to md5 check), removing")
                 os.remove(file_path)
+        else:
+            print("No newer (timestamp comparing) file have been found on FTP server")
 
     if args.print_inventory:
         dest_dir = check_if_path_exists(args.print_inventory)
