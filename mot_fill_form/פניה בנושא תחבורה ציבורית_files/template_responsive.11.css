@@ -1,0 +1,209 @@
+@media (max-width: 1170px) {
+  #jm-allpage .dj-megamenu li a.dj-up_a {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .jm-footer-contact .box {
+    display: block;
+    text-align: center;
+  }
+  .jm-footer-contact .box .jm-promo-ico,
+  .jm-footer-contact .box .jm-promotext {
+    display: block;
+  }
+  .jm-footer-contact .box .jm-promotext {
+    padding-top: 20px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+@media (max-width: 979px) {
+  .jm-module-in {
+    height: auto !important;
+    min-height: auto !important;
+  }
+  img {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  .btn {
+    -webkit-appearance: none;
+  }
+  #jm-djmenu {
+    text-align: center;
+  }
+  #jm-back-top span {
+    width: 40px;
+    height: 40px;
+  }
+}
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+  }
+  #jm-top-bar {
+    text-align: center;
+  }
+  #jm-top-bar1 + #jm-top-bar2 {
+    padding-top: 10px;
+  }
+  #jm-footer-left,
+  #jm-footer-right,
+  #jm-footer-center {
+    text-align: center;
+  }
+  #jm-allpage .djtabs.default-theme .djtabs-title-wrapper,
+  #jm-allpage .djtabs.default-theme .djtabs-title {
+    width: 100% !important;
+  }
+  #jm-allpage .djtabs.default-theme .djtabs-title {
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid #2b3544;
+  }
+  #jm-footer-center .jm-icons {
+    margin: 0;
+  }
+  .items-row {
+    margin-bottom: 30px;
+  }
+  .items-row .item {
+    margin-bottom: 30px;
+  }
+  dl.tabs,
+  .nav-tabs {
+    display: block !important;
+  }
+  dl.tabs dt.tabs,
+  .nav-tabs > li {
+    float: none !important;
+  }
+  .nav-tabs > li a,
+  dl.tabs > dt a {
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .plan-options {
+    margin-bottom: 15px;
+  }
+}
+@media (max-width: 480px) {
+  input,
+  select,
+  textarea {
+    width: 100%;
+  }
+  #jm-logo-sitedesc {
+    max-width: 170px;
+  }
+  #jm-logo-sitedesc #jm-logo {
+    text-align: center;
+    padding-top: 0;
+  }
+  .jm-tabhome .box {
+    display: block;
+  }
+  .jm-tabhome .box .jm-ico,
+  .jm-tabhome .box .jm-desc {
+    display: block;
+  }
+  .jm-tabhome .box .jm-ico {
+    text-align: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .jm-tabhome .box .jm-desc {
+    padding-top: 20px;
+  }
+}
+@media (max-width: 1170px) {
+  #jm-allpage .header-ms .djslider-loader .dj-slide-title,
+  #jm-allpage .header-ms .dj-mslider .dj-slide-title {
+    font-size: 53.2px !important;
+    line-height: 1.1 !important;
+  }
+}
+@media (max-width: 979px) {
+  .dj-slide-title {
+    display: block;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-rendering: optimizeLegibility;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  .dj-slide-description,
+  .dj-slide-description p {
+    display: block;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-rendering: optimizeLegibility;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  .dj-tabber .dj-tabs {
+    display: none !important;
+  }
+  .dj-tabber .dj-slides {
+    margin: 0 !important;
+  }
+  .dj-tabber .dj-navigation {
+    display: none;
+  }
+}
+@media (max-width: 767px) {
+  #jm-allpage .header-ms .djslider-loader .dj-slide-title,
+  #jm-allpage .header-ms .dj-mslider .dj-slide-title {
+    font-size: 30px !important;
+    line-height: 1.1 !important;
+  }
+  #jm-allpage .header-ms .djslider-loader .dj-readmore-wrapper,
+  #jm-allpage .header-ms .dj-mslider .dj-readmore-wrapper {
+    padding-top: 10px !important;
+  }
+}
+@media (max-width: 480px) {
+  .dj-slide-title {
+    font-size: 14px !important;
+  }
+  .dj-slide-desc-text {
+    padding: 10px !important;
+  }
+  .dj-readmore-wrapper {
+    display: none !important;
+  }
+  #jm-allpage .header-ms .djslider-loader .dj-indicators,
+  #jm-allpage .header-ms .dj-mslider .dj-indicators,
+  #jm-allpage .header-ms .djslider-loader .navigation-container,
+  #jm-allpage .header-ms .dj-mslider .navigation-container,
+  #jm-allpage .header-ms .djslider-loader .navigation-container-custom,
+  #jm-allpage .header-ms .dj-mslider .navigation-container-custom {
+    visibility: hidden !important;
+    pointer-events: none;
+  }
+}
+@media (max-width: 320px) {
+  .dj-slide-title,
+  .nivo-controlNav,
+  .dj-slide-description,
+  .dj-slide-desc-text,
+  .dj-slide-desc-bg {
+    display: none !important;
+  }
+  .dj-indicators,
+  .navigation-container,
+  .navigation-container-custom {
+    visibility: hidden !important;
+    pointer-events: none;
+  }
+}

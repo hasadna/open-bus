@@ -1,0 +1,38 @@
+@CHARSET "UTF-8";
+
+/* override styles for RTL */
+.dj-megamenu-select-light select {
+	right: 0;
+}
+ul.dj-mobile-light {
+	text-align: right;
+}
+
+ul.dj-mobile-light li.dj-mobileitem > a img,
+ul.dj-mobile-light li.dj-mobileitem > a i {
+	margin: 0 0 0 10px;
+}
+ul.dj-mobile-light li.dj-mobileitem > a.withsubtitle img,
+ul.dj-mobile-light li.dj-mobileitem > a.withsubtitle i {
+	float: right;
+}
+ul.dj-mobile-light li.dj-mobileitem.parent > a {
+	padding-right: 15px;
+	padding-left: 35px !important;
+}
+ul.dj-mobile-light li.dj-mobileitem.parent > a span.toggler {
+	right: auto;
+	left: 0;
+}
+ul.dj-mobile-light ul li.dj-mobileitem > a {
+	padding-left: 20px;
+	padding-right: 30px !important;
+}
+ul.dj-mobile-light ul ul li.dj-mobileitem > a {
+	padding-left: 20px;
+	padding-right: 45px !important;
+}
+ul.dj-mobile-light ul ul ul li.dj-mobileitem > a {
+	padding-left: 20px;
+	padding-right: 60px !important;
+}

@@ -1,0 +1,176 @@
+/** Inputs **/
+.bfCalendarResponsiveContainer .picker__button--today,
+.bfCalendarResponsiveContainer .picker__button--clear{
+    color: black !important;
+    outline: none !important;
+    border: none !important;
+    text-shadow: none !important;
+    height: auto !important;
+    -moz-border-radius:  0 !important;
+    -webkit-border-radius:   0!important;
+    border-radius:  0 !important;
+    -moz-box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+}
+
+.bfCalendarResponsiveContainer .picker__select--year, .bfCalendarResponsiveContainer .picker__select--month{
+    float: none !important;
+    margin-left: .25em !important;
+    margin-right: .25em !important;
+    font-size: .8em !important;
+    display: relative !important;
+    width: auto !important;
+    max-width: none !important;
+    min-width: 1px !important;
+}
+
+@media (min-height:33.875em){
+    .bfCalendarResponsiveContainer .picker__box{
+        display: inline-block !important;
+    }
+}
+
+@media (min-width: 24.5em){
+    .bfCalendarResponsiveContainer .picker__select--month, .bfCalendarResponsiveContainer .picker__select--year {
+        font-size: .8em !important;
+        margin-top: -.5em !important;
+    }
+}
+
+.bfQuickMode .icon-asterisk{
+    font-size: 9px;
+    vertical-align: text-top;
+    color: red;
+}
+
+.bfQuickMode textarea {
+    height: 100px;
+}
+
+.bfQuickMode input[type=text], 
+.bfQuickMode textarea, 
+.bfQuickMode select, 
+.bfQuickMode .uneditable-input {
+    max-width: 50%;
+    width: 100%;
+}
+
+/** Labels **/
+@media all and (max-width: 767px) {
+  .bfQuickMode .controls .control-label{
+        max-width: 90% !important;
+        min-width: 90% !important;
+        width: 90% !important;
+        display: block !important;
+   }
+   .bfQuickMode input[type=text], 
+   .bfQuickMode textarea, 
+   .bfQuickMode select, 
+   .bfQuickMode .uneditable-input {
+        width: 94%;
+        max-width: 94%;
+        min-width: 94%;
+    }
+}
+
+/** Safari Hack **/
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+
+    .bfQuickMode fieldset legend{
+        margin-bottom: 0px;
+    }
+
+    .bfQuickMode fieldset .row-fluid{
+        padding-top: 18px;
+    }
+
+}
+
+
+.bfQuickMode .controls .control-label{
+   /* width: 35%;*/ /*Michael Belau */
+    min-width: 120px;
+    vertical-align: text-top;
+}
+
+.bfLabelBlock{
+    display: block !important;
+}
+
+/** Fieldset **/
+.bfQuickMode fieldset{
+    margin-bottom: 3px;
+}
+
+/** Buttons **/
+.bfQuickMode .bfCancelButton{
+    margin-left: 5px;
+}
+
+/** Captcha **/
+@media all and (max-width: 767px) {
+    .bfQuickMode #recaptcha_image, .bfQuickMode #recaptcha_image img{
+        /** we must force relative dimensions for responsivness **/
+        width: 95% !important;
+        height: 60px !important;
+    }
+    .bfQuickMode .input-recaptcha{
+        margin-bottom: 8px;
+    }
+    .bfCaptchaField{
+        width: 84%;
+        max-width: 84%;
+        min-width: 84%;
+    }
+}
+
+.ff_capimg{
+    margin-top: 9px;
+}
+
+/* ##### Uploader ##### */
+
+#bfFileQueue {
+	margin-bottom: 10px;
+	position: absolute;
+}
+
+#bfSubmitMessage{
+	border: 2px solid #E5E5E5;
+	background-color: #F5F5F5;
+	margin-top: 5px;
+	padding: 10px;
+	width: 350px;
+        -moz-border-radius-bottomright: 50px 25px;
+        border-bottom-right-radius: 50px 25px;
+}
+
+#bfFileQueue{
+	border: 2px solid #E5E5E5;
+	background-color: #F5F5F5;
+	margin-top: 5px;
+	padding: 10px;
+	width: 350px;
+        -moz-border-radius-bottomright: 50px 25px;
+        border-bottom-right-radius: 50px 25px;
+        z-index: 1100;
+}
+
+.bfFileQueueItem{
+	border: 2px solid #E5E5E5;
+	background-color: #F5F5F5;
+	margin: 5px;
+	padding: 10px;
+}
+
+
+
+.bfQuickMode .pull-left{
+    float: left;
+}
+
+.bfQuickMode .pull-right{
+    float: right;
+}

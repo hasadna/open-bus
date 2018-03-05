@@ -1,0 +1,39 @@
+body .dj-megamenu-override li.dj-up {
+  float: right;
+  margin: 0 1px 0 0;
+}
+body .dj-megamenu-override li:hover div.dj-subwrap,
+body .dj-megamenu-override li.hover div.dj-subwrap {
+  left: auto;
+  right: 0;
+}
+body .dj-megamenu-override li:hover div.dj-subwrap div.dj-subwrap,
+body .dj-megamenu-override li.hover div.dj-subwrap div.dj-subwrap {
+  left: auto;
+  right: 100%;
+}
+.dj-megamenu-override .multiple_cols .dj-subcol + .dj-subcol:after {
+  border-left: none;
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+}
+body .dj-megamenu-override .dj-subcol {
+  float: right;
+}
+body .dj-megamenu-override .dj-submenu > li.parent > a:after,
+body .dj-megamenu-override .dj-subtree > li.parent > a:after {
+  right: auto;
+  left: 5px;
+}
+body .dj-megamenu-override li.dj-up a span.image-title {
+  margin: 0 15px 0 0;
+}
+body .dj-megamenu-override .dj-subtree > li {
+  padding: 0 10px 0 0;
+}
+body .dj-megamenu-override .dj-subtree > li > a {
+  border: none;
+}
+body .dj-megamenu-override .dj-subtree > li > a:before {
+  margin-right: 0;
+  margin-left: 10px;
+}

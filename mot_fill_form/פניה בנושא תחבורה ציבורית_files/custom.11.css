@@ -1,0 +1,33 @@
+#jm-allpage .djtabs.default-theme .djtabs-article-content a.btn {
+  color: #ffffff;
+}
+.btn:hover,
+.btn:focus {
+  color: #364e72 !important;
+}
+.moduletable h3 {
+  color: #ffffff;
+}
+.jm-tabhome a.jm-label {
+  text-decoration: underline;
+}
+input:focus,
+select:focus,
+button:focus,
+textarea:focus {
+  outline: 2px solid #f00 !important;
+}
+.alert-error {
+  background-color: #c20020 !important;
+  border-color: #c20020 !important;
+  color: white !important;
+}
+legend {
+  color: #444;
+  font-size: 18px;
+  border-color: #444;
+}
+h1 a:focus,
+h1 a:hover {
+  text-decoration: none !important;
+}

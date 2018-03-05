@@ -1,0 +1,408 @@
+@CHARSET "UTF-8";
+/* Transition effects for off-canvas views based on http://tympanus.net/Development/SidebarTransitions */
+
+body {
+	margin: 0 !important;
+	padding: 0 !important;
+	/*overflow-x: hidden;*/
+}
+html,
+body,
+.dj-offcanvas-wrapper,
+.dj-offcanvas-pusher {
+	height: 100%;
+}
+body.dj-offcanvas-open,
+.dj-offcanvas-open .dj-offcanvas-wrapper,
+.dj-offcanvas-open .dj-offcanvas-pusher {
+	overflow: hidden;
+}
+.dj-offcanvas-wrapper {
+	position: relative;
+	background: inherit;
+}
+.dj-offcanvas-pusher {
+	position: relative;
+	left: 0;
+	height: 100%;
+	background: inherit;
+	-webkit-transition: -webkit-transform 0.5s;
+	transition: transform 0.5s;
+}
+.dj-offcanvas-pusher::after {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 0;
+	height: 0;
+	background: rgba(0,0,0,0.5);
+	content: '';
+	opacity: 0;
+	-webkit-transition: opacity 0.5s;
+	transition: opacity 0.5s;
+}
+.dj-offcanvas-pusher.overlay {
+	z-index: 90;
+}
+.dj-offcanvas-open .dj-offcanvas-pusher::after {
+	width: 100%;
+	height: 100%;
+	opacity: 1;
+	z-index: 9999;
+}
+.dj-offcanvas {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 100;
+	visibility: hidden;
+	width: 300px;
+	max-width: 100%;
+	height: 100%;
+	overflow: hidden;
+	-webkit-transition: all 0.5s;
+	transition: all 0.5s;
+}
+.dj-offcanvas-open .dj-offcanvas {
+	overflow-y: auto;
+}
+
+/* Effect 1: Slide in on top */
+.dj-offcanvas-effect-1 .dj-offcanvas {
+	visibility: visible;
+	-webkit-transform: translate3d(-100%, 0, 0);
+	transform: translate3d(-100%, 0, 0);
+}
+.dj-offcanvas-effect-1.dj-offcanvas-open .dj-offcanvas {
+	visibility: visible;
+	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
+}
+
+/* Effect 2: Reveal */
+.dj-offcanvas-effect-2.dj-offcanvas-open .dj-offcanvas-pusher {
+	-webkit-transform: translate3d(300px, 0, 0);
+	transform: translate3d(300px, 0, 0);
+}
+.dj-offcanvas-effect-2 .dj-offcanvas {
+	z-index: 1;
+}
+.dj-offcanvas-effect-2.dj-offcanvas-open .dj-offcanvas {
+	visibility: visible;
+	-webkit-transition: -webkit-transform 0.5s;
+	transition: transform 0.5s;
+}
+
+/* Effect 3: Push*/
+.dj-offcanvas-effect-3.dj-offcanvas-open .dj-offcanvas-pusher {
+	-webkit-transform: translate3d(300px, 0, 0);
+	transform: translate3d(300px, 0, 0);
+}
+.dj-offcanvas-effect-3 .dj-offcanvas {
+	-webkit-transform: translate3d(-100%, 0, 0);
+	transform: translate3d(-100%, 0, 0);
+}
+.dj-offcanvas-effect-3.dj-offcanvas-open .dj-offcanvas {
+	visibility: visible;
+	-webkit-transition: -webkit-transform 0.5s;
+	transition: transform 0.5s;
+	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
+}
+
+/* Effect 4: Slide along */
+.dj-offcanvas-effect-4.dj-offcanvas-open .dj-offcanvas-pusher {
+	-webkit-transform: translate3d(300px, 0, 0);
+	transform: translate3d(300px, 0, 0);
+}
+.dj-offcanvas-effect-4 .dj-offcanvas {
+	z-index: 1;
+	-webkit-transform: translate3d(-50%, 0, 0);
+	transform: translate3d(-50%, 0, 0);
+}
+.dj-offcanvas-effect-4.dj-offcanvas-open .dj-offcanvas {
+	visibility: visible;
+	-webkit-transition: -webkit-transform 0.5s;
+	transition: transform 0.5s;
+	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
+}
+
+/* Effect 5: Reverse slide out */
+.dj-offcanvas-effect-5.dj-offcanvas-open .dj-offcanvas-pusher {
+	-webkit-transform: translate3d(300px, 0, 0);
+	transform: translate3d(300px, 0, 0);
+}
+.dj-offcanvas-effect-5 .dj-offcanvas {
+	z-index: 1;
+	-webkit-transform: translate3d(50%, 0, 0);
+	transform: translate3d(50%, 0, 0);
+}
+.dj-offcanvas-effect-5.dj-offcanvas-open .dj-offcanvas {
+	visibility: visible;
+	-webkit-transition: -webkit-transform 0.5s;
+	transition: transform 0.5s;
+	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
+}
+
+/* Effect 6: Rotate pusher */
+.dj-offcanvas-effect-6 .dj-offcanvas-wrapper {
+	-webkit-perspective: 1500px;
+	perspective: 1500px;
+}
+
+.dj-offcanvas-effect-6 .dj-offcanvas-pusher {
+	-webkit-transform-origin: 0% 50%;
+	transform-origin: 0% 50%;
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+}
+.dj-offcanvas-effect-6.dj-offcanvas-open .dj-offcanvas-pusher {
+	-webkit-transform: translate3d(300px, 0, 0) rotateY(-15deg);
+	transform: translate3d(300px, 0, 0) rotateY(-15deg);
+}
+.dj-offcanvas-effect-6 .dj-offcanvas {
+	-webkit-transform: translate3d(-100%, 0, 0);
+	transform: translate3d(-100%, 0, 0);
+}
+.dj-offcanvas-effect-6.dj-offcanvas-open .dj-offcanvas {
+	visibility: visible;
+	-webkit-transition: -webkit-transform 0.5s;
+	transition: transform 0.5s;
+	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
+}
+
+/* Effect 7: 3D rotate in */
+.dj-offcanvas-effect-7 .dj-offcanvas-wrapper {
+	-webkit-perspective: 1500px;
+	perspective: 1500px;
+	-webkit-perspective-origin: 0% 50%;
+	perspective-origin: 0% 50%;
+}
+.dj-offcanvas-effect-7 .dj-offcanvas-pusher {
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+}
+.dj-offcanvas-effect-7.dj-offcanvas-open .dj-offcanvas-pusher {
+	-webkit-transform: translate3d(300px, 0, 0);
+	transform: translate3d(300px, 0, 0);
+}
+.dj-offcanvas-effect-7 .dj-offcanvas {
+	-webkit-transform: translate3d(-100%, 0, 0) rotateY(-90deg);
+	transform: translate3d(-100%, 0, 0) rotateY(-90deg);
+	-webkit-transform-origin: 100% 50%;
+	transform-origin: 100% 50%;
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+}
+.dj-offcanvas-effect-7.dj-offcanvas-open .dj-offcanvas {
+	visibility: visible;
+	-webkit-transition: -webkit-transform 0.5s;
+	transition: transform 0.5s;
+	-webkit-transform: translate3d(0, 0, 0) rotateY(0deg);
+	transform: translate3d(0, 0, 0) rotateY(0deg);
+}
+
+/* Effect 8: 3D rotate out */
+.dj-offcanvas-effect-8 .dj-offcanvas-wrapper {
+	-webkit-perspective: 1500px;
+	perspective: 1500px;
+	-webkit-perspective-origin: 0% 50%;
+	perspective-origin: 0% 50%;
+}
+.dj-offcanvas-effect-8 .dj-offcanvas-pusher {
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+}
+.dj-offcanvas-effect-8.dj-offcanvas-open .dj-offcanvas-pusher {
+	-webkit-transform: translate3d(300px, 0, 0);
+	transform: translate3d(300px, 0, 0);
+}
+.dj-offcanvas-effect-8 .dj-offcanvas {
+	-webkit-transform: translate3d(-100%, 0, 0) rotateY(90deg);
+	transform: translate3d(-100%, 0, 0) rotateY(90deg);
+	-webkit-transform-origin: 100% 50%;
+	transform-origin: 100% 50%;
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+}
+.dj-offcanvas-effect-8.dj-offcanvas-open .dj-offcanvas {
+	visibility: visible;
+	-webkit-transition: -webkit-transform 0.5s;
+	transition: transform 0.5s;
+	-webkit-transform: translate3d(0, 0, 0) rotateY(0deg);
+	transform: translate3d(0, 0, 0) rotateY(0deg);
+}
+
+/* Effect 9: Scale down pusher */
+.dj-offcanvas-effect-9 .dj-offcanvas-wrapper {
+	-webkit-perspective: 1500px;
+	perspective: 1500px;
+}
+.dj-offcanvas-effect-9 .dj-offcanvas-pusher {
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
+}
+.dj-offcanvas-effect-9.dj-offcanvas-open .dj-offcanvas-pusher {
+	-webkit-transform: translate3d(0, 0, -300px);
+	transform: translate3d(0, 0, -300px);
+}
+.dj-offcanvas-effect-9 .dj-offcanvas {
+	opacity: 1;
+	-webkit-transform: translate3d(-100%, 0, 0);
+	transform: translate3d(-100%, 0, 0);
+}
+.dj-offcanvas-effect-9.dj-offcanvas-open .dj-offcanvas {
+	visibility: visible;
+	-webkit-transition: -webkit-transform 0.5s;
+	transition: transform 0.5s;
+	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
+}
+
+/* Effect 10: Scale up */
+.dj-offcanvas-effect-10 .dj-offcanvas-wrapper {
+	-webkit-perspective: 1500px;
+	perspective: 1500px;
+	-webkit-perspective-origin: 0% 50%;
+	perspective-origin: 0% 50%;
+}
+.dj-offcanvas-effect-10.dj-offcanvas-open .dj-offcanvas-pusher {
+	-webkit-transform: translate3d(300px, 0, 0);
+	transform: translate3d(300px, 0, 0);
+}
+.dj-offcanvas-effect-10 .dj-offcanvas {
+	z-index: 1;
+	opacity: 1;
+	-webkit-transform: translate3d(0, 0, -300px);
+	transform: translate3d(0, 0, -300px);
+}
+.dj-offcanvas-effect-10.dj-offcanvas-open .dj-offcanvas {
+	visibility: visible;
+	-webkit-transition: -webkit-transform 0.5s;
+	transition: transform 0.5s;
+	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
+}
+
+/* Effect 11: Scale and rotate pusher */
+.dj-offcanvas-effect-11 .dj-offcanvas-wrapper {
+	-webkit-perspective: 1500px;
+	perspective: 1500px;
+}
+.dj-offcanvas-effect-11 .dj-offcanvas-pusher {
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+}
+.dj-offcanvas-effect-11.dj-offcanvas-open .dj-offcanvas-pusher {
+	-webkit-transform: translate3d(100px, 0, -600px) rotateY(-20deg);
+	transform: translate3d(100px, 0, -600px) rotateY(-20deg);
+}
+.dj-offcanvas-effect-11 .dj-offcanvas {
+	opacity: 1;
+	-webkit-transform: translate3d(-100%, 0, 0);
+	transform: translate3d(-100%, 0, 0);
+}
+.dj-offcanvas-effect-11.dj-offcanvas-open .dj-offcanvas {
+	visibility: visible;
+	-webkit-transition: -webkit-transform 0.5s;
+	transition: transform 0.5s;
+	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
+}
+
+/* Effect 12: Open door */
+.dj-offcanvas-effect-12 .dj-offcanvas-wrapper {
+	-webkit-perspective: 1500px;
+	perspective: 1500px;
+}
+.dj-offcanvas-effect-12 .dj-offcanvas-pusher {
+	-webkit-transform-origin: 100% 50%;
+	transform-origin: 100% 50%;
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+}
+.dj-offcanvas-effect-12.dj-offcanvas-open .dj-offcanvas-pusher {
+	-webkit-transform: rotateY(-10deg);
+	transform: rotateY(-10deg);
+}
+.dj-offcanvas-effect-12 .dj-offcanvas {
+	opacity: 1;
+	-webkit-transform: translate3d(-100%, 0, 0);
+	transform: translate3d(-100%, 0, 0);
+}
+.dj-offcanvas-effect-12.dj-offcanvas-open .dj-offcanvas {
+	visibility: visible;
+	-webkit-transition: -webkit-transform 0.5s;
+	transition: transform 0.5s;
+	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
+}
+
+/* Effect 13: Fall down */
+.dj-offcanvas-effect-13 .dj-offcanvas-wrapper {
+	-webkit-perspective: 1500px;
+	perspective: 1500px;
+	-webkit-perspective-origin: 0% 50%;
+	perspective-origin: 0% 50%;
+}
+.dj-offcanvas-effect-13.dj-offcanvas-open .dj-offcanvas-pusher {
+	-webkit-transform: translate3d(300px, 0, 0);
+	transform: translate3d(300px, 0, 0);
+}
+.dj-offcanvas-effect-13 .dj-offcanvas {
+	z-index: 1;
+	opacity: 1;
+	-webkit-transform: translate3d(0, -100%, 0);
+	transform: translate3d(0, -100%, 0);
+}
+.dj-offcanvas-effect-13.dj-offcanvas-open .dj-offcanvas {
+	visibility: visible;
+	-webkit-transition-timing-function: ease-in-out;
+	transition-timing-function: ease-in-out;
+	-webkit-transition-property: -webkit-transform;
+	transition-property: transform;
+	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
+	-webkit-transition-speed: 0.2s;
+	transition-speed: 0.2s;
+}
+
+/* Effect 14: Delayed 3D rotate */
+.dj-offcanvas-effect-14 .dj-offcanvas-wrapper {
+	-webkit-perspective: 1500px;
+	perspective: 1500px;
+	-webkit-perspective-origin: 0% 50%;
+	perspective-origin: 0% 50%;
+}
+.dj-offcanvas-effect-14 .dj-offcanvas-pusher {
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+}
+.dj-offcanvas-effect-14.dj-offcanvas-open .dj-offcanvas-pusher {
+	-webkit-transform: translate3d(300px, 0, 0);
+	transform: translate3d(300px, 0, 0);
+}
+.dj-offcanvas-effect-14 .dj-offcanvas {
+	-webkit-transform: translate3d(-100%, 0, 0) rotateY(90deg);
+	transform: translate3d(-100%, 0, 0) rotateY(90deg);
+	-webkit-transform-origin: 0% 50%;
+	transform-origin: 0% 50%;
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+}
+.dj-offcanvas-effect-14.dj-offcanvas-open .dj-offcanvas {
+	visibility: visible;
+	-webkit-transition-delay: 0.1s;
+	transition-delay: 0.1s;
+	-webkit-transition-timing-function: ease-in-out;
+	transition-timing-function: ease-in-out;
+	-webkit-transition-property: -webkit-transform;
+	transition-property: transform;
+	-webkit-transform: translate3d(0, 0, 0) rotateY(0deg);
+	transform: translate3d(0, 0, 0) rotateY(0deg);
+}

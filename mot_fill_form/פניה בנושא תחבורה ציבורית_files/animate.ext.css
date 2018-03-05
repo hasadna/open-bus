@@ -1,0 +1,221 @@
+@charset "UTF-8";/*!
+Inspired by
+Animate.css - http://daneden.me/animate
+*/
+
+@-webkit-keyframes zoomIn {
+  0% {
+    opacity: 0;
+    -webkit-transform: scale(0);
+    transform: scale(0);
+  }
+
+  100% {
+    opacity: 1;
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+}
+
+@keyframes zoomIn {
+  0% {
+    opacity: 0;
+    -webkit-transform: scale(0);
+    -ms-transform: scale(0);
+    transform: scale(0);
+  }
+
+  100% {
+    opacity: 1;
+    -webkit-transform: scale(1);
+    -ms-transform: scale(1);
+    transform: scale(1);
+  }
+}
+
+.zoomIn {
+  -webkit-animation-name: zoomIn;
+  animation-name: zoomIn;
+}
+
+@-webkit-keyframes zoomOut {
+  0% {
+    opacity: 1;
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    -webkit-transform: scale(0);
+    transform: scale(0);
+  }
+}
+
+@keyframes zoomOut {
+  0% {
+    opacity: 1;
+    -webkit-transform: scale(1);
+    -ms-transform: scale(1);
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    -webkit-transform: scale(0);
+    -ms-transform: scale(0);
+    transform: scale(0);
+  }
+}
+
+.zoomOut {
+  -webkit-animation-name: zoomOut;
+  animation-name: zoomOut;
+}
+
+@-webkit-keyframes zoomInX {
+  0% {
+    opacity: 0;
+    -webkit-transform: scaleX(0);
+    transform: scaleX(0);
+  }
+
+  100% {
+    opacity: 1;
+    -webkit-transform: scaleX(1);
+    transform: scaleX(1);
+  }
+}
+
+@keyframes zoomInX {
+  0% {
+    opacity: 0;
+    -webkit-transform: scaleX(0);
+    -ms-transform: scaleX(0);
+    transform: scaleX(0);
+  }
+
+  100% {
+    opacity: 1;
+    -webkit-transform: scaleX(1);
+    -ms-transform: scaleX(1);
+    transform: scaleX(1);
+  }
+}
+
+.zoomInX {
+  -webkit-animation-name: zoomInX;
+  animation-name: zoomInX;
+}
+
+@-webkit-keyframes zoomOutX {
+  0% {
+    opacity: 1;
+    -webkit-transform: scaleX(1);
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    -webkit-transform: scaleX(0);
+    transform: scaleX(0);
+  }
+}
+
+@keyframes zoomOutX {
+  0% {
+    opacity: 1;
+    -webkit-transform: scaleX(1);
+    -ms-transform: scaleX(1);
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    -webkit-transform: scaleX(0);
+    -ms-transform: scaleX(0);
+    transform: scaleX(0);
+  }
+}
+
+.zoomOutX {
+  -webkit-animation-name: zoomOutX;
+  animation-name: zoomOutX;
+}
+
+@-webkit-keyframes zoomInY {
+  0% {
+    opacity: 0;
+    -webkit-transform: scaleY(0);
+    transform: scaleY(0);
+  }
+
+  100% {
+    opacity: 1;
+    -webkit-transform: scaleY(1);
+    transform: scaleY(1);
+  }
+}
+
+@keyframes zoomInY {
+  0% {
+    opacity: 0;
+    -webkit-transform: scaleY(0);
+    -ms-transform: scaleY(0);
+    transform: scaleY(0);
+  }
+
+  100% {
+    opacity: 1;
+    -webkit-transform: scaleY(1);
+    -ms-transform: scaleY(1);
+    transform: scaleY(1);
+  }
+}
+
+.zoomInY {
+  -webkit-animation-name: zoomInY;
+  animation-name: zoomInY;
+  -webkit-transform-origin: 50% 0;
+  -ms-transform-origin: 50% 0;
+  transform-origin: 50% 0;
+}
+
+@-webkit-keyframes zoomOutY {
+  0% {
+    opacity: 1;
+    -webkit-transform: scaleY(1);
+    transform: scaleY(1);
+  }
+
+  100% {
+    opacity: 0;
+    -webkit-transform: scaleY(0);
+    transform: scaleY(0);
+  }
+}
+
+@keyframes zoomOutY {
+  0% {
+    opacity: 1;
+    -webkit-transform: scaleY(1);
+    -ms-transform: scaleY(1);
+    transform: scaleY(1);
+  }
+
+  100% {
+    opacity: 0;
+    -webkit-transform: scaleY(0);
+    -ms-transform: scaleY(0);
+    transform: scaleY(0);
+  }
+}
+
+.zoomOutY {
+  -webkit-animation-name: zoomOutY;
+  animation-name: zoomOutY;
+  -webkit-transform-origin: 50% 0;
+  -ms-transform-origin: 50% 0;
+  transform-origin: 50% 0;
+}
+
