@@ -1,11 +1,11 @@
 # OpenBus Roadmap
 
 ## Project Mission and Summary
-Open Bus is a project of The Public Knowledge Workshop. We use public data to improve public transport Israel.
+Open Bus is a project of The Public Knowledge Workshop. We use public data to improve public transport in Israel.
 
 ## Goals for OpenBus
 ### Real-Delay - QoS Score
-*Create a QoS (Quality-of-Service) score for public transportation that can be viewed and sliced by agency, route, trip, stop, date and time.*  
+*Create a QoS (Quality-of-Service) score for public transport that can be viewed and sliced by agency, route, trip, stop, date and time.*  
 *Compare GTFS trips to SIRI trips*
 -   Meta-QoS - How good / bad is our SIRI data? Missing data, wrong data
 -   Compare stats (route level only, easier and might be good enough for most uses):
@@ -31,7 +31,7 @@ Open Bus is a project of The Public Knowledge Workshop. We use public data to im
 -   Questions
 	-   What to do with out of schedule trips?
 ### Accessibility Score
-*Show how accessible are different locations and resources by public transportation?*  
+*Show how accessible are different locations and resources by public transport?*  
 -   Phase 1 - GTFS only
 -   Phase 2 - Actual arrival times, depends on Real Delay progress
 -   Between Locations -
