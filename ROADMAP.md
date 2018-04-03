@@ -66,6 +66,7 @@ Open Bus is a project of The Public Knowledge Workshop. We use public data to im
 Short term - things we are working on now (but could always use help with)  
 Medium term - things contributors can start working on that is not currently being worked on  
 Long term - describe where our project is going (see Goals)  
+**Sync this with the built-in github [milestones](https://help.github.com/articles/about-milestones/). Then every issue can be directly linked to a milestone upon creation**  
 
 ## Specify Tasks
 -   Goals → Milestones → Tasks → Issues  
