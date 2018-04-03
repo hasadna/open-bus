@@ -4,7 +4,7 @@
 Open Bus is a project of The Public Knowledge Workshop. We use public data to improve public transport in Israel.
 
 ## How to Get Involved
-We welcome any kind of contribution. Look for [good first issue](https://github.com/hasadna/open-bus/labels/good%20first%20issue) and [helo wanted](https://github.com/hasadna/open-bus/labels/help%20wanted) labeled issues, and make sure to read our [contributing guidlines](https://github.com/hasadna/open-bus/blob/master/CONTRIBUTING.md). 
+We welcome any kind of contribution. Look for [good first issue](https://github.com/hasadna/open-bus/labels/good%20first%20issue) and [help wanted](https://github.com/hasadna/open-bus/labels/help%20wanted) labeled issues, and make sure to read our [contributing guidlines](https://github.com/hasadna/open-bus/blob/master/CONTRIBUTING.md). 
 Our [README](https://github.com/hasadna/open-bus/blob/master/README.md#want-to-help) has more info on getting started too.
 
 ## Goals for OpenBus
@@ -14,10 +14,10 @@ Our [README](https://github.com/hasadna/open-bus/blob/master/README.md#want-to-h
 -   Meta-QoS - How good / bad is our SIRI data? Missing data, wrong data
 -   Compare stats (route level only, easier and might be good enough for most uses):
 	-   Trip counts
-	-   Headway
+	-   [Headway](https://en.wikipedia.org/wiki/Headway)
 -   Align trips and compare per station
 	-   Match SIRI trip to GTFS trip - How?
-		-   Our current method is using origin_aimed_departure_time, route and date ([source](https://github.com/hasadna/open-bus/blob/0fd5222b12a6062da7072972e89c4fc2e1aa47a0/postgres/adding_trip_id_to_siri_from_gtfs.sql#L44))
+		-   Our current method is using origin_aimed_departure_time, route and date ([source](https://github.com/hasadna/open-bus/blob/0fd5222b12a6062da7072972e89c4fc2e1aa47a0/postgres/adding_trip_id_to_siri_from_gtfs.sql#L44)). See [#24](https://github.com/hasadna/open-bus/issues/24).
 		-   New trip_id field in SIRI?
 		-   What are we missing? Test both
 	-   Compare / Diff the trips -
@@ -26,8 +26,8 @@ Our [README](https://github.com/hasadna/open-bus/blob/master/README.md#want-to-h
 			-   Departure - Yes / No → When?   
 		-   Munge both data to a clean dataset for doing the stats    
 			-   Infer arrival time at stop using the SIRI responses	    
-			-   Loop lines issue - how big is it?
-		-   Aggregate and enable drilldown
+			-   Loop lines issue - how big is it? See [#50](https://github.com/hasadna/open-bus/issues/50)
+	-   Aggregate and enable drilldown
 -   How to handle changes over time -
 	-   Try to build an incremental database we can query?    
 	-   Or, work directrly with GTFS files, use them for stats every day, and when we need something historical we’ll just go over the files one by one.
@@ -88,7 +88,7 @@ Link to these issues in your Roadmap under each milestone.
     -   Quick Start Guide / Tutorials
     -   Contributing Guidelines [#64](https://github.com/hasadna/open-bus/issues/64)
     -   Code of Conduct
-    -   Maybe we need more than one repo?  
+    -   Maybe we need more than one repo? New ones for Complaints, Website and maybe Analysis work
 -   Update issues
 -   Rethink communication mediums - make it more open - currently googlegroup, whatsapp and github
 -   Invite volunteers to present their work
