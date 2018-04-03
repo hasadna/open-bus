@@ -10,9 +10,9 @@ Our [README](https://github.com/hasadna/open-bus/blob/master/README.md#want-to-h
 ## Goals for OpenBus
 ### Real-Delay - QoS Score
 *Create a QoS (Quality-of-Service) score for public transport that can be viewed and sliced by agency, route, trip, stop, date and time.*  
-*Compare GTFS trips to SIRI trips*
+*We wish to compare the planned trips to the actual trips (GTFS to SIRI). This information might help us to discover problems such as trips that didn't happen, areas with bad traffic that buses usually are late for them, etc. *  
 -   Meta-QoS - How good / bad is our SIRI data? Missing data, wrong data
--   Compare stats (route level only, easier and might be good enough for most uses):
+-   As a first step - compare stats on a route level, which easier and might be good enough for most uses:
 	-   Trip counts
 	-   [Headway](https://en.wikipedia.org/wiki/Headway)
 -   Align trips and compare per station
@@ -35,7 +35,8 @@ Our [README](https://github.com/hasadna/open-bus/blob/master/README.md#want-to-h
 -   Questions
 	-   What to do with out of schedule trips?
 ### Accessibility Score
-*Show how accessible are different locations and resources by public transport?*  
+*Show how accessible are different locations and resources by public transport.*  
+*We wish to measure accessibility between two areas, for example how many people that live in South Tel Aviv are connected to Kfar-Saba. And also to measure accessibility between area and some features like workplaces, universities, healthcare, culture etc. for example Many many people who live in Beer-Sheva are connected to workplaces?*  
 -   Phase 1 - GTFS only
 -   Phase 2 - Actual arrival times, depends on Real Delay progress
 -   Between Locations -
