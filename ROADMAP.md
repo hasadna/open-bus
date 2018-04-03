@@ -1,10 +1,14 @@
 # OpenBus Roadmap
+
+## Project Mission and Summary
+Open Bus is a project of The Public Knowledge Workshop. We use public data to improve public transport Israel.
+
 ## Goals for OpenBus
-TODO: divide goals to Short, Medium and Long term
-### Real-Delay - QoS (Quality-of-Service) Score
-*Create a QoS score for public transportation that can be viewed and sliced by agency, route, trip, stop, date and time.*
-*Compare GTFS trips to SIRI trips,*
--   Compare stats (easier and might be good enough. route level):
+### Real-Delay - QoS Score
+*Create a QoS (Quality-of-Service) score for public transportation that can be viewed and sliced by agency, route, trip, stop, date and time.*
+*Compare GTFS trips to SIRI trips*
+-   Meta-QoS - How good / bad is our SIRI data? Missing data, wrong data
+-   Compare stats (route level only, easier and might be good enough for most uses):
 	-   Trip counts
 	-   Headway
 -   Align trips and compare per station
@@ -23,13 +27,13 @@ TODO: divide goals to Short, Medium and Long term
 -   How to handle changes over time -
 	-   Try to build an incremental database we can query?    
 	-   Or, work directrly with GTFS files, use them for stats every day, and when we need something historical we’ll just go over the files one by one.
--   Meta-QoS - How good / bad is SIRI?
 -   Fuse with complaint data.
 -   Questions
 	-   What to do with out of schedule trips?
 ### Accessibility Score
 *Show how accessible are different locations and resources by public transportation?*
--   This requires actual arrival times too
+-   Phase 1 - GTFS only
+-   Phase 2 - Actual arrival times, depends on Real Delay progress
 -   Between Locations -
 	-   Choose meaningful locations
 	-   How to set the borders and granularity? (GIS data…)
@@ -55,10 +59,22 @@ TODO: divide goals to Short, Medium and Long term
 ### Misc
 -   Analyze Incentives for using private car (public & private sector)
 -   Get archive data from MOT (בקשות חופש מידע) and possibly from the agencies
--   Better future Open Data for Transportation (תחבורה היום ומחר)
+-   Better future Open Data policies for transportation in Israel (work with תחבורה היום ומחר)
 -   Better arrival time prediction
+
+## Milestones
+Short term - things we are working on now (but could always use help with)
+Medium term - things contributors can start working on that is not currently being worked on
+Long term - describe where our project is going (see Goals)
+
 ## Specify Tasks
--   Goals → Tasks → Issues
+-   Goals → Milestones → Tasks → Issues
+Create an issue for each task. Take time to describe the task along with why you are doing this task. This will strengthen the vision for the project and help others get involved.
+
+Tips for issues: Include as much context and help as possible! Add links, mention specific people involved by their username (i.e. @cjer). Articulate the problem or idea along with solutions and next steps.
+
+Link to these issues in your Roadmap under each milestone.
+
 ## Be More Welcoming
 -   Reorder git
 	-   [https://opensource.guide/starting-a-project/](https://opensource.guide/starting-a-project/)
