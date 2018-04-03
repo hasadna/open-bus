@@ -5,7 +5,7 @@ Open Bus is a project of The Public Knowledge Workshop. We use public data to im
 
 ## Goals for OpenBus
 ### Real-Delay - QoS Score
-*Create a QoS (Quality-of-Service) score for public transportation that can be viewed and sliced by agency, route, trip, stop, date and time.*
+*Create a QoS (Quality-of-Service) score for public transportation that can be viewed and sliced by agency, route, trip, stop, date and time.*  
 *Compare GTFS trips to SIRI trips*
 -   Meta-QoS - How good / bad is our SIRI data? Missing data, wrong data
 -   Compare stats (route level only, easier and might be good enough for most uses):
@@ -31,7 +31,7 @@ Open Bus is a project of The Public Knowledge Workshop. We use public data to im
 -   Questions
 	-   What to do with out of schedule trips?
 ### Accessibility Score
-*Show how accessible are different locations and resources by public transportation?*
+*Show how accessible are different locations and resources by public transportation?*  
 -   Phase 1 - GTFS only
 -   Phase 2 - Actual arrival times, depends on Real Delay progress
 -   Between Locations -
@@ -44,7 +44,7 @@ Open Bus is a project of The Public Knowledge Workshop. We use public data to im
 -   Between Populations and Resources
 -   Future - compare to private car or other means of transportation
 ### Complaints
-*Work with 15-minutes on building a good complaint platform. Use the data for analysis.*
+*Work with 15-minutes on building a good complaint platform. Use the data for analysis.*  
 -   Complaint Analysis - search, statistics, monitoring and alerting
 -   Fuse with GTFS and SIRI data
 -   Complaint Management - CRM style
@@ -63,12 +63,12 @@ Open Bus is a project of The Public Knowledge Workshop. We use public data to im
 -   Better arrival time prediction
 
 ## Milestones
-Short term - things we are working on now (but could always use help with)
-Medium term - things contributors can start working on that is not currently being worked on
-Long term - describe where our project is going (see Goals)
+Short term - things we are working on now (but could always use help with)  
+Medium term - things contributors can start working on that is not currently being worked on  
+Long term - describe where our project is going (see Goals)  
 
 ## Specify Tasks
--   Goals → Milestones → Tasks → Issues
+-   Goals → Milestones → Tasks → Issues  
 Create an issue for each task. Take time to describe the task along with why you are doing this task. This will strengthen the vision for the project and help others get involved.
 
 Tips for issues: Include as much context and help as possible! Add links, mention specific people involved by their username (i.e. @cjer). Articulate the problem or idea along with solutions and next steps.
