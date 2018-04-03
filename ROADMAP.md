@@ -3,6 +3,10 @@
 ## Project Mission and Summary
 Open Bus is a project of The Public Knowledge Workshop. We use public data to improve public transport in Israel.
 
+## How to Get Involved
+We welcome any kind of contribution. Look for [good first issue](https://github.com/hasadna/open-bus/labels/good%20first%20issue) and [helo wanted](https://github.com/hasadna/open-bus/labels/help%20wanted) labeled issues, and make sure to read our [contributing guidlines](https://github.com/hasadna/open-bus/blob/master/CONTRIBUTING.md). 
+Our [README](https://github.com/hasadna/open-bus/blob/master/README.md#want-to-help) has more info on getting started too.
+
 ## Goals for OpenBus
 ### Real-Delay - QoS Score
 *Create a QoS (Quality-of-Service) score for public transport that can be viewed and sliced by agency, route, trip, stop, date and time.*  
