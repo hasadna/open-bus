@@ -11,7 +11,7 @@ We currently work on one main project, **Real Delays**, aggregating real-time bu
 1. Planned (static) data: The Ministry of Transport publishes a file called GTFS. This file contains planned trips data for the next 60 days. [Start here for information](https://github.com/hasadna/open-bus/blob/master/doc/working_with_GTFS.md) about GTFS and what we do with it. The [gtfs](https://github.com/hasadna/open-bus/tree/master/gtfs) package is where we work on code for reading GTFS, parsing and loading it to DB. 
 2. Online data: the MoT has a webservice that provides real-time data. The webservice is called SIRI SM. [Start here for information](https://github.com/hasadna/open-bus/blob/master/doc/working_with_SIRI.md) about the protocol. The [siri](https://github.com/hasadna/open-bus/tree/master/siri) package has code for accessing SIRI. To understand what's going on, start at [siri/fetch_and_store_arrivals.py](https://github.com/hasadna/open-bus/blob/master/siri/fetch_and_store_arrivals.py).
 
-Some Jupyter Notebook examples for working directtly with GTFS - [Blog posts](http://simplistic.me/tag/gtfs.html) / [github]https://github.com/cjer/cjer-pelican/tree/master/content/notebooks)
+Some Jupyter Notebook examples for working directtly with GTFS - [Blog posts](http://simplistic.me/tag/gtfs.html) / [github](https://github.com/cjer/cjer-pelican/tree/master/content/notebooks)
 
 ## Want to help?
 The project is currently focused on aggregating and analysing data, so we need mainly Python developers and data scientists. We also have side tasks that are quite "stand-alone".
