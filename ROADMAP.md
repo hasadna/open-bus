@@ -57,7 +57,7 @@ Our [README](https://github.com/hasadna/open-bus/blob/master/README.md#want-to-h
 -   Improve app and site UX/UI and data
 -   Scrape Social Media for more data
 ### Website
-*A suitable space to throw our stuff in*
+*A suitable space to throw our stuff in and share them with the world*
 -   Slice and dice
 -   Map
 -   Blog
