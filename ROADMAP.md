@@ -41,6 +41,7 @@ Long term - describe where our project is going (see Goals)
 -   Country-wide continuous archiving of all buses.
 -   Efficient query API
 ### GTFS Archive
+-   Downloader that catches all MOT FTP file updates and archives them to S3
 -   Incremental Database Archive
 ### Real Delay
 -   **Meta-QoS** - How good / bad is our SIRI data? Missing data, wrong data
