@@ -17,7 +17,7 @@ Our [README](https://github.com/hasadna/open-bus/blob/master/README.md#want-to-h
 *Show how accessible are different locations and resources by public transport.*  
 *We wish to measure accessibility between two areas, for example how many people that live in South Tel Aviv are connected to Kfar-Saba. And also to measure accessibility between area and some features like workplaces, universities, healthcare, culture etc. for example Many many people who live in Beer-Sheva are connected to workplaces?*  
 -   Between Locations
--   Between Locations and Resources
+-   Between Locations and Resources (jobs, leisure, health-care, nature, culture etc.)
 -   Between Populations and Resources
 
 ### Complaints
@@ -27,7 +27,7 @@ Our [README](https://github.com/hasadna/open-bus/blob/master/README.md#want-to-h
 *A suitable space to throw our stuff in and share them with the world.*
 
 ### Misc
--   Analyze Incentives for using private car (public & private sector)
+-   Analyze cases of incentives given to private car owners. Such as company cars analysis [published by the MoF](http://mof.gov.il/chiefecon/economyandresearch/doclib/skiracalcalit_25062017.pdf). Parking is [another](https://www.themarker.com/opinion/1.5810354) [idea](https://www.globes.co.il/news/article.aspx?did=1001136685).
 -   Get archive data from MOT (בקשות חופש מידע) and possibly from the agencies
 -   Better future Open Data policies for transportation in Israel (work with תחבורה היום ומחר)
 -   Better arrival time prediction
