@@ -56,7 +56,7 @@ Long term - describe where our project is going (see Goals)
 			-   Loop lines issue - how big is it? See [#50](https://github.com/hasadna/open-bus/issues/50)
 	-   **Aggregate and enable drilldown**
 -   Handle changes over time. Choose between:
-	-   Build an **Incremental GTFS** database we can query ([Google Doc](https://docs.google.com/document/d/101fE4SuG0FXjjP0nfkFr5uNUMt7Y55CyXsHsPnrIXBY))
+	-   Build an **Incremental GTFS** database we can query ([Google Doc](https://drive.google.com/drive/folders/0ByIrzj3OFMnIejRBVy04WjFLVFk))
 	-   **Work directrly with GTFS files**, use them for stats every day, and when we need something historical we’ll just go over the files one by one.
 	-   **Merge on insert with the most current GTFS data**
 -   Fuse with complaint data.
