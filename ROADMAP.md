@@ -38,29 +38,29 @@ Medium term - things contributors can start working on that is not currently bei
 Long term - describe where our project is going (see Goals)  
 **Sync this with the built-in github [milestones](https://help.github.com/articles/about-milestones/). Then every issue can be directly linked to a milestone upon creation**  
 ### Real Delay
--   Meta-QoS - How good / bad is our SIRI data? Missing data, wrong data
--   As a first step - compare stats on a route level, which is easier and might be good enough for some uses:
+-   **Meta-QoS** - How good / bad is our SIRI data? Missing data, wrong data
+-   As a first step - **compare stats on a route or stop level**, which is easier and might be good enough for some uses:
 	-   Route stats - Trip counts, average total-trip time
 	-   [Headway](https://en.wikipedia.org/wiki/Headway) - ([example](https://jasmcole.com/2015/03/02/two-come-along-at-once/))
--   Align trips and compare per station
-	-   Match SIRI trip to GTFS trip - How?
+-   **Align trips and compare per station**
+	-   **Match SIRI trip to GTFS trip** -
 		-   Our current method is using origin_aimed_departure_time, route and date ([source](https://github.com/hasadna/open-bus/blob/0fd5222b12a6062da7072972e89c4fc2e1aa47a0/postgres/adding_trip_id_to_siri_from_gtfs.sql#L44)). See [#24](https://github.com/hasadna/open-bus/issues/24).
 		-   New trip_id field in SIRI?
-		-   What are we missing? Test both
-	-   Compare / Diff the trips -
+		-   What are we missing? Test both (what about out-of-schedule trips?)
+	-   **Diff the trips** -
 		-   Define the measurements -    
 			-   Actual arrival time at planned stops as compared to the schedule	    
 			-   Departure - Yes / No → When?   
 		-   Munge both data to a clean dataset for doing the stats    
 			-   Infer arrival time at stop using the SIRI responses	    
 			-   Loop lines issue - how big is it? See [#50](https://github.com/hasadna/open-bus/issues/50)
-	-   Aggregate and enable drilldown
--   Handle changes over time -
-	-   Try to build an incremental database we can query?    
-	-   Or, work directrly with GTFS files, use them for stats every day, and when we need something historical we’ll just go over the files one by one.
+	-   **Aggregate and enable drilldown**
+-   Handle changes over time. Choose between:
+	-   Build an **Incremental GTFS** database we can query ([Google Doc](https://docs.google.com/document/d/101fE4SuG0FXjjP0nfkFr5uNUMt7Y55CyXsHsPnrIXBY))
+	-   **Work directrly with GTFS files**, use them for stats every day, and when we need something historical we’ll just go over the files one by one.
+	-   **Merge on insert with the most current GTFS data**
 -   Fuse with complaint data.
--   Questions
-	-   What to do with out of schedule trips?
+
 ### Accessibility
 -   Resource and Location Datasets and API (OSM?)
 	-   Get data for resources - OSM, CBS (למ”ס), Google, Municipal data
@@ -71,6 +71,7 @@ Long term - describe where our project is going (see Goals)
 -   GTFS Only Accessibility ([POC](http://simplistic.me/urbanaccess-tel-aviv-demo.html))
 -   Actual arrival times, depends on Real Delay progress
 -   Future - compare to private car or other means of transportation
+
 ### Complaints
 -   Automatically file a complaint to MOT and other Agencies
 -   Complaint Analysis Platform - search, statistics, monitoring and alerting
