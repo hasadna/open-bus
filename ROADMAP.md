@@ -1,7 +1,8 @@
 # OpenBus Roadmap
 
 ## Project Mission and Summary
-Open Bus is a project of The Public Knowledge Workshop. We use public data to improve public transport in Israel.
+We use public data to improve public transport in Israel.  
+Open Bus is a project of The Public Knowledge Workshop. 
 
 ## How to Get Involved
 We welcome any kind of contribution. Look for [good first issue](https://github.com/hasadna/open-bus/labels/good%20first%20issue) and [help wanted](https://github.com/hasadna/open-bus/labels/help%20wanted) labeled issues, and make sure to read our [contributing guidlines](https://github.com/hasadna/open-bus/blob/master/CONTRIBUTING.md). 
@@ -11,6 +12,32 @@ Our [README](https://github.com/hasadna/open-bus/blob/master/README.md#want-to-h
 ### Real-Delay - QoS Score
 *Create a QoS (Quality-of-Service) score for public transport that can be viewed and sliced by agency, route, trip, stop, date and time.*  
 *We wish to compare the planned trips to the actual trips (GTFS to SIRI). This information might help us discover problems such as trips that didn't happen, areas with bad traffic that buses usually are late for, etc.*  
+	
+### Accessibility Score
+*Show how accessible are different locations and resources by public transport.*  
+*We wish to measure accessibility between two areas, for example how many people that live in South Tel Aviv are connected to Kfar-Saba. And also to measure accessibility between area and some features like workplaces, universities, healthcare, culture etc. for example Many many people who live in Beer-Sheva are connected to workplaces?*  
+-   Between Locations
+-   Between Locations and Resources
+-   Between Populations and Resources
+
+### Complaints
+*Work with 15-minutes on building a good complaint platform. Use complaints as a valuable data source.*  
+
+### Website
+*A suitable space to throw our stuff in and share them with the world.*
+
+### Misc
+-   Analyze Incentives for using private car (public & private sector)
+-   Get archive data from MOT (בקשות חופש מידע) and possibly from the agencies
+-   Better future Open Data policies for transportation in Israel (work with תחבורה היום ומחר)
+-   Better arrival time prediction
+
+## Milestones
+Short term - things we are working on now (but could always use help with)  
+Medium term - things contributors can start working on that is not currently being worked on  
+Long term - describe where our project is going (see Goals)  
+**Sync this with the built-in github [milestones](https://help.github.com/articles/about-milestones/). Then every issue can be directly linked to a milestone upon creation**  
+### Real Delay
 -   Meta-QoS - How good / bad is our SIRI data? Missing data, wrong data
 -   As a first step - compare stats on a route level, which easier and might be good enough for most uses:
 	-   Trip counts
@@ -28,50 +55,35 @@ Our [README](https://github.com/hasadna/open-bus/blob/master/README.md#want-to-h
 			-   Infer arrival time at stop using the SIRI responses	    
 			-   Loop lines issue - how big is it? See [#50](https://github.com/hasadna/open-bus/issues/50)
 	-   Aggregate and enable drilldown
--   How to handle changes over time -
+-   Handle changes over time -
 	-   Try to build an incremental database we can query?    
 	-   Or, work directrly with GTFS files, use them for stats every day, and when we need something historical we’ll just go over the files one by one.
 -   Fuse with complaint data.
 -   Questions
 	-   What to do with out of schedule trips?
-### Accessibility Score
-*Show how accessible are different locations and resources by public transport.*  
-*We wish to measure accessibility between two areas, for example how many people that live in South Tel Aviv are connected to Kfar-Saba. And also to measure accessibility between area and some features like workplaces, universities, healthcare, culture etc. for example Many many people who live in Beer-Sheva are connected to workplaces?*  
--   Phase 1 - GTFS only ([POC](http://simplistic.me/urbanaccess-tel-aviv-demo.html))
--   Phase 2 - Actual arrival times, depends on Real Delay progress
--   Between Locations -
-	-   Choose meaningful locations
-	-   How to set the borders and granularity? (GIS data…)
-	-   Determine which lines or stops service each location
--   Between Locations and Resources
+### Accessibility
+-   Resource and Location Datasets and API (OSM?)
 	-   Get data for resources - OSM, CBS (למ”ס), Google, Municipal data
-	-   Initial example: [http://simplistic.me/urbanaccess-tel-aviv-demo.html](http://simplistic.me/urbanaccess-tel-aviv-demo.html)
--   Between Populations and Resources
+	-   Geo and Location data
+		-   Choose meaningful locations
+		-   How to set the borders and granularity? (GIS data…)
+		-   Determine which lines or stops service each location
+-   GTFS Only Accessibility ([POC](http://simplistic.me/urbanaccess-tel-aviv-demo.html))
+-   Actual arrival times, depends on Real Delay progress
 -   Future - compare to private car or other means of transportation
 ### Complaints
-*Work with 15-minutes on building a good complaint platform. Use the data for analysis.*  
--   Complaint Analysis - search, statistics, monitoring and alerting
+-   Automatically file a complaint to MOT and other Agencies
+-   Complaint Analysis Platform - search, statistics, monitoring and alerting
+-   Improve app and site data (formats, fields, tags, types)
+-   Complaint Management - MVP
 -   Fuse with GTFS and SIRI data
--   Complaint Management - CRM style
--   Automatic Filing to MOT and other Agencies
--   Improve app and site UX/UI and data
+-   Improve app and site UX/UI (for GTFS/SIRI data fusion)
 -   Scrape Social Media for more data
+-   Complaint Management - CRM style
 ### Website
-*A suitable space to throw our stuff in and share them with the world*
--   Slice and dice
--   Map
 -   Blog
-### Misc
--   Analyze Incentives for using private car (public & private sector)
--   Get archive data from MOT (בקשות חופש מידע) and possibly from the agencies
--   Better future Open Data policies for transportation in Israel (work with תחבורה היום ומחר)
--   Better arrival time prediction
-
-## Milestones
-Short term - things we are working on now (but could always use help with)  
-Medium term - things contributors can start working on that is not currently being worked on  
-Long term - describe where our project is going (see Goals)  
-**Sync this with the built-in github [milestones](https://help.github.com/articles/about-milestones/). Then every issue can be directly linked to a milestone upon creation**  
+-   Slice and dice (obudget-style)
+-   Map
 
 ## Specify Tasks
 -   Goals → Milestones → Tasks → Issues  
@@ -83,7 +95,7 @@ Link to these issues in your Roadmap under each milestone.
 
 ## Be More Welcoming
 -   Reorder git
-	-   [https://opensource.guide/starting-a-project/](https://opensource.guide/starting-a-project/)
+    -   [https://opensource.guide/starting-a-project/](https://opensource.guide/starting-a-project/)
     -   [https://opensource.guide/building-community/](https://opensource.guide/building-community/)
     -   License
     -   Quick Start Guide / Tutorials
