@@ -37,6 +37,11 @@ Short term - things we are working on now (but could always use help with)
 Medium term - things contributors can start working on that is not currently being worked on  
 Long term - describe where our project is going (see Goals)  
 **Sync this with the built-in github [milestones](https://help.github.com/articles/about-milestones/). Then every issue can be directly linked to a milestone upon creation**  
+### SIRI Archive
+-   Country-wide continuous archiving of all buses.
+-   Efficient query API
+### GTFS Archive
+-   Incremental Database Archive
 ### Real Delay
 -   **Meta-QoS** - How good / bad is our SIRI data? Missing data, wrong data
 -   As a first step - **compare stats on a route or stop level**, which is easier and might be good enough for some uses:
