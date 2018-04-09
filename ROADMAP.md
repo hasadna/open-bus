@@ -39,9 +39,9 @@ Long term - describe where our project is going (see Goals)
 **Sync this with the built-in github [milestones](https://help.github.com/articles/about-milestones/). Then every issue can be directly linked to a milestone upon creation**  
 ### Real Delay
 -   Meta-QoS - How good / bad is our SIRI data? Missing data, wrong data
--   As a first step - compare stats on a route level, which easier and might be good enough for most uses:
-	-   Trip counts
-	-   [Headway](https://en.wikipedia.org/wiki/Headway)
+-   As a first step - compare stats on a route level, which is easier and might be good enough for some uses:
+	-   Route stats - Trip counts, average total-trip time
+	-   [Headway](https://en.wikipedia.org/wiki/Headway) - ([example](https://jasmcole.com/2015/03/02/two-come-along-at-once/))
 -   Align trips and compare per station
 	-   Match SIRI trip to GTFS trip - How?
 		-   Our current method is using origin_aimed_departure_time, route and date ([source](https://github.com/hasadna/open-bus/blob/0fd5222b12a6062da7072972e89c4fc2e1aa47a0/postgres/adding_trip_id_to_siri_from_gtfs.sql#L44)). See [#24](https://github.com/hasadna/open-bus/issues/24).
