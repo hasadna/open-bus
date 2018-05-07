@@ -1,5 +1,5 @@
 ## Re:dash
-You can query all our database tables using re:dash at app.redash.io/hasadna
+You can query all our database tables using [re:dash](app.redash.io/hasadna)
 
 Use your Google account to login.
 
