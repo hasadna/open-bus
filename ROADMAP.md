@@ -46,7 +46,7 @@ Create a website that will display basic daily statistics for GTFS and SIRI.
 -   Efficient query API
 ### GTFS Archive
 -   Downloader that catches all MOT FTP file updates and archives them to S3
--   Archive daily GTFS statistics generated using from [GTFSTK](https://github.com/mrcagney/gtfstk)
+-   Archive daily GTFS statistics generated using [GTFSTK](https://github.com/mrcagney/gtfstk)
 -   Incremental Database Archive
 ### Real Delay
 -   **Meta-QoS** - How good / bad is our SIRI data? Missing data, wrong data
