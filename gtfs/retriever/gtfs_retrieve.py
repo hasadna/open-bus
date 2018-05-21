@@ -15,12 +15,18 @@ import argparse
 import re
 import pickle
 import operator
-import pytz
+# import pytz
 
 MOT_FTP = 'gtfs.mot.gov.il'
+# PICKLE_FILE_NAME = 'gtfs-downloads-pickle.p'
+PICKLE_FILE_NAME = 'ftp-downloads-pickle.p'
 GTFS_FILE_NAME = 'israel-public-transportation.zip'
-DEBUG_FILE_NAME = 'Tariff.zip'
-PICKLE_FILE_NAME = 'gtfs-downloads-pickle.p'
+CLUSTER_TO_LINE_FILE_NAME = 'ClusterToLine.zip'
+TARIFF_FILE_NAME = 'Tariff.zip'
+TRAIN_OFFICE_FILE_NAME = 'TrainOfficeLineId.zip'
+TRIP_ID_FILE_NAME = 'TripIdToDate.zip'
+ZONES_FILE_NAME = 'zones.zip'
+DEBUG_FILE_NAME = CLUSTER_TO_LINE_FILE_NAME
 
 
 def get_utc_date():
@@ -35,9 +41,9 @@ def get_local_date_and_time_hyphen_delimited():
     return t.strftime('%Y-%m-%d-%H-%M-%S')
 
 
-def ftp_get_file(local_path, host = MOT_FTP, remote_path = GTFS_FILE_NAME):
-    """ get file remote_name from FTP host host and copied it into local_path"""
-    print("Starting to download from host %s: %s => %s" % (host, remote_path, local_path))
+def ftp_get_file(local_path, host=MOT_FTP, remote_path=GTFS_FILE_NAME):
+    """ get file remote_name from FTP host host and copy it into local_path"""
+    print("Starting to download '%s' from host '%s' => '%s'" % (remote_path, host, local_path))
     f = FTP(host)
     f.login()
     fh = open(local_path, 'wb')
@@ -47,7 +53,7 @@ def ftp_get_file(local_path, host = MOT_FTP, remote_path = GTFS_FILE_NAME):
     print("Retrieved from host %s: %s => %s" % (host, remote_path, local_path))
 
 
-def get_uptodateness(local_timestamp, host = MOT_FTP, remote_file_name = GTFS_FILE_NAME):
+def get_uptodateness(local_timestamp, host=MOT_FTP, remote_file_name=GTFS_FILE_NAME):
     """" returns true if remote file timestamp is newer than local_timestamp """
     conn = FTP(host)
     conn.login()
@@ -90,8 +96,8 @@ def md5_for_file(path, block_size=4096):
 
 
 def connect_to_bucket(aws_args):
-    session = Session(aws_access_key_id = aws_args['aws_access_key_id'],
-                      aws_secret_access_key = aws_args['aws_secret_access_key'])
+    session = Session(aws_access_key_id=aws_args['aws_access_key_id'],
+                      aws_secret_access_key=aws_args['aws_secret_access_key'])
     s3 = session.resource("s3")
     bucket = s3.Bucket(aws_args['bucket_url'])
     return bucket
@@ -144,7 +150,6 @@ def upload_gtfs_file_to_s3_bucket(connection, file_name, force=False):
 
 def save_and_dump_pickle_dict(filename, timestamp_datetime, md5, dl_files_dict):
     """" Save a dictionary into a pickle file """
-    #     favorite_color = { "lion": "yellow", "kitty": "red" }
     """{'name', [milliseconds, 'md5']}"""
     temp_list = [filename, timestamp_datetime]
     dl_files_dict[md5] = temp_list
@@ -189,6 +194,51 @@ def check_if_path_exists(path):
     return path
 
 
+def subset_of_dict_by_filename_prefix(full_dict, filename):
+    # cropping file extension
+    subset_dict = {}
+
+    for key, value in full_dict.items():  # iter on both keys and values
+        if value[0].startswith(os.path.splitext(filename)[0]):
+            # print(key, value)
+            subset_dict[key] = value
+    return subset_dict
+
+
+def download_file(dest_dir, remote_file_name, force_download):
+    epoch_now = int(time.time())
+    filename = os.path.splitext(remote_file_name)[0] + datetime.datetime.now().strftime(
+        '-%Y-%m-%dT%H-%M-%S') + '.zip'
+
+    dl_files_dict = load_pickle_dict(dest_dir)
+    file_path = os.path.abspath(os.path.join(dest_dir, filename))
+
+    # get the maximum value of epoch time in all dictionary
+    try:
+        subset_dict = subset_of_dict_by_filename_prefix(dl_files_dict, remote_file_name)
+        # print(subset_dict)
+        latest_local_timestamp = max(subset_dict.items(), key=operator.itemgetter(1))[1][1]
+    except ValueError:
+        # if dict is empty set timestamp to 1000000 which is equals to: 1970-01-12 15:46:40
+        latest_local_timestamp = 1000000
+
+    # if get_uptodateness(latest_local_timestamp, MOT_FTP, remote_file_name) or args.force_download:
+    if get_uptodateness(latest_local_timestamp, MOT_FTP, remote_file_name) or force_download:
+        print("New file have been found on " + MOT_FTP + " or the '-f' flag is on")
+        ftp_get_file(file_path, MOT_FTP, remote_file_name)
+        file_md5 = md5_for_file(file_path)
+        # check if md5 already exists and add it if so
+        if not (file_md5 in dl_files_dict):
+            save_and_dump_pickle_dict(filename, epoch_now, file_md5, dl_files_dict)
+        else:
+            print("The downloaded file '" + remote_file_name + "' already exists (according to md5 check), removing")
+            os.remove(file_path)
+    else:
+        print("No newer (timestamp comparing) file have been found on FTP server")
+
+    return
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--aws", type=str, dest='aws_config_file_name', help="download to AWS. "
@@ -200,41 +250,21 @@ def main():
     # parser.print_help()
     args = parser.parse_args()
 
-    epoch_now = int(time.time())
-    filename = datetime.datetime.now().strftime('GTFS-%Y-%m-%dT%H-%M-%S') + '.zip'
+    ftp_filenames_array=[GTFS_FILE_NAME, CLUSTER_TO_LINE_FILE_NAME, TARIFF_FILE_NAME, TRAIN_OFFICE_FILE_NAME, TRIP_ID_FILE_NAME, ZONES_FILE_NAME]
 
     if args.aws_config_file_name:
+        remote_file_name = GTFS_FILE_NAME
+        filename = os.path.splitext(remote_file_name)[0] + datetime.datetime.now().strftime(
+            '-%Y-%m-%dT%H-%M-%S') + '.zip'
         args = parse_config(args.aws_config_file_name)
         connection = connect_to_bucket(args)
         upload_gtfs_file_to_s3_bucket(connection, filename)
 
     if args.destination_directory:
-
-        dest_dir = check_if_path_exists(args.destination_directory)
-
-        dl_files_dict = load_pickle_dict(dest_dir)
-        file_path = os.path.abspath(os.path.join(dest_dir, filename))
-
-        # get the maximum value of epoch time in all dictionary
-        try:
-            latest_local_timestamp = max(dl_files_dict.items(), key=operator.itemgetter(1))[1][1]
-        except ValueError:
-            # if dict is empty set to 0
-            latest_local_timestamp = 1000000 # equals to: 1970-01-12 15:46:40
-
-        remote_file_name = GTFS_FILE_NAME
-        if get_uptodateness(latest_local_timestamp, MOT_FTP, remote_file_name) or args.force_download:
-            print("New file have been found on " + MOT_FTP + " or the '-f' flag is on")
-            ftp_get_file(file_path, MOT_FTP, remote_file_name)
-            file_md5 = md5_for_file(file_path)
-            # check if md5 already exists and add it if so
-            if not (file_md5 in dl_files_dict):
-                save_and_dump_pickle_dict(filename, epoch_now, file_md5, dl_files_dict)
-            else:
-                print("The downloaded file already exists (according to md5 check), removing")
-                os.remove(file_path)
-        else:
-            print("No newer (timestamp comparing) file have been found on FTP server")
+        # remote_file_name = TARIFF_FILE_NAME
+        for remote_file_name in ftp_filenames_array:
+            dest_dir = check_if_path_exists(args.destination_directory)
+            download_file(dest_dir, remote_file_name, args.force_download)
 
     if args.print_inventory:
         dest_dir = check_if_path_exists(args.print_inventory)
