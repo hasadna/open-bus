@@ -125,7 +125,7 @@ example:
       <ns6:RequestMessageRef>0100700:1351669188:4684</ns6:RequestMessageRef>
       <ns6:Status>true</ns6:Status>
       ..... one or more StopMonitoringDelivery come here ...
-        </Answer>
+    </Answer>
   </ns5:GetStopMonitoringServiceResponse>
 </S:Body>
 </S:Envelope>
