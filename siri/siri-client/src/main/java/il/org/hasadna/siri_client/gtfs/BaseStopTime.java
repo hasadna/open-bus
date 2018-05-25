@@ -1,8 +1,9 @@
 package il.org.hasadna.siri_client.gtfs;
+
 import java.util.Arrays;
 import java.util.Iterator;
 
-public final class  BaseStopTime implements StopTime {
+public final class BaseStopTime implements StopTime {
 
 	private final String tripId;
 	private final String arrivalTime;
@@ -12,20 +13,20 @@ public final class  BaseStopTime implements StopTime {
 	private final int pickupType;
 	private final int dropOffType;
 	private final int shapeDistTraveled;
-	
-	private static int strToInt(String str){
-		return str.isEmpty()? 0 : Integer.valueOf(str);
+
+	private static int strToInt(String str) {
+		return str.isEmpty() ? 0 : Integer.valueOf(str);
 	}
 
-	
 	/**
 	 * Parse a standard CSV line into StopTime object
-	 * @param string
+	 * 
+	 * @param csvRow
 	 * @return StopTime object
 	 */
-	public static BaseStopTime parse(String string) {
-		
-		Iterator<String> iter = Arrays.asList(string.split(",",-1)).iterator();
+	public static BaseStopTime parse(String csvRow) {
+
+		Iterator<String> iter = Arrays.asList(csvRow.split(",", -1)).iterator();
 		String tripId = iter.next();
 		String arrivalTime = iter.next();
 		String departureTime = iter.next();
@@ -34,7 +35,7 @@ public final class  BaseStopTime implements StopTime {
 		int pickupType = strToInt(iter.next());
 		int dropOffType = strToInt(iter.next());
 		int shapeDistTraveled = strToInt(iter.next());
-		
+
 		return new BaseStopTime(tripId, arrivalTime, departureTime, stopId, stopSequence, pickupType, dropOffType,
 				shapeDistTraveled);
 	}

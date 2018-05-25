@@ -3,6 +3,7 @@ package il.org.hasadna.siri_client.gtfs.cruds;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
@@ -44,7 +45,8 @@ public class StopTimesCrudTest {
 
 	@Test(expected = IOException.class)
 	public void testStopTimesCrud_non_exist() throws IOException {
-		new StopTimesCrud(Paths.get("non/exist/file.txt"));
+		Path path = Paths.get("non/exist/file.txt");
+		new StopTimesCrud(path);
 	}
 	
 }

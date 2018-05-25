@@ -6,8 +6,6 @@ import java.nio.file.Path;
 import il.org.hasadna.siri_client.gtfs.BaseStopTime;
 import il.org.hasadna.siri_client.gtfs.StopTime;
 
-
-
 public class StopTimesCrud extends AbstractFileCrud<StopTime> {
 
 	public StopTimesCrud(Path file) throws IOException {

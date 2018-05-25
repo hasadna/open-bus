@@ -14,12 +14,13 @@ public final class BaseTrip implements Trip {
 
 	/**
 	 * Parse a standard CSV line into Trip object
-	 * @param string
+	 * 
+	 * @param csvRow
 	 * @return Trip object
 	 */
-	public static BaseTrip parse(String string) {
+	public static BaseTrip parse(String csvRow) {
 
-		List<String> items = Arrays.asList(string.split(",", -1));
+		List<String> items = Arrays.asList(csvRow.split(",", -1));
 
 		Iterator<String> iter = items.iterator();
 		String routeId = iter.next();
@@ -29,7 +30,6 @@ public final class BaseTrip implements Trip {
 		int directionId = Integer.valueOf(iter.next());
 
 		int shapeId = Integer.valueOf(iter.next());
-	
 
 		return new BaseTrip(routeId, serviceId, tripId, tripHeadsign, directionId, shapeId);
 	}
@@ -43,8 +43,6 @@ public final class BaseTrip implements Trip {
 		this.directionId = directionId;
 		this.shapeId = shapeId;
 	}
-
-
 
 	@Override
 	public String getRouteId() {
