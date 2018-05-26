@@ -1,4 +1,4 @@
-package il.org.hasadna.siri_client.gtfs.cruds;
+package il.org.hasadna.siri_client.gtfs;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,7 +12,7 @@ import java.util.stream.Stream;
  * An abstract class that hold a file and read it by parsing each line of it
  * with the abstract method "parseLine"
  * 
- * @author Aviv
+ * @author Aviv Sela
  * @param <T>
  *            The type of the parsed object
  */

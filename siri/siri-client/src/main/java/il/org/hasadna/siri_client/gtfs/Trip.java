@@ -2,13 +2,11 @@ package il.org.hasadna.siri_client.gtfs;
 
 /**
  * Represent a trip file line
- * @author Aviv
+ * 
+ * @author Aviv Sela
  *
  */
-/**
- * @author aviv
- *
- */
+
 public interface Trip {
 
 	/**
@@ -26,7 +24,7 @@ public interface Trip {
 	 * 
 	 * @return Service Id
 	 */
-	int getServiceId();
+	ServiceId getServiceId();
 
 	/**
 	 * The trip_id field contains an ID that identifies a trip. The trip_id is

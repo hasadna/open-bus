@@ -4,9 +4,13 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * @author Aviv Sela
+ *
+ */
 public final class BaseTrip implements Trip {
 	final private String routeId;
-	final private int serviceId;
+	final private ServiceId serviceId;
 	final private String tripId;
 	final private String tripHeadsign;
 	final private int directionId;
@@ -24,17 +28,18 @@ public final class BaseTrip implements Trip {
 
 		Iterator<String> iter = items.iterator();
 		String routeId = iter.next();
-		int serviceId = Integer.valueOf(iter.next());
+		ServiceId serviceId = new ServiceId(iter.next());
 		String tripId = iter.next();
 		String tripHeadsign = iter.next();
 		int directionId = Integer.valueOf(iter.next());
 
-		int shapeId = Integer.valueOf(iter.next());
+		String shapeIdStr = iter.next();
+		int shapeId = shapeIdStr.isEmpty() ? 0 : Integer.valueOf(shapeIdStr);
 
 		return new BaseTrip(routeId, serviceId, tripId, tripHeadsign, directionId, shapeId);
 	}
 
-	private BaseTrip(String routeId, int serviceId, String tripId, String tripHeadsign, int directionId, int shapeId) {
+	BaseTrip(String routeId, ServiceId serviceId, String tripId, String tripHeadsign, int directionId, int shapeId) {
 		super();
 		this.routeId = routeId;
 		this.serviceId = serviceId;
@@ -50,7 +55,7 @@ public final class BaseTrip implements Trip {
 	}
 
 	@Override
-	public int getServiceId() {
+	public ServiceId getServiceId() {
 		return serviceId;
 	}
 
@@ -80,7 +85,7 @@ public final class BaseTrip implements Trip {
 		int result = 1;
 		result = prime * result + directionId;
 		result = prime * result + ((routeId == null) ? 0 : routeId.hashCode());
-		result = prime * result + serviceId;
+		result = prime * result + ((serviceId == null) ? 0 : serviceId.hashCode());
 		result = prime * result + shapeId;
 		result = prime * result + ((tripHeadsign == null) ? 0 : tripHeadsign.hashCode());
 		result = prime * result + ((tripId == null) ? 0 : tripId.hashCode());
@@ -103,7 +108,10 @@ public final class BaseTrip implements Trip {
 				return false;
 		} else if (!routeId.equals(other.routeId))
 			return false;
-		if (serviceId != other.serviceId)
+		if (serviceId == null) {
+			if (other.serviceId != null)
+				return false;
+		} else if (!serviceId.equals(other.serviceId))
 			return false;
 		if (shapeId != other.shapeId)
 			return false;

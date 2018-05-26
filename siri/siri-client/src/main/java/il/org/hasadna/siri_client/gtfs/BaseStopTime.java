@@ -3,6 +3,10 @@ package il.org.hasadna.siri_client.gtfs;
 import java.util.Arrays;
 import java.util.Iterator;
 
+/**
+ * @author Aviv Sela
+ *
+ */
 public final class BaseStopTime implements StopTime {
 
 	private final String tripId;
@@ -40,8 +44,8 @@ public final class BaseStopTime implements StopTime {
 				shapeDistTraveled);
 	}
 
-	private BaseStopTime(String tripId, String arrivalTime, String departureTime, int stopId, int stopSequence,
-			int pickupType, int dropOffType, int shapeDistTraveled) {
+	BaseStopTime(String tripId, String arrivalTime, String departureTime, int stopId, int stopSequence, int pickupType,
+			int dropOffType, int shapeDistTraveled) {
 		this.tripId = tripId;
 		this.arrivalTime = arrivalTime;
 		this.departureTime = departureTime;

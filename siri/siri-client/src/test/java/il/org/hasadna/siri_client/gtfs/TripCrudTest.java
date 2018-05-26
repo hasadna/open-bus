@@ -1,4 +1,4 @@
-package il.org.hasadna.siri_client.gtfs.cruds;
+package il.org.hasadna.siri_client.gtfs;
 
 import static org.junit.Assert.*;
 
@@ -13,7 +13,7 @@ import org.junit.Test;
 
 import il.org.hasadna.siri_client.gtfs.BaseTrip;
 import il.org.hasadna.siri_client.gtfs.Trip;
-import il.org.hasadna.siri_client.gtfs.cruds.TripCrud;
+import il.org.hasadna.siri_client.gtfs.TripCrud;
 
 public class TripCrudTest {
 
@@ -33,7 +33,5 @@ public class TripCrudTest {
 		assertEquals(expected, actual);
 
 	}
-
-
 
 }

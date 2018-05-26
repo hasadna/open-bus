@@ -2,7 +2,6 @@ package il.org.hasadna.siri_client.gtfs;
 
 import static org.junit.Assert.assertEquals;
 
-
 import org.junit.Test;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
@@ -23,7 +22,7 @@ public class BaseStopTimeTest {
 		assertEquals(1, baseStopTime.getDropOffType());
 		assertEquals(0, baseStopTime.getShapeDistTraveled());
 	}
-	
+
 	@Test
 	public void testParse_empty() {
 		BaseStopTime baseStopTime = BaseStopTime.parse(",,,,,,,");
@@ -37,11 +36,10 @@ public class BaseStopTimeTest {
 		assertEquals(0, baseStopTime.getDropOffType());
 		assertEquals(0, baseStopTime.getShapeDistTraveled());
 	}
-	
-	
-	
+
 	@Test
-	public void testEquals(){
-		EqualsVerifier.forClass(BaseStopTime.class).verify();;
+	public void testEquals() {
+		EqualsVerifier.forClass(BaseStopTime.class).verify();
+		;
 	}
 }

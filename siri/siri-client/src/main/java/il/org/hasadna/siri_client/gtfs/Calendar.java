@@ -1,12 +1,17 @@
 package il.org.hasadna.siri_client.gtfs;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.EnumSet;
 
+/**
+ * @author Aviv Sela
+ *
+ */
 public interface Calendar {
-	public enum Day {
-		SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY;
-	}
+	// public enum Day {
+	// SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY;
+	// }
 
 	/**
 	 * The service_id contains an ID that uniquely identifies a set of dates when
@@ -14,12 +19,12 @@ public interface Calendar {
 	 * at most once in a calendar.txt file. This value is data set unique. It is
 	 * referenced by the trips.txt file.
 	 */
-	String getServiceId();
+	ServiceId getServiceId();
 
 	/**
 	 * Get a set that represent the days that the service is available in them
 	 */
-	EnumSet<Day> getValidDays();
+	EnumSet<DayOfWeek> getValidDays();
 
 	/**
 	 * Indicates that service is available for a given day.
@@ -28,7 +33,7 @@ public interface Calendar {
 	 *         date range is specified using the 'start date' and 'end date'
 	 *         fields.)
 	 */
-	boolean isValid(Day day);
+	boolean isDayValid(DayOfWeek day);
 
 	/**
 	 * StartDate represent the start date for the service.

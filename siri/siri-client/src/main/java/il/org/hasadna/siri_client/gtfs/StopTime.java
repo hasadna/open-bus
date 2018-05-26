@@ -3,7 +3,7 @@ package il.org.hasadna.siri_client.gtfs;
 /**
  * Represent a stop_time file line
  * 
- * @author Aviv
+ * @author Aviv Sela
  *
  */
 public interface StopTime {
