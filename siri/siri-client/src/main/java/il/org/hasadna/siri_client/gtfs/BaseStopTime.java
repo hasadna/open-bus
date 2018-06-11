@@ -44,7 +44,7 @@ public final class BaseStopTime implements StopTime {
 				shapeDistTraveled);
 	}
 
-	BaseStopTime(String tripId, String arrivalTime, String departureTime, int stopId, int stopSequence, int pickupType,
+	public BaseStopTime(String tripId, String arrivalTime, String departureTime, int stopId, int stopSequence, int pickupType,
 			int dropOffType, int shapeDistTraveled) {
 		this.tripId = tripId;
 		this.arrivalTime = arrivalTime;

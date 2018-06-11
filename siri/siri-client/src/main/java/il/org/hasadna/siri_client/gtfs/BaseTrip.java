@@ -39,7 +39,7 @@ public final class BaseTrip implements Trip {
 		return new BaseTrip(routeId, serviceId, tripId, tripHeadsign, directionId, shapeId);
 	}
 
-	BaseTrip(String routeId, ServiceId serviceId, String tripId, String tripHeadsign, int directionId, int shapeId) {
+	public BaseTrip(String routeId, ServiceId serviceId, String tripId, String tripHeadsign, int directionId, int shapeId) {
 		super();
 		this.routeId = routeId;
 		this.serviceId = serviceId;

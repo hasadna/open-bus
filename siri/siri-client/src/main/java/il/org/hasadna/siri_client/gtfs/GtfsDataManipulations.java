@@ -7,17 +7,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class GtfsData {
+public class GtfsDataManipulations  {
 
 	private CalendarCrud calendarCrud;
 	private TripCrud tripCrud;
 	private StopTimesCrud stopTimesCrud;
 
-	public GtfsData(Path calendarCrud, Path tripCrud, Path stopTimesCrud) throws IOException {
+	public GtfsDataManipulations(Path calendarCrud, Path tripCrud, Path stopTimesCrud) throws IOException {
 		this(new CalendarCrud(calendarCrud), new TripCrud(tripCrud), new StopTimesCrud(stopTimesCrud));
 	}
 
-	public GtfsData(CalendarCrud calendarCrud, TripCrud tripCrud, StopTimesCrud stopTimesCrud) {
+	public GtfsDataManipulations(CalendarCrud calendarCrud, TripCrud tripCrud, StopTimesCrud stopTimesCrud) {
 
 		this.calendarCrud = calendarCrud;
 		this.tripCrud = tripCrud;
@@ -35,6 +35,7 @@ public class GtfsData {
 
 	}
 
+	
 	public Stream<Integer> getRelevantStopIds(LocalDate currentDate) throws IOException {
 		return getRelevantStopTimeItems(currentDate).map(StopTime::getStopId).distinct();
 	}

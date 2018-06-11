@@ -53,7 +53,7 @@ public class GtfsDataTest {
 	@Test
 	public void testgetRelevantStopTimeItems() throws IOException {
 
-		Collection<StopTime> actual = new GtfsData(calendarCrudStub, tripCrudStub, stopTimesCrudStub)
+		Collection<StopTime> actual = new GtfsDataManipulations(calendarCrudStub, tripCrudStub, stopTimesCrudStub)
 				.getRelevantStopTimeItems(LocalDate.MAX).collect(Collectors.toList());
 
 		Collection<BaseStopTime> expected = Arrays.asList(new BaseStopTime("200", "", "", 314, 5, 0, 0, 0));
@@ -65,7 +65,7 @@ public class GtfsDataTest {
 	@Test
 	public void testgetRelevantStopIds() throws IOException {
 
-		Collection<Integer> actual = new GtfsData(calendarCrudStub, tripCrudStub, stopTimesCrudStub)
+		Collection<Integer> actual = new GtfsDataManipulations(calendarCrudStub, tripCrudStub, stopTimesCrudStub)
 				.getRelevantStopIds(LocalDate.MAX).collect(Collectors.toList());
 
 		Collection<Integer> expected = Arrays.asList(314);
@@ -77,7 +77,7 @@ public class GtfsDataTest {
 	@Test
 	public void testGtfsData_paths() throws IOException {
 
-		new GtfsData(Paths.get("."), Paths.get("."), Paths.get("."));
+		new GtfsDataManipulations(Paths.get("."), Paths.get("."), Paths.get("."));
 
 	}
 

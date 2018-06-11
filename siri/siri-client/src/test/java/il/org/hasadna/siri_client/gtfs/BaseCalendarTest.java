@@ -2,6 +2,12 @@ package il.org.hasadna.siri_client.gtfs;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.EnumSet;
@@ -79,6 +85,17 @@ public class BaseCalendarTest {
 		LocalDate expected = END_DATE;
 		LocalDate actual = baseCalendar.getEndDate();
 		assertEquals(expected, actual);
+	}
+	
+	
+	
+	@Test
+	public void tmp() throws IOException {
+		
+		InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream("sdf.tmp");
+		Path dest = Files.createTempFile(null, null);
+		Files.copy(in, dest,StandardCopyOption.REPLACE_EXISTING);
+		System.out.println(dest);
 	}
 
 }

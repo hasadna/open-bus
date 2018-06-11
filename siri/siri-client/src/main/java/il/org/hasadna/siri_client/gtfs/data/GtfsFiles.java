@@ -1,24 +1,14 @@
 package il.org.hasadna.siri_client.gtfs.data;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
-public enum GtfsFiles {
-	CALENDAR, TRIP, STOP_TIME;
-	
-	private Path path;
+public interface GtfsFiles {
 
-	Object lock = new Object();
-	
-	Path getPath() {
-		synchronized (lock) {
-			return path;
-		}
-	}
+	Path getCalendarFile() throws IOException;
 
-	void setPath(Path path) {
-		synchronized (lock) {	
-			this.path = path;
-			
-		}
-	}
+	Path getStopTimeFile() throws IOException;
+
+	Path getTripsFile() throws IOException;
+
 }
