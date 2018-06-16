@@ -129,16 +129,4 @@ public final class BaseTrip implements Trip {
 		return true;
 	}
 
-	@Override
-	public String toString() {
-		return "BaseTrip [" + (routeId != null ? "routeId=" + routeId + ", " : "")
-				+ (serviceId != null ? "serviceId=" + serviceId + ", " : "")
-				+ (tripId != null ? "tripId=" + tripId + ", " : "")
-				+ (tripHeadsign != null ? "tripHeadsign=" + tripHeadsign + ", " : "") + "directionId=" + directionId
-				+ ", shapeId=" + shapeId + "]";
-	}
-	
-	
-	
-
 }
