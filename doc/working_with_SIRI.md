@@ -8,6 +8,7 @@ The format of all the timestamp is full ISO 8601, e.g. `2012-10-31T09:39:39.480+
 
 - This document is based on the [documentation published by MoT](http://he.mot.gov.il/index.php?option=com_content&view=article&id=2243:pub-trn-memchakim&catid=167:pub-trn-dev-info&Itemid=304). 
 - There's a [request-reply example](http://media.mot.gov.il/PDF/HE_TRAFFIC_PUBLIC/ANHAYIOT/Request-Response.zip) on the MOT website. But it's not comprehensive - fields that are often included in replies are missing.
+- The web page of MOT with information for developers [is here](https://www.gov.il/he/Departments/General/real_time_information_siri).
 - See also the following two examples in our doc folder:
   - [reply_example_1.xml](/doc/reply_example_1.xml) a more comprehensive example extracted using fetch_and_store_arrivals.py
   - [reply_example_2.xml](/docs/reply_example_2.xml) a reply generated at night time and shows some error messages
