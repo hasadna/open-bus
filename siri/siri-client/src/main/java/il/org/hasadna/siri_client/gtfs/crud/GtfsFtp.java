@@ -13,8 +13,8 @@ import org.apache.commons.net.ftp.FTPReply;
 
 public class GtfsFtp {
 
-	private static final String HOST = "";
-	private static final String FILE_NAME = "";
+	private static final String HOST = "gtfs.mot.gov.il";
+	private static final String FILE_NAME = "israel-public-transportation.zip";
 
 	FTPClient connect(String host) throws IOException {
 		FTPClient ftpClient = createFTPClient();
