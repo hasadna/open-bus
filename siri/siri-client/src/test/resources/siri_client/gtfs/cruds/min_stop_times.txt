@@ -1,0 +1,4 @@
+trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type,shape_dist_traveled
+32217742_200518,22:20:00,22:20:00,37358,1,0,1,0
+32217742_200518,22:22:00,22:22:00,37350,2,0,0,1400
+32217742_200518,22:27:00,22:27:00,37292,3,0,0,3700
