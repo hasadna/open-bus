@@ -66,7 +66,7 @@ public class GtfsDataManipulationsTest {
 			}
 		};
 		// Execute
-		Stream<Calendar> resultStream = new GtfsDataManipulations(gtfsCrud).getCalendarCrud();
+		Stream<Calendar> resultStream = new GtfsDataManipulations(gtfsCrud).getCalendarItems();
 		List<Calendar> actual = resultStream.collect(Collectors.toList());
 
 		// Expected
@@ -92,7 +92,7 @@ public class GtfsDataManipulationsTest {
 			}
 		};
 		// Execute
-		Stream<Trip> resultStream = new GtfsDataManipulations(gtfsCrud).getTripCrud();
+		Stream<Trip> resultStream = new GtfsDataManipulations(gtfsCrud).getTripItems();
 		List<Trip> actual = resultStream.collect(Collectors.toList());
 
 		// Expected
@@ -117,7 +117,7 @@ public class GtfsDataManipulationsTest {
 			}
 		};
 		// Execute
-		Stream<StopTime> resultStream = new GtfsDataManipulations(gtfsCrud).getStopTimesCrud();
+		Stream<StopTime> resultStream = new GtfsDataManipulations(gtfsCrud).getStopTimesItems();
 		List<StopTime> actual = resultStream.collect(Collectors.toList());
 
 		// Expected
@@ -133,7 +133,7 @@ public class GtfsDataManipulationsTest {
 		StopTime stopTime = new BaseStopTime("tripId", "arrivalTime", "departureTime", 0, 0, 0, 0, 0);
 
 		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud) {
-			Stream<Calendar> getCalendarCrud() throws IOException {
+			Stream<Calendar> getCalendarItems() throws IOException {
 
 				BaseCalendar itm = new BaseCalendar(new ServiceId("ServiceId"), EnumSet.of(CURRENT_DATE.getDayOfWeek()),
 						CURRENT_DATE, CURRENT_DATE);
@@ -142,14 +142,14 @@ public class GtfsDataManipulationsTest {
 			};
 
 			@Override
-			Stream<Trip> getTripCrud() throws IOException {
+			Stream<Trip> getTripItems() throws IOException {
 
 				Trip trip = new BaseTrip("routeId", new ServiceId("ServiceId"), "tripId", "tripHeadsign", 0, 0);
 				return Stream.of(trip);
 			}
 
 			@Override
-			Stream<StopTime> getStopTimesCrud() throws IOException {
+			Stream<StopTime> getStopTimesItems() throws IOException {
 				
 				
 				return Stream.of(stopTime);
@@ -173,7 +173,7 @@ public class GtfsDataManipulationsTest {
 		StopTime stopTime = new BaseStopTime("tripId", "arrivalTime", "departureTime", 777, 0, 0, 0, 0);
 
 		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud) {
-			Stream<Calendar> getCalendarCrud() throws IOException {
+			Stream<Calendar> getCalendarItems() throws IOException {
 
 				BaseCalendar itm = new BaseCalendar(new ServiceId("ServiceId"), EnumSet.of(CURRENT_DATE.getDayOfWeek()),
 						CURRENT_DATE, CURRENT_DATE);
@@ -182,14 +182,14 @@ public class GtfsDataManipulationsTest {
 			};
 
 			@Override
-			Stream<Trip> getTripCrud() throws IOException {
+			Stream<Trip> getTripItems() throws IOException {
 
 				Trip trip = new BaseTrip("routeId", new ServiceId("ServiceId"), "tripId", "tripHeadsign", 0, 0);
 				return Stream.of(trip);
 			}
 
 			@Override
-			Stream<StopTime> getStopTimesCrud() throws IOException {
+			Stream<StopTime> getStopTimesItems() throws IOException {
 				
 				
 				return Stream.of(stopTime);
@@ -218,7 +218,7 @@ public class GtfsDataManipulationsTest {
 
 		// Execute
 		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud) {
-			Stream<Calendar> getCalendarCrud() throws IOException {
+			Stream<Calendar> getCalendarItems() throws IOException {
 				return Stream.of(baseCalendar);
 			};
 		};
@@ -238,7 +238,7 @@ public class GtfsDataManipulationsTest {
 				CURRENT_DATE, CURRENT_DATE);
 
 		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud) {
-			java.util.stream.Stream<Calendar> getCalendarCrud() throws IOException {
+			java.util.stream.Stream<Calendar> getCalendarItems() throws IOException {
 				return Stream.of(baseCalendar);
 			};
 		};
@@ -262,7 +262,7 @@ public class GtfsDataManipulationsTest {
 				AFTER_DATE, AFTER_DATE);
 
 		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud) {
-			java.util.stream.Stream<Calendar> getCalendarCrud() throws IOException {
+			java.util.stream.Stream<Calendar> getCalendarItems() throws IOException {
 				return Stream.of(beforeCalendar, afterCalendar);
 			};
 		};
@@ -283,7 +283,7 @@ public class GtfsDataManipulationsTest {
 				.plus(1)), CURRENT_DATE, CURRENT_DATE);
 
 		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud) {
-			java.util.stream.Stream<Calendar> getCalendarCrud() throws IOException {
+			java.util.stream.Stream<Calendar> getCalendarItems() throws IOException {
 				return Stream.of(beforeCalendar);
 			};
 		};
@@ -300,7 +300,7 @@ public class GtfsDataManipulationsTest {
 	public void testGetUniqueStopTimeItems() throws IOException {
 
 		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud) {
-			Stream<StopTime> getStopTimesCrud() throws IOException {
+			Stream<StopTime> getStopTimesItems() throws IOException {
 
 				return Stream.of(new BaseStopTime("tripId", "arrivalTime", "departureTime", 0, 4, 1, 0, 45),
 						new BaseStopTime("tripId", "arrivalTime", "departureTime", 0, 5, 1, 0, 45),
@@ -309,7 +309,7 @@ public class GtfsDataManipulationsTest {
 			}
 		};
 
-		long actual = gtfsDataManipulations.getUniqueStopTimeItems()
+		long actual = gtfsDataManipulations.getLastStopTimeItems()
 				.count();
 
 		long expected = 1;

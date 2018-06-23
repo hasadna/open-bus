@@ -52,17 +52,17 @@ public class GtfsZipFile {
 		return zipFile.getInputStream(entry);
 	}
 
-	public Path getCalendarFile() throws IOException {
+	public Path extractCalendarFile() throws IOException {
 
 		return extractFile(CALENDAR_FILE_NAME, null);
 	}
 
-	public Path getTripsFile() throws IOException {
+	public Path extractTripsFile() throws IOException {
 
 		return extractFile(TRIPS_FILE_NAME, null);
 	}
 
-	public Path getStopTimesFile() throws IOException {
+	public Path extractStopTimesFile() throws IOException {
 
 		return extractFile(STOP_TIME_FILE_NAME, null);
 	}

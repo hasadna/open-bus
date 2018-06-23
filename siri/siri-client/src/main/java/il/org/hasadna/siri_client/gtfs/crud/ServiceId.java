@@ -1,5 +1,11 @@
 package il.org.hasadna.siri_client.gtfs.crud;
 
+/**
+ * The calendar service_id contains an ID that uniquely identifies a set of dates
+ * when service is available for one or more routes. Each service_id value
+ * can appear at most once in a calendar.txt file. This value is data set
+ * unique. It is referenced by the trips.txt file.
+ */
 public final class ServiceId {
 	private final String serviceId;
 

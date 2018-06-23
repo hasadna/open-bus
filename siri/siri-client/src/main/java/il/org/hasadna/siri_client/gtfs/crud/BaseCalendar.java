@@ -21,6 +21,12 @@ public class BaseCalendar implements Calendar {
 
 	static DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyyMMdd");
 
+	/**
+	 * Method for creating calendar instance from GTFS calendar CSV file
+	 * @param csvRow
+	 * @return an instance of calendar
+	 * @throws IllegalArgumentException in case the given string don't contain 10 fields
+	 */
 	public static BaseCalendar parse(String csvRow) {
 
 		List<String> fields = Arrays.asList(csvRow.split(",", -1));

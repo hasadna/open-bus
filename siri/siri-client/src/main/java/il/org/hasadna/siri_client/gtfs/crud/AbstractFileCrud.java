@@ -23,12 +23,18 @@ public abstract class AbstractFileCrud<T> {
 	public Stream<T> ReadAll() throws IOException {
 
 		BufferedReader in = new BufferedReader(
-				new InputStreamReader(Files.newInputStream(file, StandardOpenOption.READ),"UTF-8"));
+				new InputStreamReader(Files.newInputStream(file, StandardOpenOption.READ), "UTF-8"));
 		in.readLine();// skip header
-		return in.lines()
-				.map(i -> parseLine(i));
+		return in.lines().map(i -> parseLine(i));
 	}
 
+	/**
+	 * Abstract method that each GTFS CRUD class should implement. The method
+	 * responsible for convert file line into instance.
+	 * 
+	 * @param string
+	 * @return instance of CRUD type
+	 */
 	abstract T parseLine(String string);
 
 	public AbstractFileCrud(Path file) throws IOException {

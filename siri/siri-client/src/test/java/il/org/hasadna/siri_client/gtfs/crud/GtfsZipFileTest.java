@@ -92,7 +92,7 @@ assertEquals(expected, actual);
 				"src/test/resources/siri_client/gtfs/data/GtfsWorkspaceTest/ftpWorkspace/israel-public-transportation.zip");
 		GtfsZipFile gtfsZipFile = new GtfsZipFile(zipFile);
 		// Execute
-		Path actual = gtfsZipFile.getCalendarFile();
+		Path actual = gtfsZipFile.extractCalendarFile();
 		// Test
 		assertNotNull(actual);
 		Files.isReadable(actual);
@@ -106,7 +106,7 @@ assertEquals(expected, actual);
 				"src/test/resources/siri_client/gtfs/data/GtfsWorkspaceTest/ftpWorkspace/israel-public-transportation.zip");
 		GtfsZipFile gtfsZipFile = new GtfsZipFile(zipFile);
 		// Execute
-		Path actual = gtfsZipFile.getTripsFile();
+		Path actual = gtfsZipFile.extractTripsFile();
 		// Test
 		assertNotNull(actual);
 
@@ -119,7 +119,7 @@ assertEquals(expected, actual);
 				"src/test/resources/siri_client/gtfs/data/GtfsWorkspaceTest/ftpWorkspace/israel-public-transportation.zip");
 		GtfsZipFile gtfsZipFile = new GtfsZipFile(zipFile);
 		// Execute
-		Path actual = gtfsZipFile.getStopTimesFile();
+		Path actual = gtfsZipFile.extractStopTimesFile();
 		// Test
 		assertNotNull(actual);
 

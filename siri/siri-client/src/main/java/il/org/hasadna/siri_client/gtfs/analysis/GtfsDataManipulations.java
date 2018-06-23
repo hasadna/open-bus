@@ -19,15 +19,15 @@ public class GtfsDataManipulations {
 
 	private GtfsCrud gtfsCrud;
 
-	Stream<Calendar> getCalendarCrud() throws IOException {
+	Stream<Calendar> getCalendarItems() throws IOException {
 		return gtfsCrud.getCalendars();
 	}
 
-	Stream<Trip> getTripCrud() throws IOException {
+	Stream<Trip> getTripItems() throws IOException {
 		return gtfsCrud.getTrips();
 	}
 
-	Stream<StopTime> getStopTimesCrud() throws IOException {
+	Stream<StopTime> getStopTimesItems() throws IOException {
 		return gtfsCrud.getStopTimes();
 	}
 
@@ -41,10 +41,10 @@ public class GtfsDataManipulations {
 		Set<ServiceId> serviceIds = getRelevantCalendarItems(currentDate).map(Calendar::getServiceId)
 				.collect(Collectors.toSet());
 
-		Set<String> tripIds = getTripCrud().filter(i -> serviceIds.contains(i.getServiceId()))
+		Set<String> tripIds = getTripItems().filter(i -> serviceIds.contains(i.getServiceId()))
 				.map(Trip::getTripId)
 				.collect(Collectors.toSet());
-		return getUniqueStopTimeItems().filter(i -> tripIds.contains(i.getTripId()));
+		return getLastStopTimeItems().filter(i -> tripIds.contains(i.getTripId()));
 
 	}
 
@@ -55,7 +55,7 @@ public class GtfsDataManipulations {
 
 	Stream<Calendar> getRelevantCalendarItems(LocalDate currentDate) throws IOException {
 
-		return getCalendarCrud().filter(c -> c.getStartDate()
+		return getCalendarItems().filter(c -> c.getStartDate()
 				.compareTo(currentDate) <= 0)
 				.filter(c -> c.getEndDate()
 						.compareTo(currentDate) >= 0)
@@ -63,8 +63,14 @@ public class GtfsDataManipulations {
 
 	}
 
-	Stream<StopTime> getUniqueStopTimeItems() throws IOException {
-		return getStopTimesCrud().collect(Collectors.groupingBy(StopTime::getTripId, Collectors
+	/**
+	 * 
+	 * the method is used to get for each trip the stop time of the last station
+	 * @return StopTimes represent the stop time of the last station
+	 * @throws IOException
+	 */
+	Stream<StopTime> getLastStopTimeItems() throws IOException {
+		return getStopTimesItems().collect(Collectors.groupingBy(StopTime::getTripId, Collectors
 				.collectingAndThen(Collectors.maxBy(Comparator.comparing(StopTime::getStopSequence)), Optional::get)))
 				.values()
 				.stream();

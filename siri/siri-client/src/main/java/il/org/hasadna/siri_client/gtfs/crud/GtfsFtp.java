@@ -27,16 +27,31 @@ public class GtfsFtp {
 		}
 		return ftpClient;
 	}
-
+	/**
+	 * Retrieves a GTFS file from server.
+	 * @return Path of the downloaded file.
+	 * @throws IOException
+	 */
 	public Path downloadGtfsZipFile() throws IOException {
 		return downloadGtfsZipFile(createTempFile());
 	}
 
+	/**
+	 * Creates an empty file in the default temporary-file directory
+	 * @return the path to the newly created file that did not exist before this method was invoked
+	 * @throws IOException
+	 */
 	Path createTempFile() throws IOException {
 
 		return Files.createTempFile(null, null);
 	}
 
+	/**
+	 * Retrieves a GTFS file from the server and writes it to the given path
+	 * @param path The local file to which to write the data.
+	 * @return Path of the downloaded file.
+	 * @throws IOException
+	 */
 	private Path downloadGtfsZipFile(Path path) throws IOException {
 		FTPClient conn = connect(HOST);
 		OutputStream out = new BufferedOutputStream(new FileOutputStream(path.toFile()));
