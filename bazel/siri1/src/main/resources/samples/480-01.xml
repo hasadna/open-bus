@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- 480 Jer-TA
+localhost:9000/data/oneStop/20594/7023/PT4H
+20594 is stopCode of last stop (TA Arlozorov)
+7023 is route-id of line 480
+-->
+<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+    <S:Body>
+        <ns7:GetStopMonitoringServiceResponse xmlns:ns3="http://www.siri.org.uk/siri" xmlns:ns4="http://www.ifopt.org.uk/acsb" xmlns:ns5="http://www.ifopt.org.uk/ifopt" xmlns:ns6="http://datex2.eu/schema/1_0/1_0" xmlns:ns7="http://new.webservice.namespace">
+            <Answer>
+                <ns3:ResponseTimestamp>2018-05-29T19:56:46.720+03:00</ns3:ResponseTimestamp>
+                <ns3:ProducerRef>ISR Siri Server (141.10)</ns3:ProducerRef>
+                <ns3:ResponseMessageIdentifier>7916034</ns3:ResponseMessageIdentifier>
+                <ns3:RequestMessageRef>0100700:1351669188:4684</ns3:RequestMessageRef>
+                <ns3:Status>true</ns3:Status>
+                <ns3:StopMonitoringDelivery version="IL2.7">
+                    <ns3:ResponseTimestamp>2018-05-29T19:56:46.720+03:00</ns3:ResponseTimestamp>
+                    <ns3:Status>true</ns3:Status>
+                    <ns3:MonitoredStopVisit>
+                        <ns3:RecordedAtTime>2018-05-29T19:56:48.000+03:00</ns3:RecordedAtTime>
+                        <ns3:ItemIdentifier>506838037</ns3:ItemIdentifier>
+                        <ns3:MonitoringRef>20594</ns3:MonitoringRef>
+                        <ns3:MonitoredVehicleJourney>
+                            <ns3:LineRef>7023</ns3:LineRef>
+                            <ns3:DirectionRef>3</ns3:DirectionRef>
+                            <ns3:FramedVehicleJourneyRef>
+                                <ns3:DataFrameRef>2018-05-29</ns3:DataFrameRef>
+                                <ns3:DatedVehicleJourneyRef>32420665</ns3:DatedVehicleJourneyRef>
+                            </ns3:FramedVehicleJourneyRef>
+                            <ns3:PublishedLineName>480</ns3:PublishedLineName>
+                            <ns3:OperatorRef>3</ns3:OperatorRef>
+                            <ns3:DestinationRef>20594</ns3:DestinationRef>
+                            <ns3:OriginAimedDepartureTime>2018-05-29T19:12:00.000+03:00</ns3:OriginAimedDepartureTime>
+                            <ns3:VehicleLocation>
+                                <ns3:Longitude>34.876426696777344</ns3:Longitude>
+                                <ns3:Latitude>31.995624542236328</ns3:Latitude>
+                            </ns3:VehicleLocation>
+                            <ns3:VehicleRef>7625469</ns3:VehicleRef>
+                            <ns3:MonitoredCall>
+                                <ns3:StopPointRef>20594</ns3:StopPointRef>
+                                <ns3:ExpectedArrivalTime>2018-05-29T20:08:00.000+03:00</ns3:ExpectedArrivalTime>
+                            </ns3:MonitoredCall>
+                        </ns3:MonitoredVehicleJourney>
+                    </ns3:MonitoredStopVisit>
+                    <ns3:MonitoredStopVisit>
+                        <ns3:RecordedAtTime>2018-05-29T19:56:51.000+03:00</ns3:RecordedAtTime>
+                        <ns3:ItemIdentifier>506838039</ns3:ItemIdentifier>
+                        <ns3:MonitoringRef>20594</ns3:MonitoringRef>
+                        <ns3:MonitoredVehicleJourney>
+                            <ns3:LineRef>7023</ns3:LineRef>
+                            <ns3:DirectionRef>3</ns3:DirectionRef>
+                            <ns3:FramedVehicleJourneyRef>
+                                <ns3:DataFrameRef>2018-05-29</ns3:DataFrameRef>
+                                <ns3:DatedVehicleJourneyRef>32420666</ns3:DatedVehicleJourneyRef>
+                            </ns3:FramedVehicleJourneyRef>
+                            <ns3:PublishedLineName>480</ns3:PublishedLineName>
+                            <ns3:OperatorRef>3</ns3:OperatorRef>
+                            <ns3:DestinationRef>20594</ns3:DestinationRef>
+                            <ns3:OriginAimedDepartureTime>2018-05-29T19:24:00.000+03:00</ns3:OriginAimedDepartureTime>
+                            <ns3:VehicleLocation>
+                                <ns3:Longitude>34.91386413574219</ns3:Longitude>
+                                <ns3:Latitude>31.971487045288086</ns3:Latitude>
+                            </ns3:VehicleLocation>
+                            <ns3:VehicleRef>7624569</ns3:VehicleRef>
+                            <ns3:MonitoredCall>
+                                <ns3:StopPointRef>20594</ns3:StopPointRef>
+                                <ns3:ExpectedArrivalTime>2018-05-29T20:11:00.000+03:00</ns3:ExpectedArrivalTime>
+                            </ns3:MonitoredCall>
+                        </ns3:MonitoredVehicleJourney>
+                    </ns3:MonitoredStopVisit>
+                    <ns3:MonitoredStopVisit>
+                        <ns3:RecordedAtTime>2018-05-29T19:56:44.000+03:00</ns3:RecordedAtTime>
+                        <ns3:ItemIdentifier>506838042</ns3:ItemIdentifier>
+                        <ns3:MonitoringRef>20594</ns3:MonitoringRef>
+                        <ns3:MonitoredVehicleJourney>
+                            <ns3:LineRef>7023</ns3:LineRef>
+                            <ns3:DirectionRef>3</ns3:DirectionRef>
+                            <ns3:FramedVehicleJourneyRef>
+                                <ns3:DataFrameRef>2018-05-29</ns3:DataFrameRef>
+                                <ns3:DatedVehicleJourneyRef>32420668</ns3:DatedVehicleJourneyRef>
+                            </ns3:FramedVehicleJourneyRef>
+                            <ns3:PublishedLineName>480</ns3:PublishedLineName>
+                            <ns3:OperatorRef>3</ns3:OperatorRef>
+                            <ns3:DestinationRef>20594</ns3:DestinationRef>
+                            <ns3:OriginAimedDepartureTime>2018-05-29T19:48:00.000+03:00</ns3:OriginAimedDepartureTime>
+                            <ns3:VehicleLocation>
+                                <ns3:Longitude>35.173553466796875</ns3:Longitude>
+                                <ns3:Latitude>31.799985885620117</ns3:Latitude>
+                            </ns3:VehicleLocation>
+                            <ns3:VehicleRef>8897801</ns3:VehicleRef>
+                            <ns3:MonitoredCall>
+                                <ns3:StopPointRef>20594</ns3:StopPointRef>
+                                <ns3:ExpectedArrivalTime>2018-05-29T20:13:00.000+03:00</ns3:ExpectedArrivalTime>
+                            </ns3:MonitoredCall>
+                        </ns3:MonitoredVehicleJourney>
+                    </ns3:MonitoredStopVisit>
+                </ns3:StopMonitoringDelivery>
+            </Answer>
+        </ns7:GetStopMonitoringServiceResponse>
+    </S:Body>
+</S:Envelope>

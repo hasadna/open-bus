@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+    <!-- this is an example of an error messge I received on Saturday when buses don't work -->
+    <S:Body>
+        <ns7:GetStopMonitoringServiceResponse xmlns:ns3="http://www.siri.org.uk/siri" xmlns:ns4="http://www.ifopt.org.uk/acsb" xmlns:ns5="http://www.ifopt.org.uk/ifopt" xmlns:ns6="http://datex2.eu/schema/1_0/1_0" xmlns:ns7="http://new.webservice.namespace">
+            <Answer>
+                <ns3:ResponseTimestamp>2018-05-25T18:14:18.542+03:00</ns3:ResponseTimestamp>
+                <ns3:ProducerRef>ISR Siri Server (141.12)</ns3:ProducerRef>
+                <ns3:ResponseMessageIdentifier>34903843</ns3:ResponseMessageIdentifier>
+                <ns3:RequestMessageRef>0100700:1351669188:4684
+                </ns3:RequestMessageRef>
+                <ns3:Status>true</ns3:Status>
+                <ns3:StopMonitoringDelivery version="IL2.7">
+                    <ns3:ResponseTimestamp>2018-05-25T18:14:18.542+03:00</ns3:ResponseTimestamp>
+                    <ns3:Status>false</ns3:Status>
+                    <ns3:ErrorCondition>
+                        <ns3:OtherError>
+                            <ns3:ErrorText>740</ns3:ErrorText>
+                        </ns3:OtherError>
+                        <ns3:Description>No line is expected to arrive in stop 42658 in the given time frame (18:14-19:14) (reported by ISR Siri Server (141.12))</ns3:Description>
+                    </ns3:ErrorCondition>
+                </ns3:StopMonitoringDelivery>
+                <ns3:StopMonitoringDelivery version="IL2.7">
+                    <ns3:ResponseTimestamp>2018-05-25T18:14:18.542+03:00</ns3:ResponseTimestamp>
+                    <ns3:Status>false</ns3:Status>
+                    <ns3:ErrorCondition>
+                        <ns3:OtherError>
+                            <ns3:ErrorText>740</ns3:ErrorText>
+                        </ns3:OtherError>
+                        <ns3:Description>No line is expected to arrive in stop 42684 in the given time frame (18:14-19:14) (reported by ISR Siri Server (141.12))</ns3:Description>
+                    </ns3:ErrorCondition>
+                </ns3:StopMonitoringDelivery>
+            </Answer>
+        </ns7:GetStopMonitoringServiceResponse>
+    </S:Body>
+</S:Envelope>
