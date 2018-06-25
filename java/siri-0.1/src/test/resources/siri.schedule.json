@@ -1,0 +1,88 @@
+{
+  "d" : [ {
+    "description" : "",
+    "stopCode" : "47210",
+    "previewInterval" : "PT12H",
+    "lineRef" : "3792",
+    "maxStopVisits" : 7,
+    "executeEvery" : 180
+  }, {
+    "description" : "",
+    "stopCode" : "42734",
+    "previewInterval" : "PT12H",
+    "lineRef" : "17177",
+    "maxStopVisits" : 7,
+    "executeEvery" : 180
+  }, {
+    "description" : "",
+    "stopCode" : "41048",
+    "previewInterval" : "PT2H",
+    "lineRef" : "3701",
+    "maxStopVisits" : 7,
+    "executeEvery" : 180
+  }, {
+    "description" : "419 BS-Jer",
+    "stopCode" : "3821",
+    "previewInterval" : "PT2H",
+    "lineRef" : "16067",
+    "maxStopVisits" : 7,
+    "executeEvery" : 180
+  }, {
+    "description" : "415 BS-Jer",
+    "stopCode" : "6109",
+    "previewInterval" : "PT2H",
+    "lineRef" : "15527",
+    "maxStopVisits" : 7,
+    "executeEvery" : 180
+  }, {
+    "description" : "",
+    "stopCode" : "28627",
+    "previewInterval" : "PT6H",
+    "lineRef" : "7453",
+    "maxStopVisits" : 7,
+    "executeEvery" : 180
+  }, {
+    "description" : "420 BS-Jer",
+    "stopCode" : "6109",
+    "previewInterval" : "PT2H",
+    "lineRef" : "15531",
+    "maxStopVisits" : 7,
+    "executeEvery" : 180
+  }, {
+    "description" : "416 BS-Jer",
+    "stopCode" : "6109",
+    "previewInterval" : "PT2H",
+    "lineRef" : "15529",
+    "maxStopVisits" : 7,
+    "executeEvery" : 180
+  }, {
+    "description" : "",
+    "stopCode" : "41143",
+    "previewInterval" : "PT2H",
+    "lineRef" : "3703",
+    "maxStopVisits" : 7,
+    "executeEvery" : 180
+  }, {
+    "description" : "",
+    "stopCode" : "42978",
+    "previewInterval" : "PT12H",
+    "lineRef" : "1559",
+    "maxStopVisits" : 7,
+    "executeEvery" : 180
+  }, {
+    "description" : "",
+    "stopCode" : "20594",
+    "previewInterval" : "PT2H",
+    "lineRef" : "7023",
+    "maxStopVisits" : 7,
+    "executeEvery" : 180
+  }, {
+    "description" : "",
+    "stopCode" : "6109",
+    "previewInterval" : "PT2H",
+    "lineRef" : "8552",
+    "maxStopVisits" : 7,
+    "executeEvery" : 180
+  } ],
+  "dummy" : 0
+}
