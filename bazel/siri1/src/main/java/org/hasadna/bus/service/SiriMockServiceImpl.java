@@ -1,5 +1,7 @@
 package org.hasadna.bus.service;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import org.hasadna.bus.entity.GetStopMonitoringServiceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,13 +23,9 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringReader;
-import java.net.URISyntaxException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import com.google.common.io.Resources;
 
 @Component
 @Profile("!production")
@@ -65,14 +63,12 @@ public class SiriMockServiceImpl implements SiriConsumeService {
     }
 
     private String readFromFile(String name) {
-        String fileName = name + ".xml";
+        String fileName = "samples/" + name + ".xml";
         try {
-            Path path = Paths.get(getClass().getClassLoader().getResource("samples/" + fileName).toURI());
-            String content = new String(Files.readAllBytes(path), Charset.forName("UTF8"));
+            String content = Resources.toString(
+                Resources.getResource(fileName), UTF_8);
             return content;
         } catch (IOException e) {
-            logger.error("can't read file", e);
-        } catch (URISyntaxException e) {
             logger.error("can't read file", e);
         }
         return null;

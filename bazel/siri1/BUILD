@@ -3,6 +3,7 @@
 java_binary(
     name = "siri1_java_binary",
     srcs = glob(["**/*.java"]),
+    resources = glob(["src/main/resources/**/*.*"]),
     main_class = "org.hasadna.bus.BusApplication",
     visibility = ["//visibility:public"],
     deps = [
@@ -17,6 +18,7 @@ java_binary(
         "//third_party/maven/org/springframework/boot:spring_boot_autoconfigure",
         "//third_party/maven/org/springframework/boot:spring_boot_starter_web",
         "//third_party/maven/org/springframework/boot:spring_boot_loader_tools",
+        "//third_party/maven/com/google/guava",
     ],
 )
 
