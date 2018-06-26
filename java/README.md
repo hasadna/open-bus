@@ -6,11 +6,11 @@ Its main purpose is to query the MOT (Ministry of Transportation) server for SIR
 
 To see if all is OK, do:
 
-cd siri-0.1
+  cd siri-0.1
 
-./mvnw clean
+  ./mvnw clean
 
-./mvnw clean package -DskipTests
+  ./mvnw clean package -DskipTests
 
 
 It runs properly on the cloud machine (139.59.136.13), but on your local machine it will fail to receive data from MOT server (because it allows only requests from IP 139.59.136.13).
