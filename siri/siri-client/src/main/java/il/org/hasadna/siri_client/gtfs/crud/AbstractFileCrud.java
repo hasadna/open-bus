@@ -16,10 +16,11 @@ import java.util.stream.Stream;
  * @param <T>
  *            The type of the parsed object
  */
-public abstract class AbstractFileCrud<T> {
+public abstract class AbstractFileCrud<T> implements Crud<T> {
 
 	protected Path file;
 
+	@Override
 	public Stream<T> ReadAll() throws IOException {
 
 		BufferedReader in = new BufferedReader(
@@ -33,7 +34,7 @@ public abstract class AbstractFileCrud<T> {
 
 	public AbstractFileCrud(Path file) throws IOException {
 		if (!Files.isReadable(file)) {
-			throw new IOException("Stop Times File is not readable");
+			throw new IOException("File is not readable");
 		}
 		this.file = file;
 	}

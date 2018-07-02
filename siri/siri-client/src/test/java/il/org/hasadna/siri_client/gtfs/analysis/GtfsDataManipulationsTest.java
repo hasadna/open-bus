@@ -1,320 +1,268 @@
 package il.org.hasadna.siri_client.gtfs.analysis;
 
 import static org.junit.Assert.assertEquals;
+
+//import static org.junit.Assert.*;
+
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import il.org.hasadna.siri_client.gtfs.crud.BaseCalendar;
+import il.org.hasadna.siri_client.gtfs.crud.BaseStop;
 import il.org.hasadna.siri_client.gtfs.crud.BaseStopTime;
 import il.org.hasadna.siri_client.gtfs.crud.BaseTrip;
 import il.org.hasadna.siri_client.gtfs.crud.Calendar;
+import il.org.hasadna.siri_client.gtfs.crud.Crud;
 import il.org.hasadna.siri_client.gtfs.crud.GtfsCrud;
-import il.org.hasadna.siri_client.gtfs.crud.GtfsZipFile;
 import il.org.hasadna.siri_client.gtfs.crud.ServiceId;
+import il.org.hasadna.siri_client.gtfs.crud.Stop;
 import il.org.hasadna.siri_client.gtfs.crud.StopTime;
 import il.org.hasadna.siri_client.gtfs.crud.Trip;
 
 public class GtfsDataManipulationsTest {
-
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-	}
-
-	private static final LocalDate BEFORE_DATE = LocalDate.ofYearDay(2000, 14);
-	private static final LocalDate AFTER_DATE = LocalDate.ofYearDay(2000, 16);
-	private static final LocalDate CURRENT_DATE = LocalDate.ofYearDay(2000, 15);
-	private GtfsCrud gtfsCrud;
+	public static GtfsCrud emptyGtfsCrud = new GtfsCrud(new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>(),
+			new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>());
 
 	@Before
 	public void setUp() throws Exception {
-
-		GtfsZipFile gtfsZipFile = new GtfsZipFile(Paths.get("src/test/resources/siri_client/gtfs/cruds/cruds.zip"));
-		gtfsCrud = new GtfsCrud(gtfsZipFile);
-
-	}
-
-	@Test(expected = NullPointerException.class)
-	public void testGtfsDataManipulations() {
-		new GtfsDataManipulations(null);
 	}
 
 	@Test
-	public void testGetCalendarCrud() throws IOException {
+	public final void testFilterCalendars_filter_by_date_find_item() throws IOException {
 		// Prepare
-		GtfsZipFile gtfsZipFile = new GtfsZipFile(Paths.get("src/test/resources/siri_client/gtfs/cruds/cruds.zip"));
+		LocalDate currentDate = LocalDate.of(2018, 1, 1);
+		/* creating 5 calendar items */
+		BaseCalendar calendarToFind = new BaseCalendar(new ServiceId("ServiceId"), EnumSet.allOf(DayOfWeek.class),
+				currentDate.minusDays(1), currentDate.plusDays(1));
 
-		BaseCalendar baseCalendar = new BaseCalendar(new ServiceId(""), EnumSet.noneOf(DayOfWeek.class),
-				LocalDate.now(), LocalDate.now());
+		BaseCalendar otherCalendarToFind = new BaseCalendar(new ServiceId("ServiceId"), EnumSet.allOf(DayOfWeek.class),
+				currentDate, currentDate);
 
-		GtfsCrud gtfsCrud = new GtfsCrud(gtfsZipFile) {
+		BaseCalendar calendarOfOtherDayOfWeek = new BaseCalendar(new ServiceId("ServiceId"),
+				EnumSet.of(currentDate.getDayOfWeek().plus(1)), currentDate.minusDays(1), currentDate.plusDays(1));
+
+		BaseCalendar bigerCalendar = new BaseCalendar(new ServiceId("ServiceId"), EnumSet.allOf(DayOfWeek.class),
+				currentDate.plusDays(1), currentDate.plusDays(2));
+
+		BaseCalendar smallerCalendar = new BaseCalendar(new ServiceId("ServiceId"), EnumSet.allOf(DayOfWeek.class),
+				currentDate.minusDays(2), currentDate.minusDays(1));
+		/* create calendar CRUD that read the 3 items */
+		Crud<Calendar> calendarCrud = new Crud<Calendar>() {
 			@Override
-			public Stream<Calendar> getCalendars() throws IOException {
-
-				return Stream.of(baseCalendar);
+			public Stream<Calendar> ReadAll() throws IOException {
+				return Stream.of(calendarToFind, bigerCalendar, smallerCalendar, calendarOfOtherDayOfWeek,
+						otherCalendarToFind);
 			}
 		};
-		// Execute
-		Stream<Calendar> resultStream = new GtfsDataManipulations(gtfsCrud).getCalendarCrud();
-		List<Calendar> actual = resultStream.collect(Collectors.toList());
+		/* create gtfs CRUD with the calendar CRUD and the other CRUD as empty CRUDs */
+		GtfsCrud gtfsCrud = new GtfsCrud(new Crud.EmptyCrud<>(), calendarCrud, new Crud.EmptyCrud<>(),
+				new Crud.EmptyCrud<>());
+
+		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud);
 
 		// Expected
+		Collection<Calendar> expected = new HashSet<>(Arrays.asList(calendarToFind, otherCalendarToFind));
 
-		List<Calendar> expected = Arrays.asList(baseCalendar);
+		// Execute
+		Collection<Calendar> actual = new HashSet<>(gtfsDataManipulations.filterCalendars(currentDate));
+		// Test
+		assertEquals(expected, actual);
+	}
 
+	@Test
+	public final void testFilterTrips_filter_by_serviceID() throws IOException {
+		// Prepare
+		BaseTrip tripToFind = new BaseTrip("routeId", new ServiceId("foo"), "tripId", "tripHeadsign", 0, 0);
+		BaseTrip otherTrip = new BaseTrip("routeId", new ServiceId("bar"), "tripId", "tripHeadsign", 0, 0);
+
+		GtfsCrud gtfsCrud = new GtfsCrud(new Crud<Trip>() {
+
+			@Override
+			public Stream<Trip> ReadAll() throws IOException {
+				return Stream.of(tripToFind, otherTrip);
+			}
+
+		}, new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>());
+
+		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud);
+		Set<ServiceId> ServiceIds = new HashSet<>(Arrays.asList(new ServiceId("foo")));
+
+		// Execute
+		Collection<Trip> actual = gtfsDataManipulations.filterTrips(ServiceIds);
+		// Expected
+		Collection<Trip> expected = Arrays.asList(tripToFind);
+		// Test
 		assertEquals(expected, actual);
 
 	}
 
 	@Test
-	public void testGetTripCrud() throws IOException {
-
+	public final void testFilterStopTimes() throws IOException {
 		// Prepare
-		GtfsZipFile gtfsZipFile = new GtfsZipFile(Paths.get("src/test/resources/siri_client/gtfs/cruds/cruds.zip"));
+		String tripId = "foo";
 
-		BaseTrip baseTrip = new BaseTrip("routeId", new ServiceId("serviceId"), "tripId", "tripHeadsign", 0, 0);
+		Set<String> tripIds = new HashSet<String>(Arrays.asList(tripId));
 
-		GtfsCrud gtfsCrud = new GtfsCrud(gtfsZipFile) {
+		StopTime first = new BaseStopTime("foo", "arrivalTime", "departureTime", 0, 0, 0, 0, 0);
+		StopTime second = new BaseStopTime("foo", "arrivalTime", "departureTime", 0, 1, 0, 0, 0);
+		StopTime last = new BaseStopTime("foo", "arrivalTime", "departureTime", 0, 1, 0, 0, 0);
+		StopTime other = new BaseStopTime("bar", "arrivalTime", "departureTime", 0, 0, 0, 0, 0);
+
+		Crud<StopTime> stopTimeCrud = new Crud<StopTime>() {
+
 			@Override
-			public Stream<Trip> getTrips() throws IOException {
-				return Stream.of(baseTrip);
+			public Stream<StopTime> ReadAll() throws IOException {
+
+				return Stream.of(first, second, last, other);
 			}
+
 		};
+
+		GtfsCrud GtfsCrud = new GtfsCrud(new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>(), stopTimeCrud,
+				new Crud.EmptyCrud<>());
+
+		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(GtfsCrud);
 		// Execute
-		Stream<Trip> resultStream = new GtfsDataManipulations(gtfsCrud).getTripCrud();
-		List<Trip> actual = resultStream.collect(Collectors.toList());
-
+		Collection<StopTime> actual = gtfsDataManipulations.filterStopTimes(tripIds);
 		// Expected
-
-		List<Trip> expected = Arrays.asList(baseTrip);
-
-		assertEquals(expected, actual);
-
+		Collection<StopTime> expected = Arrays.asList(first, last);
+		// Test
+		assertEquals(new HashSet<>(expected), new HashSet<>(actual));
 	}
 
 	@Test
-	public void testGetStopTimesCrud() throws IOException {
+	public final void testFilterStops() throws IOException {
 
-		// Prepare
-		GtfsZipFile gtfsZipFile = new GtfsZipFile(Paths.get("src/test/resources/siri_client/gtfs/cruds/cruds.zip"));
+		Stop stopToFind = new BaseStop(111, 222, "stopName", "stopDesc", 2.2, 3.3, 2, 1, 4);
 
-		StopTime stopTime = new BaseStopTime("tripId", "arrivalTime", "departureTime", 0, 0, 0, 0, 0);
-		GtfsCrud gtfsCrud = new GtfsCrud(gtfsZipFile) {
+		Stop otherStop = new BaseStop(333, 222, "stopName", "stopDesc", 2.2, 3.3, 2, 1, 4);
+
+		Crud<Stop> stopsCrud = new Crud<Stop>() {
+
 			@Override
-			public Stream<StopTime> getStopTimes() throws IOException {
-				return Stream.of(stopTime);
+			public Stream<Stop> ReadAll() throws IOException {
+				return Stream.of(stopToFind, otherStop);
 			}
+
 		};
-		// Execute
-		Stream<StopTime> resultStream = new GtfsDataManipulations(gtfsCrud).getStopTimesCrud();
-		List<StopTime> actual = resultStream.collect(Collectors.toList());
+		GtfsCrud gtfsCrud = new GtfsCrud(new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>(),
+				stopsCrud);
+		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud);
 
-		// Expected
+		Set<Integer> tripIDs = new HashSet<>(Arrays.asList(111));
 
-		List<StopTime> expected = Arrays.asList(stopTime);
+		Collection<Stop> actual = gtfsDataManipulations.filterStops(tripIDs);
+
+		Collection<Stop> expected = Arrays.asList(stopToFind);
 
 		assertEquals(expected, actual);
-
 	}
 
 	@Test
-	public void testGetRelevantStopTimeItemsLocalDate() throws IOException {
-		StopTime stopTime = new BaseStopTime("tripId", "arrivalTime", "departureTime", 0, 0, 0, 0, 0);
+	public final void testFilterGtfs_check_the_saved_format() throws IOException {
 
-		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud) {
-			Stream<Calendar> getCalendarCrud() throws IOException {
+		// Prepare
 
-				BaseCalendar itm = new BaseCalendar(new ServiceId("ServiceId"), EnumSet.of(CURRENT_DATE.getDayOfWeek()),
-						CURRENT_DATE, CURRENT_DATE);
+		ServiceId serviceId = new ServiceId("ServiceId");
+		LocalDate currentDate = LocalDate.of(2018, 1, 1);
+		BaseCalendar calendar = new BaseCalendar(serviceId, EnumSet.allOf(DayOfWeek.class), currentDate.minusDays(1),
+				currentDate.plusDays(1));
 
-				return Stream.of(itm);
-			};
+		String tripId = "foo";
+		int firstStopId = 111;
+		int lastStopId = 333;
 
+		StopTime firstStopTime = new BaseStopTime("foo", "arrivalTime", "departureTime", firstStopId, 0, 0, 0, 0);
+		StopTime lastStopTime = new BaseStopTime("foo", "arrivalTime", "departureTime", lastStopId, 10, 0, 0, 0);
+
+		Stop firstStop = new BaseStop(firstStopId, 222, "stopName", "stopDesc", 2.2, 3.3, 2, 1, 4);
+		Stop lastStop = new BaseStop(lastStopId, 222, "stopName", "stopDesc", 2.2, 3.3, 2, 1, 4);
+
+		BaseTrip trip = new BaseTrip("routeId", serviceId, tripId, "tripHeadsign", 0, 0);
+
+		GtfsCrud GtfsCrud = new GtfsCrud(new Crud<Trip>() {
 			@Override
-			Stream<Trip> getTripCrud() throws IOException {
-
-				Trip trip = new BaseTrip("routeId", new ServiceId("ServiceId"), "tripId", "tripHeadsign", 0, 0);
+			public Stream<Trip> ReadAll() throws IOException {
 				return Stream.of(trip);
 			}
 
-			@Override
-			Stream<StopTime> getStopTimesCrud() throws IOException {
-				
-				
-				return Stream.of(stopTime);
-			}
-		};
-
-		// Execute
-		List<StopTime> actual = gtfsDataManipulations.getRelevantStopTimeItems(CURRENT_DATE).collect(Collectors.toList());
-
-		
-		// Expectes
-		List<StopTime> expected = Arrays.asList(stopTime);
-		
-		
-		assertEquals(expected , actual);
-
-	}
-
-	@Test
-	public void testGetRelevantStopIds() throws IOException {
-		StopTime stopTime = new BaseStopTime("tripId", "arrivalTime", "departureTime", 777, 0, 0, 0, 0);
-
-		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud) {
-			Stream<Calendar> getCalendarCrud() throws IOException {
-
-				BaseCalendar itm = new BaseCalendar(new ServiceId("ServiceId"), EnumSet.of(CURRENT_DATE.getDayOfWeek()),
-						CURRENT_DATE, CURRENT_DATE);
-
-				return Stream.of(itm);
-			};
+		}, new Crud<Calendar>() {
 
 			@Override
-			Stream<Trip> getTripCrud() throws IOException {
-
-				Trip trip = new BaseTrip("routeId", new ServiceId("ServiceId"), "tripId", "tripHeadsign", 0, 0);
-				return Stream.of(trip);
+			public Stream<Calendar> ReadAll() throws IOException {
+				return Stream.of(calendar);
 			}
+
+		}, new Crud<StopTime>() {
 
 			@Override
-			Stream<StopTime> getStopTimesCrud() throws IOException {
-				
-				
-				return Stream.of(stopTime);
+			public Stream<StopTime> ReadAll() throws IOException {
+				return Stream.of(firstStopTime, lastStopTime);
 			}
-		};
 
-		// Execute
-		 List<Integer> actual = gtfsDataManipulations.getRelevantStopIds(CURRENT_DATE).collect(Collectors.toList());
+		}, new Crud<Stop>() {
 
-		
-		// Expectes
-		 List<Integer> expected = Arrays.asList(stopTime.getStopId());
-		
-		
-		assertEquals(expected , actual);
-
-	}
-
-	@Test
-	public void testGetRelevantCalendarItems_elem_from_currDate_to_currDate() throws IOException {
-
-		// Prepare
-
-		BaseCalendar baseCalendar = new BaseCalendar(new ServiceId(""), EnumSet.of(CURRENT_DATE.getDayOfWeek()),
-				CURRENT_DATE, CURRENT_DATE);
-
-		// Execute
-		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud) {
-			Stream<Calendar> getCalendarCrud() throws IOException {
-				return Stream.of(baseCalendar);
-			};
-		};
-
-		Stream<Calendar> resultStream = gtfsDataManipulations.getRelevantCalendarItems(CURRENT_DATE);
-		List<Calendar> actual = resultStream.collect(Collectors.toList());
-
-		assertEquals(Arrays.asList(baseCalendar), actual);
-
-	}
-
-	@Test
-	public void testGetRelevantCalendarItems_elem_from_currDate_to_currDate_() throws IOException {
-
-		// Prepare
-		BaseCalendar baseCalendar = new BaseCalendar(new ServiceId(""), EnumSet.of(CURRENT_DATE.getDayOfWeek()),
-				CURRENT_DATE, CURRENT_DATE);
-
-		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud) {
-			java.util.stream.Stream<Calendar> getCalendarCrud() throws IOException {
-				return Stream.of(baseCalendar);
-			};
-		};
-
-		// Execute
-		Stream<Calendar> resultStream = gtfsDataManipulations.getRelevantCalendarItems(CURRENT_DATE);
-		List<Calendar> actual = resultStream.collect(Collectors.toList());
-		// Test
-		assertEquals(Arrays.asList(baseCalendar), actual);
-
-	}
-
-	@Test
-	public void testGetRelevantCalendarItems_elem_from_non_relevant_dates() throws IOException {
-
-		// Prepare
-		BaseCalendar beforeCalendar = new BaseCalendar(new ServiceId(""), EnumSet.of(CURRENT_DATE.getDayOfWeek()),
-				BEFORE_DATE, BEFORE_DATE);
-
-		BaseCalendar afterCalendar = new BaseCalendar(new ServiceId(""), EnumSet.of(CURRENT_DATE.getDayOfWeek()),
-				AFTER_DATE, AFTER_DATE);
-
-		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud) {
-			java.util.stream.Stream<Calendar> getCalendarCrud() throws IOException {
-				return Stream.of(beforeCalendar, afterCalendar);
-			};
-		};
-
-		// Execute
-		Stream<Calendar> resultStream = gtfsDataManipulations.getRelevantCalendarItems(CURRENT_DATE);
-		List<Calendar> actual = resultStream.collect(Collectors.toList());
-		// Test
-		assertEquals(Collections.emptyList(), actual);
-
-	}
-
-	@Test
-	public void testGetRelevantCalendarItems_elem_from_non_relevant_weekday() throws IOException {
-
-		// Prepare
-		BaseCalendar beforeCalendar = new BaseCalendar(new ServiceId(""), EnumSet.of(CURRENT_DATE.getDayOfWeek()
-				.plus(1)), CURRENT_DATE, CURRENT_DATE);
-
-		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud) {
-			java.util.stream.Stream<Calendar> getCalendarCrud() throws IOException {
-				return Stream.of(beforeCalendar);
-			};
-		};
-
-		// Execute
-		Stream<Calendar> resultStream = gtfsDataManipulations.getRelevantCalendarItems(CURRENT_DATE);
-		List<Calendar> actual = resultStream.collect(Collectors.toList());
-		// Test
-		assertEquals(Collections.emptyList(), actual);
-
-	}
-
-	@Test
-	public void testGetUniqueStopTimeItems() throws IOException {
-
-		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud) {
-			Stream<StopTime> getStopTimesCrud() throws IOException {
-
-				return Stream.of(new BaseStopTime("tripId", "arrivalTime", "departureTime", 0, 4, 1, 0, 45),
-						new BaseStopTime("tripId", "arrivalTime", "departureTime", 0, 5, 1, 0, 45),
-						new BaseStopTime("tripId", "arrivalTime", "departureTime", 0, 6, 1, 0, 45),
-						new BaseStopTime("tripId", "arrivalTime", "departureTime", 0, 7, 1, 0, 45));
+			@Override
+			public Stream<Stop> ReadAll() throws IOException {
+				return Stream.of(firstStop, lastStop);
 			}
-		};
 
-		long actual = gtfsDataManipulations.getUniqueStopTimeItems()
-				.count();
+		});
 
-		long expected = 1;
+		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(GtfsCrud);
 
-		assertEquals(expected, actual);
+		// Execute
+
+		gtfsDataManipulations.filterGtfs(currentDate);
+
+		// Test Calendar
+		Map<ServiceId, Calendar> actualCalendars = gtfsDataManipulations.getCalendars();
+
+		Map<ServiceId, Calendar> expectCalendars = new HashMap<>();
+		expectCalendars.put(serviceId, calendar);
+
+		assertEquals(expectCalendars, actualCalendars);
+
+		// Test Trips
+
+		Map<String, Trip> actualTrips = gtfsDataManipulations.getTrips();
+
+		Map<String, Trip> expecedTrips = new HashMap<>();
+		expecedTrips.put(tripId, trip);
+
+		assertEquals(expecedTrips, actualTrips);
+
+		// Test StopTime
+
+		Map<String, List<StopTime>> actualStopTimesMap = gtfsDataManipulations.getStopTimes();
+		HashSet<StopTime> actualStopTimes = new HashSet<>(actualStopTimesMap.get(tripId));
+		Map<String, List<StopTime>> expectedStopTimesMap = new HashMap<>();
+		expectedStopTimesMap.put(tripId, Arrays.asList(firstStopTime, lastStopTime));
+		HashSet<StopTime> expectedStopTimes = new HashSet<>(expectedStopTimesMap.get(tripId));
+
+		assertEquals(expectedStopTimes, actualStopTimes);
+
+		// Test Stop
+		Map<Integer, Stop> actualStops = gtfsDataManipulations.getStops();
+
+		Map<Integer, Stop> expectedStops = new HashMap<>();
+		expectedStops.put(firstStopId, firstStop);
+		expectedStops.put(lastStopId, lastStop);
+
+		assertEquals(expectedStops, actualStops);
 
 	}
 

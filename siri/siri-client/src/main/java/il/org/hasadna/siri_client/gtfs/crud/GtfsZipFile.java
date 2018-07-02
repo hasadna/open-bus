@@ -14,6 +14,7 @@ public class GtfsZipFile {
 	static final String CALENDAR_FILE_NAME = "calendar.txt";
 	static final String STOP_TIME_FILE_NAME = "stop_times.txt";
 	static final String TRIPS_FILE_NAME = "trips.txt";
+	static final String STOPS_FILE_NAME ="stops.txt";
 	Path gtfsZip;
 
 	public GtfsZipFile(Path gtfsZip) {
@@ -32,7 +33,7 @@ public class GtfsZipFile {
 	 * @param fileLable
 	 *            String to be used in generating the file's name; may be null
 	 * @return The path to the newly extracted file
-	 * @throws IOException
+	 * @throws IOException if an I/O error occurs when reading or writing
 	 */
 	Path extractFile(String fileName, String fileLable) throws IOException {
 		ZipFile d = new ZipFile(getGtfsZip().toFile());
@@ -52,18 +53,37 @@ public class GtfsZipFile {
 		return zipFile.getInputStream(entry);
 	}
 
-	public Path getCalendarFile() throws IOException {
+
+	/**
+	 * @return Path to the extracted Calendar file
+	 * @throws IOException if an I/O error occurs when reading or writing
+	 */
+	public Path extractCalendarFile() throws IOException {
 
 		return extractFile(CALENDAR_FILE_NAME, null);
 	}
-
-	public Path getTripsFile() throws IOException {
+	/**
+	 * @return Path to the extracted Trips file
+	 * @throws IOException if an I/O error occurs when reading or writing
+	 */
+	public Path extractTripsFile() throws IOException {
 
 		return extractFile(TRIPS_FILE_NAME, null);
 	}
-
-	public Path getStopTimesFile() throws IOException {
+	/**
+	 * @return Path to the extracted StopTimes file
+	 * @throws IOException if an I/O error occurs when reading or writing
+	 */
+	public Path extractStopTimesFile() throws IOException {
 
 		return extractFile(STOP_TIME_FILE_NAME, null);
+	}
+	/**
+	 * @return Path to the extracted Stops file
+	 * @throws IOException if an I/O error occurs when reading or writing
+	 */
+	public Path extractStopsFile() throws IOException {
+
+		return extractFile(STOPS_FILE_NAME, null);
 	}
 }
