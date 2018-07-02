@@ -4,9 +4,9 @@ This application is a Spring Boot application, written in Java.
 
 Its main purpose is to query the MOT (Ministry of Transportation) server for SIRI data.
 
-To develop, or just run locally, clone this branch of the Git repository to your local machine, and then do:
+To develop, or just run locally, clone this branch (java-siri-client) of the Git repository to your local machine, and then do:
 ```bash
-  cd siri-0.1  #move to root directory of project 
+  cd siri-0.1  # move to root directory of project 
 
   ./mvnw clean  # use the built-in maven (on Windows use mvnw.cmd instead)
 

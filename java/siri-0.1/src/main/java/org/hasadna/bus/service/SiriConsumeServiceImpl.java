@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.xml.bind.JAXBContext;
@@ -62,6 +64,9 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         sw1.start();
         logger.info("retrieving... {}", lineRef);
         String content = retrieveSpecificLineAndStop(stopCode, previewInterval, lineRef, maxStopVisits);
+        if (content == null) {
+            return null;
+        }
         sw1.stop();
         logger.info("retrieving...Done ({} ms)", sw1.getTotalTimeMillis());
         logger.debug("lineRef={}, stopCode={}, previewInterval={}, response={}", lineRef, stopCode, previewInterval, content);
@@ -123,8 +128,18 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
 
         RestTemplate restTemplate = new RestTemplate();
         logger.trace(requestXmlString);
-        ResponseEntity<String> r = restTemplate.postForEntity(url, entity, String.class);
-
+        ResponseEntity<String> r = null ;
+        try {
+            r = restTemplate.postForEntity(url, entity, String.class);
+        }
+        catch (ResourceAccessException ex) {
+            logger.error("absorbing unhandled", ex);
+            return null;
+        }
+        catch (RestClientException ex) {
+            logger.error("absorbing unhandled", ex);
+            return null;
+        }
         sw.stop();
         logger.info("network to MOT server: {} ms", sw.getTotalTimeMillis());
 

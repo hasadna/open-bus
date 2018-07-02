@@ -5,6 +5,7 @@ import org.hasadna.bus.entity.gtfs.Route;
 import org.hasadna.bus.service.ScheduleRetrieval;
 import org.hasadna.bus.service.SiriConsumeService;
 import org.hasadna.bus.service.SiriParseService;
+import org.hasadna.bus.service.gtfs.ReadRoutesFile;
 import org.hasadna.bus.service.gtfs.ReadRoutesFileImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,7 @@ public class SiriController {
     ScheduleRetrieval scheduleRetrieval;
 
     @Autowired
-    ReadRoutesFileImpl rrf;
+    ReadRoutesFile rrf;
 
 
     @RequestMapping(value="/soap/oneStop/{stopCode}/{lineRef}/{previewInterval}/{maxStopVisits}", method={RequestMethod.GET}, produces = "application/xml")

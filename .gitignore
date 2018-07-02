@@ -5,3 +5,4 @@ gtfs/data/connection_details.txt
 gtfs/sample/israel-public-transportation/
 venv
 target/
+*.iml

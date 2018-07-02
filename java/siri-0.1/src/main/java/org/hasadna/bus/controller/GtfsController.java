@@ -8,6 +8,7 @@ import org.hasadna.bus.service.gtfs.ReadRoutesFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
+@Profile("!production")
 @RequestMapping("/gtfs")
 public class GtfsController {
 
@@ -34,7 +36,7 @@ public class GtfsController {
         Route route = rrf.findRouteById(lineRef);
         List<String> lastStops = rrf.findLastStopCodeByRouteId(route.routeId, true);
         route.lastStopCode = lastStops.toString();
-        route.departureTimes = rrf.findDeparturesByRouteId(route.routeId);
+        //route.departureTimes = rrf.findDeparturesByRouteId(route.routeId);
         return route;
     }
 
@@ -46,7 +48,7 @@ public class GtfsController {
                 map(route -> {
                     List<String> lastStops = rrf.findLastStopCodeByRouteId(route.routeId, true);
                     route.lastStopCode = lastStops.toString();
-                    route.departureTimes = rrf.findDeparturesByRouteId(route.routeId);
+                    //route.departureTimes = rrf.findDeparturesByRouteId(route.routeId);
                     return route;
                 }).
                 collect(Collectors.toList());
@@ -67,7 +69,7 @@ public class GtfsController {
                 map(route -> {
                     List<String> lastStops = rrf.findLastStopCodeByRouteId(route.routeId, true);
                     route.lastStopCode = lastStops.toString();
-                    route.departureTimes = rrf.findDeparturesByRouteId(route.routeId);
+                    //route.departureTimes = rrf.findDeparturesByRouteId(route.routeId);
                     return route;
                 }).
                 collect(Collectors.toList());
