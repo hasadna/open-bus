@@ -1,0 +1,30 @@
+syntax = "proto3";
+package bazel.tools;
+
+option java_package = "bazel.tools";
+option java_outer_classname = "Proto";
+
+/* 
+ * SIRI data protos.
+ */
+
+message RawData {
+  // Unix time in ms
+  int64 timestamp = 1;
+  string description = 2;
+  int64 operator_ref = 3;
+  string line_ref = 4;
+  string line_name = 5;
+  string journey_ref = 6;
+  // Time in ms
+  int64 departure_time = 7;
+  string license_plate = 8;
+  // Time in ms
+  int64 expected_arrival_time = 9;
+  // Time in ms
+  int64 recordedAt = 10;
+  double longitude = 11;
+  double latitude = 12;
+}
+
+message RawDataList { repeated RawData raw_data = 1; }

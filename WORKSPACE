@@ -228,3 +228,9 @@ load(
 
 _java_image_repos()
 
+http_archive(
+    name = "startup_os",
+    urls = ["https://github.com/google/startup-os/archive/0caca3ea487322832458d626410917721d0b95b6.zip"],
+    strip_prefix = "startup-os-0caca3ea487322832458d626410917721d0b95b6"
+)
+
