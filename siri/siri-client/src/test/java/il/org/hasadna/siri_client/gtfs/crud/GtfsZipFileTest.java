@@ -82,47 +82,56 @@ public class GtfsZipFileTest {
 		InputStream in = gtfsZipFile.getFileInStream(new ZipFile(zipFile.toFile()), "calendar.txt");
 		// Test
 		String actual = new BufferedReader(new InputStreamReader(in)).readLine();
-assertEquals(expected, actual);
+		assertEquals(expected, actual);
 	}
 
-//	@Test
-//	public void testGetCalendarFile() throws IOException {
-//		// Prepare
-//		Path zipFile = Paths.get(
-//				"src/test/resources/siri_client/gtfs/data/GtfsWorkspaceTest/ftpWorkspace/israel-public-transportation.zip");
-//		GtfsZipFile gtfsZipFile = new GtfsZipFile(zipFile);
-//		// Execute
-//		Path actual = gtfsZipFile.getCalendarFile();
-//		// Test
-//		assertNotNull(actual);
-//		Files.isReadable(actual);
-//		assertEquals("foo bar", new String(Files.readAllBytes(actual)));
-//	}
-//
-//	@Test
-//	public void testGetTripsFile() throws IOException {
-//		// Prepare
-//		Path zipFile = Paths.get(
-//				"src/test/resources/siri_client/gtfs/data/GtfsWorkspaceTest/ftpWorkspace/israel-public-transportation.zip");
-//		GtfsZipFile gtfsZipFile = new GtfsZipFile(zipFile);
-//		// Execute
-//		Path actual = gtfsZipFile.getTripsFile();
-//		// Test
-//		assertNotNull(actual);
-//
-//	}
-//
-//	@Test
-//	public void testGetStopTimesFile() throws IOException {
-//		// Prepare
-//		Path zipFile = Paths.get(
-//				"src/test/resources/siri_client/gtfs/data/GtfsWorkspaceTest/ftpWorkspace/israel-public-transportation.zip");
-//		GtfsZipFile gtfsZipFile = new GtfsZipFile(zipFile);
-//		// Execute
-//		Path actual = gtfsZipFile.getStopTimesFile();
-//		// Test
-//		assertNotNull(actual);
-//
-//	}
+	@Test
+	public void testGetCalendarFile() throws IOException {
+		// Prepare
+		Path zipFile = Paths.get(
+				"src/test/resources/siri_client/gtfs/data/GtfsWorkspaceTest/ftpWorkspace/israel-public-transportation.zip");
+		GtfsZipFile gtfsZipFile = new GtfsZipFile(zipFile);
+		// Execute
+		Path actual = gtfsZipFile.extractCalendarFile();
+		// Test
+		assertNotNull(actual);
+		Files.isReadable(actual);
+		assertEquals("foo bar", new String(Files.readAllBytes(actual)));
+	}
 
+	@Test
+	public void testGetTripsFile() throws IOException {
+		// Prepare
+		Path zipFile = Paths.get(
+				"src/test/resources/siri_client/gtfs/data/GtfsWorkspaceTest/ftpWorkspace/israel-public-transportation.zip");
+		GtfsZipFile gtfsZipFile = new GtfsZipFile(zipFile);
+		// Execute
+		Path actual = gtfsZipFile.extractTripsFile();
+		// Test
+		assertNotNull(actual);
+	}
+
+	@Test
+	public void testGetStopTimesFile() throws IOException {
+		// Prepare
+		Path zipFile = Paths.get(
+				"src/test/resources/siri_client/gtfs/data/GtfsWorkspaceTest/ftpWorkspace/israel-public-transportation.zip");
+		GtfsZipFile gtfsZipFile = new GtfsZipFile(zipFile);
+		// Execute
+		Path actual = gtfsZipFile.extractStopTimesFile();
+		// Test
+		assertNotNull(actual);
+	}
+
+	@Test
+	public void testGetStopsFile() throws IOException {
+		// Prepare
+		Path zipFile = Paths.get(
+				"src/test/resources/siri_client/gtfs/data/GtfsWorkspaceTest/ftpWorkspace/israel-public-transportation.zip");
+		GtfsZipFile gtfsZipFile = new GtfsZipFile(zipFile);
+		// Execute
+		Path actual = gtfsZipFile.extractStopsFile();
+		// Test
+		assertNotNull(actual);
+	}
 }
