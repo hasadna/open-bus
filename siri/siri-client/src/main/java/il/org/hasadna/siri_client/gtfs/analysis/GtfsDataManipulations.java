@@ -114,14 +114,11 @@ public class GtfsDataManipulations {
 							.collect(Collectors.toMap(Stop::getStopId, i -> i));
 	 }
 	 
-	 
-	 
 	 public Collection<GtfsRecord> combine(LocalDate date) throws IOException {
-
+		filterGtfs(date);
 		return getTrips().values().stream()
 				.map(this::createGtfsRecord)
 				.collect(Collectors.toList());
-
 	}
 	
 	private GtfsRecord createGtfsRecord(Trip currTrip) {

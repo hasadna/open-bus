@@ -265,5 +265,17 @@ public class GtfsDataManipulationsTest {
 		assertEquals(expectedStops, actualStops);
 
 	}
+	
+	@Test
+	public void test() throws IOException{
+		
+		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(emptyGtfsCrud);
+		
+		Collection<GtfsRecord> actual = gtfsDataManipulations.combine(LocalDate.now());
+		
+		System.out.println(actual);
+	}
+	
+	
 
 }
