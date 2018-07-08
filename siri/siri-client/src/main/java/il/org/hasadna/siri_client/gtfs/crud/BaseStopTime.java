@@ -148,4 +148,13 @@ public final class BaseStopTime implements StopTime {
 			return false;
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "BaseStopTime [tripId=" + tripId + ", arrivalTime=" + arrivalTime + ", departureTime=" + departureTime
+				+ ", stopId=" + stopId + ", stopSequence=" + stopSequence + ", pickupType=" + pickupType
+				+ ", dropOffType=" + dropOffType + ", shapeDistTraveled=" + shapeDistTraveled + "]";
+	}
+	
+	
 }

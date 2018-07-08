@@ -41,6 +41,14 @@ public class BaseStopTimeTest {
 	@Test
 	public void testEquals() {
 		EqualsVerifier.forClass(BaseStopTime.class).verify();
-		;
+
+	}
+
+	@Test
+	public void testToString() {
+		BaseStopTime baseStopTime = BaseStopTime.parse("32217742_200518,22:20:00,22:20:00,37358,1,0,1,0");
+		String actual = baseStopTime.toString();
+		String expected = "BaseStopTime [tripId=32217742_200518, arrivalTime=22:20:00, departureTime=22:20:00, stopId=37358, stopSequence=1, pickupType=0, dropOffType=1, shapeDistTraveled=0]";
+		assertEquals(expected, actual);
 	}
 }

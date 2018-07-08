@@ -1,5 +1,7 @@
 package il.org.hasadna.siri_client.gtfs.crud;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,6 +17,15 @@ public class ServiceIdTest {
 	@Test
 	public void testEqualsObject() {
 		EqualsVerifier.forClass(ServiceId.class).verify();
+	}
+
+	
+	@Test
+	public void testToString() {
+		ServiceId serviceId = new ServiceId("MyServiceId");
+		String actual = serviceId.toString();
+		String expected = "ServiceId [serviceId=MyServiceId]";
+		assertEquals(expected, actual);
 	}
 
 }
