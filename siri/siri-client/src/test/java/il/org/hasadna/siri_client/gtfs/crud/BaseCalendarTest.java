@@ -83,5 +83,12 @@ public class BaseCalendarTest {
 		LocalDate actual = baseCalendar.getEndDate();
 		assertEquals(expected, actual);
 	}
+	
+	@Test
+	public void testToString() {
+		String actual = baseCalendar.toString();
+		String expected = "BaseCalendar [serviceId=ServiceId [serviceId=SERVICE_ID], validDays=[MONDAY, TUESDAY, SUNDAY], startDate=2017-01-01, endDate=2018-01-01]";
+		assertEquals(expected, actual);
+	}
 
 }
