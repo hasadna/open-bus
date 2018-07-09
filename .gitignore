@@ -4,3 +4,8 @@ __pycache__
 gtfs/data/connection_details.txt
 gtfs/sample/israel-public-transportation/
 venv
+bazel-*
+*.iml
+.project
+node_modules
+
