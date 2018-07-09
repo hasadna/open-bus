@@ -32,5 +32,9 @@ public class DefaultGtfsQueryBasedOnFtp {
 		
 		return new GtfsDataManipulations(gtfsCrud).combine(date);
 	};
+	
+	public static void main(String[] args) throws IOException {
+		System.out.println(new DefaultGtfsQueryBasedOnFtp(LocalDate.now()).exec().size());
+	}
 
 }
