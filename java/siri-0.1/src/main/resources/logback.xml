@@ -49,11 +49,11 @@
     <logger name="SiriRealTimeData" level="info" additivity="false">
         <appender-ref ref="FILE-SiriRealTimeData" />
     </logger>
-    <logger name="org.hasadna" level="trace" additivity="false">
+    <logger name="org.hasadna" level="info" additivity="false">
         <appender-ref ref="FILE-debug" />
     </logger>
 
-    <logger name="console" level="trace" additivity="false">
+    <logger name="console" level="info" additivity="false">
         <appender-ref ref="FILE-debug" />
     </logger>
 
