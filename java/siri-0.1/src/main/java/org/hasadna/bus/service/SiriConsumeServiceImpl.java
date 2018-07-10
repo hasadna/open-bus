@@ -44,9 +44,16 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
             invokeAccordingTo(command);
         }
         else {
+            if (cancelRequestIfNoServiceHour(LocalDateTime.now(), command.makat)) {
+                return null;
+            }
             return retrieveSiri(command.stopCode, command.previewInterval, command.lineRef, command.maxStopVisits);
         }
         return null;
+    }
+
+    private boolean cancelRequestIfNoServiceHour(LocalDateTime now, String makat) {
+        return  false;
     }
 
     private void invokeAccordingTo(Command command) {
@@ -62,7 +69,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
     public GetStopMonitoringServiceResponse retrieveSiri(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
         StopWatch sw1 = new StopWatch(Thread.currentThread().getName());
         sw1.start();
-        logger.info("retrieving... {}", lineRef);
+        logger.debug("retrieving... {}", lineRef);
         String content = retrieveSpecificLineAndStop(stopCode, previewInterval, lineRef, maxStopVisits);
         if (content == null) {
             return null;

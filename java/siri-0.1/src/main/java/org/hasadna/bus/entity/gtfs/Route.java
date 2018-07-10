@@ -33,4 +33,8 @@ public class Route {
                 ", routeDesc='" + routeDesc + '\'' +
                 '}';
     }
+
+    public String getMakat() {
+        return routeDesc.substring(0, 5);
+    }
 }

@@ -63,13 +63,13 @@ public class SiriParseServiceImpl implements SiriParseService {
                 }
                 String lineName = visit.getMonitoredVehicleJourney().getPublishedLineName().getValue();
                 visit.getMonitoredVehicleJourney().getDestinationRef();
+                String direction = visit.getMonitoredVehicleJourney().getDirectionRef().getValue();
 
                 Date recordedAt = visit.getRecordedAtTime();
                 Date departureTime = visit.getMonitoredVehicleJourney().getOriginAimedDepartureTime();
                 String operatorRef = visit.getMonitoredVehicleJourney().getOperatorRef().getValue();
                 String journeyRef = visit.getMonitoredVehicleJourney().getFramedVehicleJourneyRef().getDatedVehicleJourneyRef();
                 String rep = stringRepresentation(lineRef, lineName, recordedAt, expectedArrivalTime, licensePlate, lat, lon, departureTime, operatorRef, journeyRef, responseTimestamp);
-                String jsonStrRepresentation = buildJson(lineRef, lineName, recordedAt, expectedArrivalTime, licensePlate, lat, lon, departureTime, operatorRef, journeyRef);
                 s = s + rep + "\n";
             }
             if (!visits.isEmpty()) {
@@ -84,10 +84,6 @@ public class SiriParseServiceImpl implements SiriParseService {
             logger.error("unhandled exception in parsing", ex);
             return Optional.empty();
         }
-    }
-
-    private String buildJson(String lineRef, String lineName, Date recordedAt, Date expectedArrivalTime, String licensePlate, BigDecimal lat, BigDecimal lon, Date departureTime, String operatorRef, String journeyRef) {
-        return "" ; // temporary
     }
 
 
@@ -113,6 +109,7 @@ public class SiriParseServiceImpl implements SiriParseService {
         String dateTime = formatDate(date);
         return dateTime.split("T")[1];
     }
+
     private String formatTimeHHMM(Date date) {
         String dateTime = formatDate(date);
         return dateTime.split("T")[1].substring(0,5);

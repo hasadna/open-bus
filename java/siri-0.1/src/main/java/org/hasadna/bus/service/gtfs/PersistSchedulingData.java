@@ -19,12 +19,12 @@ public class PersistSchedulingData {
 
     public static void main(String args[]) {
         ObjectMapper mapper = new ObjectMapper();
-        String content = "{ \"dummy\": \"1\",\n" +
-                "  \"d\" : [ {\"stopCode\" : \"20594\"} ] }";
+        String content = "{ \n" +
+                "  \"data\" : [ {\"stopCode\" : \"20594\"} ] }";
         try {
             SchedulingData data = mapper.readValue(new StringReader(content), SchedulingData.class);
             logger.info("read data: {}", data);
-            List<Command> list = data.d;
+            List<Command> list = data.data;
             logger.info("list has {} elements", list.size());
         } catch (IOException e) {
             logger.error("error during reading data file", e);

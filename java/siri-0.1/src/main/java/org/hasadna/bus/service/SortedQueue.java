@@ -53,6 +53,10 @@ public class SortedQueue {
         return queue.stream().map(c -> c.toString()).collect(Collectors.toList());
     }
 
+    public List<Command> getAllSchedules() {
+        return queue.stream().map(c -> c).collect(Collectors.toList());
+    }
+
 
     List<Command> removeByLineRef(String lineRef) {
         logger.debug("removing all schedules of lineRef {}", lineRef);

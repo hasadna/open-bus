@@ -1,5 +1,6 @@
 package org.hasadna.bus.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hasadna.bus.entity.gtfs.Route;
 import org.hasadna.bus.entity.gtfs.RouteSearchParams;
 import org.hasadna.bus.entity.gtfs.Stop;
@@ -12,11 +13,12 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@Profile("!production")
+@Profile("gtfs")
 @RequestMapping("/gtfs")
 public class GtfsController {
 
@@ -41,7 +43,7 @@ public class GtfsController {
     }
 
     @RequestMapping(value="/line/short/name/{publishedName}", method={RequestMethod.GET}, produces = "application/json")
-    public List<Route> retrieveLineRefDetailsByPublishedName(@PathVariable String publishedName) {
+    public Map<String, List<Route> > retrieveLineRefDetailsByPublishedName(@PathVariable String publishedName) {
         logger.info("line/short/name/{} ", publishedName);
         List<Route> list = rrf.findRouteByPublishedName(publishedName, Optional.empty());
         list.stream().
@@ -52,7 +54,9 @@ public class GtfsController {
                     return route;
                 }).
                 collect(Collectors.toList());
-        return list;
+        Map<String, List<Route> > groupedByMakat =
+            list.stream().collect(Collectors.groupingBy(Route::getMakat));
+        return groupedByMakat;
     }
 
 
@@ -65,14 +69,37 @@ public class GtfsController {
     public List<Route> retrieveLineRefDetailsByPublishedName(@RequestBody RouteSearchParams rsp) {
         logger.info("line/short/name/search {} {}", rsp.publishedName, rsp.cityName);
         List<Route> list = rrf.findRouteByPublishedName(rsp.publishedName, Optional.of(rsp.cityName));
-        list.stream().
+        list = list.stream().
                 map(route -> {
                     List<String> lastStops = rrf.findLastStopCodeByRouteId(route.routeId, true);
                     route.lastStopCode = lastStops.toString();
+                    if (lastStops.size() == 1) {
+                        route.lastStopCode = lastStops.get(0).toString();
+                    }
                     //route.departureTimes = rrf.findDeparturesByRouteId(route.routeId);
                     return route;
                 }).
                 collect(Collectors.toList());
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            logger.info("request:{}", objectMapper.writeValueAsString(rsp));
+            logger.info("response:{}", objectMapper.writeValueAsString(list));
+            for (Route r : list) {
+                String desc = "קו " + rsp.publishedName + " -- " + rsp.cityName + " " ;
+                String lastStopCode = r.lastStopCode;
+                String lineRef = r.routeId;
+                String s = "\n                   {\"description\" : \"" + desc + "\",\n" +
+                        "                    \"stopCode\" : \"" + lastStopCode + "\",\n" +
+                        "                    \"previewInterval\" : \"PT1H\",\n" +
+                        "                    \"lineRef\" : \"" + lineRef + "\",\n" +
+                        "                    \"maxStopVisits\" : 7,\n" +
+                        "                    \"executeEvery\" : 30}";
+                logger.info(s);
+            }
+        }
+        catch (Exception ex) {
+            logger.error("absorbing unhandled", ex);
+        }
         return list;
     }
 

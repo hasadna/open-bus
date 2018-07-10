@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 public class Command {
     public String description = "";
+    public String makat = "";
     public String stopCode;
     public String previewInterval;
     public String lineRef;
@@ -47,6 +48,7 @@ public class Command {
     public String toString() {
         return "Command{" +
                 "description='" + description + '\'' +
+                ", makat='" + makat + '\'' +
                 ", stopCode='" + stopCode + '\'' +
                 ", previewInterval='" + previewInterval + '\'' +
                 ", lineRef='" + lineRef + '\'' +

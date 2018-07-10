@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-@Profile("production")
+@Profile("notUsed")
 public class ReadRoutesFileLeanImpl implements ReadRoutesFile {
     @Override
     public Route findRouteById(String routeId) {

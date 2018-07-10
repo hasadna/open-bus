@@ -6,26 +6,11 @@ import javax.xml.bind.annotation.*;
 import java.util.List;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "ProducerResponseEndpointStructure"
-//        , propOrder = {
-//        "responseTimestamp",
-//        "producerRef",
-//        "responseMessageIdentifier",
-//        "requestMessageRef",
-//        "status",
-//        "stopMonitoringDelivery"
-//}
-)
+@XmlType(name = "ProducerResponseEndpointStructure")
 public class StopMonitoringAnswer extends AbstractServiceDeliveryStructure {
-
-//    @XmlElement(name = "ResponseTimestamp", namespace = "http://www.siri.org.uk/siri")
-//    String responseTimestamp;
 
     @XmlElement(name = "ProducerRef", namespace = "http://www.siri.org.uk/siri")
     protected ParticipantRefStructure producerRef;
-
-//    @XmlElement(name = "Address")
-//    protected String address;
 
     @XmlElement(name = "ResponseMessageIdentifier", namespace = "http://www.siri.org.uk/siri")
     protected MessageQualifierStructure responseMessageIdentifier;
@@ -39,16 +24,6 @@ public class StopMonitoringAnswer extends AbstractServiceDeliveryStructure {
     @XmlElement(name="StopMonitoringDelivery", namespace = "http://www.siri.org.uk/siri")
     List<StopMonitoringDeliveryStructure> stopMonitoringDelivery;
 
-
-
-
-//    public String getResponseTimestamp() {
-//        return responseTimestamp;
-//    }
-//
-//    public void setResponseTimestamp(String responseTimestamp) {
-//        this.responseTimestamp = responseTimestamp;
-//    }
 
     public ParticipantRefStructure getProducerRef() {
         return producerRef;

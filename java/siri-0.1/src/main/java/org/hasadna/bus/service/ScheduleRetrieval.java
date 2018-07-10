@@ -1,10 +1,11 @@
 package org.hasadna.bus.service;
 
-import ch.qos.logback.core.util.FixedDelay;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.hasadna.bus.entity.GetStopMonitoringServiceResponse;
+import org.hasadna.bus.service.gtfs.DepartureTimes;
+import org.hasadna.bus.service.gtfs.ReadRoutesFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +20,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -31,6 +32,9 @@ public class ScheduleRetrieval {
 
     @Value("${scheduler.default.interval.between.executions.minutes:3}")
     private int defaultTimeBetweenExecutionsOfSameCommandInMinutes ;
+
+    @Value("${scheduler.enable:true}")
+    boolean schedulerEnable;
 
     @Value("${scheduler.data.file:/home/evyatar/logs/siri.schedule.json}")
     private String dataFileFullPath ;
@@ -44,30 +48,62 @@ public class ScheduleRetrieval {
     @Autowired
     SortedQueue queue;
 
+    @Autowired
+    ReadRoutesFile makatFile ;
+
+
     @PostConstruct
     public void init() {
-        // hard coded for now
-//        addScheduled("20594", "PT2H", "7023",7);    // line 480 Jer-TA
-//        addScheduled("28627", "PT6H", "7453",7, 5);    // line 394 Eilat-TA
-//        addScheduled("42978", "PT12H", "1559",7, 10);    // line 331 Nazaret-Haifa (working on Saturday?)
-//        addScheduled("42734", "PT12H", "17177",7, 15);    // line 340 Nazaret-Haifa (working on Saturday?)
-//        addScheduled("47210","PT12H","3792",7, 20); // line 40 Haifa (Saturday)
-//        addScheduled("41048","PT2H","3701", 7, 25); // line 25 Haifa Saturday
-//        addScheduled("41143","PT2H","3703", 7, 30); // line 25 Haifa Saturday (2nd direction)
-//
-//        // 415 Beit-Shemesh-Jer
-//        addScheduled("6109", "PT2H", "8552", 7, 35);
-//        //addScheduled("5195", "PT2H", "8555", 7);
-//        addScheduled("6109", "PT2H", "15527", 7, 40);
-//        //addScheduled("616", "PT2H", "15528", 7);
+        List<Command> data = readSchedulingData();
 
-        List<Command> data = read();
+        // we currently don't filter out entries - only log warnings
+        validateScheduling(data);
 
         for (Command c : data) {
             queue.put(c);
         }
 
         logger.info("scheduler initialized.");
+    }
+
+    private List<Command> validateScheduling(List<Command> data) {
+        logger.info("validating ...");
+        data = data.stream().filter(c -> {
+            try {
+                boolean result = true;
+                logger.info("validating route {}", c.lineRef);
+                String routeId = c.lineRef;
+                DepartureTimes dt = makatFile.findDeparturesByRouteId(routeId);
+                if (dt == null) {
+                    logger.warn("no departures found for route {}", routeId);
+                    return false;
+                }
+                List<String> departuesToday = dt.departures.get(LocalDateTime.now().getDayOfWeek());
+                if (departuesToday.isEmpty()) {
+                    // today there are no departures for this route
+                    logger.warn("no departures on day {} for route {}", LocalDateTime.now().getDayOfWeek(), routeId);
+                    result = false;
+                }
+                String firstDeparture = departuesToday.stream().min(Comparator.naturalOrder()).orElse("00:00");
+                String lastDeparture = departuesToday.stream().max(Comparator.naturalOrder()).orElse("23:59");
+                if (LocalDateTime.now().toLocalTime().isBefore(
+                        LocalTime.parse(firstDeparture, DateTimeFormatter.ofPattern("HH:mm")))) {
+                    logger.warn("route {} - first departure is only at {}", routeId, firstDeparture);
+                    result = false;
+                }
+                if (LocalDateTime.now().toLocalTime().isAfter(
+                        LocalTime.parse(lastDeparture, DateTimeFormatter.ofPattern("HH:mm")))) {
+                    logger.warn("route {} - No more departures today, last departure was at {}", routeId, lastDeparture);
+                    result = false;
+                }
+                return result;
+            }
+            catch (Exception ex) {
+                logger.error("absorbing exception {}", ex.getMessage());
+                return true;
+            }
+        }).collect(Collectors.toList());
+        return data;
     }
 
     public void write() {
@@ -83,14 +119,14 @@ public class ScheduleRetrieval {
         }
     }
 
-    public List<Command> read() {
+    public List<Command> readSchedulingData() {
         ObjectMapper mapper = new ObjectMapper();
         File file = Paths.get(dataFileFullPath).toFile();
         try {
             if (file.exists()) {
                 SchedulingData data = mapper.readValue(file, SchedulingData.class);
                 logger.info("read data: {}", data);
-                List<Command> list = data.d;
+                List<Command> list = data.data;
                 int counter = 0 ;
                 int delayBeforeFirstInvocation = 4; // seconds
                 if (list.size() > defaultTimeBetweenExecutionsOfSameCommandInMinutes * 60 / delayBeforeFirstInvocation) {
@@ -114,17 +150,6 @@ public class ScheduleRetrieval {
         return null;
     }
 
-//    @Scheduled(fixedDelay=120000)    // every 120 seconds
-//    public void retrieve_480_Periodically() {
-//        GetStopMonitoringServiceResponse result = siriConsumeService.retrieveSiri("20594", "PT2H", "7023",7);
-//        siriProcessService.process(result); // asynchronous invocation
-//    }
-//
-//    @Scheduled(fixedDelay=295000)    // every 295 seconds
-//    public void retrieve_394_Periodically() {
-//        GetStopMonitoringServiceResponse result = siriConsumeService.retrieveSiri("28627", "PT6H", "7453",7);
-//        siriProcessService.process(result); // asynchronous invocation
-//    }
 
     public void addScheduled(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
         queue.put(new Command(stopCode, previewInterval, lineRef, maxStopVisits, LocalDateTime.now(), defaultTimeBetweenExecutionsOfSameCommandInMinutes * 60));
@@ -147,6 +172,15 @@ public class ScheduleRetrieval {
         return queue.showAll();
     }
 
+
+    @Scheduled(fixedRate=300000)    // every 5 minutes.
+    @Async
+    public void updateSchedulingDataPeriodically() {
+        // hopefully validate won't change the data from inside...
+        validateScheduling(queue.getAllSchedules());
+    }
+
+
     /**
      * This method will execute every 100 ms.
      * It can execute in one of ${pool.http.retrieve.core.pool.size} threads.
@@ -161,11 +195,11 @@ public class ScheduleRetrieval {
     @Scheduled(fixedRate=100)    // every 100 ms.
     @Async("http-retrieve")
     public void retrieveCommandPeriodically() {
+        if (!schedulerEnable) return;
         //logger.trace("scheduled started");
         Command head = queue.peek();
         try {
             LocalDateTime now = LocalDateTime.now();
-            //logger.trace("scheduling...");
             if (head.nextExecution.isAfter(now)) {
                 //logger.trace("delaying {} until {} ...", head.lineRef, head.nextExecution);
                 return;
@@ -175,8 +209,7 @@ public class ScheduleRetrieval {
             next.nextExecution = now.plusSeconds(next.executeEvery);
             queue.put(next);
             logger.trace("retrieving {} ...", c.lineRef);
-            //GetStopMonitoringServiceResponse result = siriConsumeService.retrieveSiri(c.stopCode, c.previewInterval, c.lineRef, c.maxStopVisits);
-            GetStopMonitoringServiceResponse result = siriConsumeService.retrieveSiri(c);
+            GetStopMonitoringServiceResponse result = siriConsumeService.retrieveSiri(c);   // this part is synchronous
             siriProcessService.process(result); // asynchronous invocation
         }
         catch (Exception ex) {

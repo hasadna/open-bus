@@ -85,6 +85,10 @@ public class SiriMockServiceImpl implements SiriConsumeService {
             logger.info("reading 394-01.xml");
             return readFromFile("394-01");  // localhost:8080/data/soap/oneStop/10331/7453/PT24H - 394 Eilat-TA
         }
+        else if (lineRef.equals("10255")) {
+            logger.info("reading 59Jer-01.xml");
+            return readFromFile("394-01");  // localhost:8080/data/soap/oneStop/10331/7453/PT24H - 394 Eilat-TA
+        }
         return readFromFile("480-01");
     }
 
@@ -105,20 +109,20 @@ public class SiriMockServiceImpl implements SiriConsumeService {
 
     public GetStopMonitoringServiceResponse retrieveSiri(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
         try {
-            logger.info("retrieveSiri");
+            logger.trace("retrieveSiri");
             String content = retrieveSpecificLineAndStop(stopCode, previewInterval, lineRef, maxStopVisits);
-            logger.info("xml retrieved, converting to response...");
+            logger.debug("xml retrieved, converting to response...");
             JAXBContext jaxbContext = JAXBContext.newInstance(GetStopMonitoringServiceResponse.class);
             Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
             StreamSource streamSource = new StreamSource(new StringReader(content));
             JAXBElement<GetStopMonitoringServiceResponse> je = jaxbUnmarshaller.unmarshal(streamSource, GetStopMonitoringServiceResponse.class);
 
             GetStopMonitoringServiceResponse response = (GetStopMonitoringServiceResponse)je.getValue();
-            logger.info("converting done");
+            logger.trace("converting done");
             return response;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("absorbing unhandled", e);
         }
 
         return null;

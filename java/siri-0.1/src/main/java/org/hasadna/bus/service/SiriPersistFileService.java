@@ -9,13 +9,13 @@ public class SiriPersistFileService implements SiriPersistService {
 
     protected final Logger logger = LoggerFactory.getLogger(SiriPersistFileService.class);
 
-    // this logger should be defined to a specific file
+    // this logger should be defined to a specific file - see logback.xml
     protected final Logger fileLogger = LoggerFactory.getLogger("SiriRealTimeData");
 
     @Override
     public void persistShortSummary(String summary) {
-        logger.info("persisting...");
+        logger.trace("persisting...");
         fileLogger.info(summary);
-        logger.info("          ...Done");
+        logger.trace("          ...Done");
     }
 }
