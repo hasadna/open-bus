@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<!--
-produced on Friday evening
-[TRACE][http-retrieve-5] [org.hasadna.bus.service.SiriConsumeServiceImpl][2018-07-06 00:00:00]
-1540 - stopCode of last stop of this line
-10255 - lineRef (routeId) of line 59 Urban Jerusalem
--->
-<S:Envelope
-        xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
-    <S:Body>
-        <ns7:GetStopMonitoringServiceResponse
+
+<ns7:GetStopMonitoringServiceResponse
                 xmlns:ns3="http://www.siri.org.uk/siri"
                 xmlns:ns4="http://www.ifopt.org.uk/acsb"
                 xmlns:ns5="http://www.ifopt.org.uk/ifopt"
                 xmlns:ns6="http://datex2.eu/schema/1_0/1_0"
                 xmlns:ns7="http://new.webservice.namespace">
+            <!--
+            produced on Friday evening
+            [TRACE][http-retrieve-5] [org.hasadna.bus.service.SiriConsumeServiceImpl][2018-07-06 00:00:00]
+            1540 - stopCode of last stop of this line
+            10255 - lineRef (routeId) of line 59 Urban Jerusalem
+            -->
             <Answer>
                 <ns3:ResponseTimestamp>2018-07-05T23:59:41.302+03:00</ns3:ResponseTimestamp>
                 <ns3:ProducerRef>ISR Siri Server (141.12)</ns3:ProducerRef>
@@ -494,5 +492,3 @@ produced on Friday evening
                 </ns3:StopMonitoringDelivery>
             </Answer>
         </ns7:GetStopMonitoringServiceResponse>
-    </S:Body>
-</S:Envelope>

@@ -27,7 +27,7 @@ public class SiriParseServiceImpl implements SiriParseService {
                 return Optional.empty();
             }
             if (sm.getAnswer().isStatus() != null) {
-                logger.info("answer.isStatus={}", sm.getAnswer().isStatus());
+                logger.trace("answer.isStatus={}", sm.getAnswer().isStatus());
             }
             SortedMap<String, MonitoredStopVisitStructure> visits = new TreeMap<>();
             Set<String> licensePlates = new HashSet<>();
@@ -73,7 +73,7 @@ public class SiriParseServiceImpl implements SiriParseService {
                 s = s + rep + "\n";
             }
             if (!visits.isEmpty()) {
-                logger.info("produced summary: {}", s);
+                logger.trace("produced summary: {}", s);
                 return Optional.of(s);
             }
             else {

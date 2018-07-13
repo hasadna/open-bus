@@ -17,12 +17,17 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
@@ -54,7 +59,7 @@ public class ScheduleRetrieval {
 
     @PostConstruct
     public void init() {
-        List<Command> data = readSchedulingData();
+        List<Command> data = readSchedulingDataAllFiles(dataFileFullPath);
 
         // we currently don't filter out entries - only log warnings
         validateScheduling(data);
@@ -119,25 +124,75 @@ public class ScheduleRetrieval {
         }
     }
 
-    public List<Command> readSchedulingData() {
+    public List<Command> readSchedulingDataAllFiles(String location) {
+        if (Paths.get(location).toFile().isDirectory()) {
+            String pattern = "siri\\.schedule\\..*json";
+            File[] ff = Paths.get(location).toFile().listFiles();
+            List<File> files = Arrays.asList(ff);
+            files.forEach(file -> logger.info("{},", file.getName()));
+            files = files.stream().
+                    filter(file -> !file.isDirectory() && match(file.getName(), pattern)).
+                    collect(Collectors.toList());
+            files.forEach(file -> logger.info("{},", file.getName()));
+            return unifyAllLists(
+                    files.stream().
+                            map(file -> readSchedulingData(file.getAbsolutePath())).
+                            collect(Collectors.toList()));
+        }
+        else {  // assuming it is a single file
+            return readSchedulingData(location);
+        }
+    }
+
+    private List<Command> unifyAllLists(List<List<Command>> all) {
+        List<Command> list = new ArrayList<>();
+        for (List<Command> each : all) {
+            list.addAll(each);
+        }
+        return list;
+    }
+
+    private boolean match(final String name, final String literal) {
+        Pattern pattern = Pattern.compile(literal);
+        Matcher matcher = pattern.matcher(name);
+        return matcher.find();
+    }
+
+    public List<Command> readSchedulingData(String dataFile) {
+        logger.info("read sheduling data from file {}", dataFile);
         ObjectMapper mapper = new ObjectMapper();
-        File file = Paths.get(dataFileFullPath).toFile();
+        File file = Paths.get(dataFile).toFile();
         try {
-            if (file.exists()) {
+            if (file.exists() && !file.isDirectory() && file.canRead()) {
                 SchedulingData data = mapper.readValue(file, SchedulingData.class);
-                logger.info("read data: {}", data);
+                logger.debug("read data: {}", data);
                 List<Command> list = data.data;
                 int counter = 0 ;
-                int delayBeforeFirstInvocation = 4; // seconds
-                if (list.size() > defaultTimeBetweenExecutionsOfSameCommandInMinutes * 60 / delayBeforeFirstInvocation) {
-                    delayBeforeFirstInvocation = 1 ;
+
+                ///////////////////////
+                // following part is to spread the scheduled invocations over several seconds, if possible
+                int delayBeforeFirstInvocation = 4000; // ms
+                if (list.size() > defaultTimeBetweenExecutionsOfSameCommandInMinutes * 60 * 1000 / delayBeforeFirstInvocation) {
+                    delayBeforeFirstInvocation = 1000 ;
                 }
+                if (list.size() > 120) {
+                    delayBeforeFirstInvocation = 120000 / list.size() ;
+                }
+                //
+                ///////////////
+
+                ///////////////////////////////////////
+                // set the first value of nextExecution for each scheduled invocation
+                LocalDateTime now = LocalDateTime.now();
                 for (Command c : list) {
                     if (c.nextExecution == null) {
-                        c.nextExecution = LocalDateTime.now().plusSeconds(counter);
+                        c.nextExecution = now.plus(counter, ChronoUnit.MILLIS);
                         counter = counter + delayBeforeFirstInvocation;
                     }
                 }
+                //
+                ///////////////////
+                logger.info("read {} entries from scheduling data file {}", list.size(), dataFileFullPath);
                 return list;
             }
             else {
@@ -196,7 +251,7 @@ public class ScheduleRetrieval {
     @Async("http-retrieve")
     public void retrieveCommandPeriodically() {
         if (!schedulerEnable) return;
-        //logger.trace("scheduled started");
+        logger.trace("scheduled invocation started");
         Command head = queue.peek();
         try {
             LocalDateTime now = LocalDateTime.now();
@@ -208,8 +263,9 @@ public class ScheduleRetrieval {
             Command next = c.myClone();
             next.nextExecution = now.plusSeconds(next.executeEvery);
             queue.put(next);
-            logger.trace("retrieving {} ...", c.lineRef);
+            logger.info("retrieving {} ...", c.lineRef);
             GetStopMonitoringServiceResponse result = siriConsumeService.retrieveSiri(c);   // this part is synchronous
+            logger.info("retrieving {} ... done", c.lineRef);
             siriProcessService.process(result); // asynchronous invocation
         }
         catch (Exception ex) {

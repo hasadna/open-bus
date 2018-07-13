@@ -6,7 +6,7 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
             <Pattern>
-                %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+                %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
             </Pattern>
         </layout>
     </appender>
@@ -14,7 +14,7 @@
     <appender name="FILE-debug" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${DEV_HOME}/debug.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <Pattern>[%level][%thread] [%logger][%d{yyyy-MM-dd HH:mm:ss}] %msg%n</Pattern>
+            <Pattern>[%level][%thread] [%logger][%d{yyyy-MM-dd HH:mm:ss.SSS}] %msg%n</Pattern>
         </encoder>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -53,9 +53,9 @@
         <appender-ref ref="FILE-debug" />
     </logger>
 
-    <logger name="console" level="info" additivity="false">
-        <appender-ref ref="FILE-debug" />
-    </logger>
+    <!--<logger name="console" level="info" additivity="false">-->
+        <!--<appender-ref ref="FILE-debug" />-->
+    <!--</logger>-->
 
     <root level="info">
         <appender-ref ref="STDOUT" />

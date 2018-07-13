@@ -1,6 +1,7 @@
 package org.hasadna.bus.service;
 
 import org.hasadna.bus.entity.GetStopMonitoringServiceResponse;
+import org.hasadna.bus.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +38,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
 
     final String SIRI_SERVICES_URL = "http://siri.motrealtime.co.il:8081/Siri/SiriServices";
 
+
     @Override
     public GetStopMonitoringServiceResponse retrieveSiri(Command command) {
 
@@ -69,19 +71,19 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
     public GetStopMonitoringServiceResponse retrieveSiri(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
         StopWatch sw1 = new StopWatch(Thread.currentThread().getName());
         sw1.start();
-        logger.debug("retrieving... {}", lineRef);
+        logger.info("retrieving... {}", lineRef);
         String content = retrieveSpecificLineAndStop(stopCode, previewInterval, lineRef, maxStopVisits);
         if (content == null) {
             return null;
         }
         sw1.stop();
         logger.info("retrieving...Done ({} ms)", sw1.getTotalTimeMillis());
-        logger.debug("lineRef={}, stopCode={}, previewInterval={}, response={}", lineRef, stopCode, previewInterval, content);
-
+        logger.debug("lineRef={}, stopCode={}, previewInterval={}", lineRef, stopCode, previewInterval);
+        logger.trace(" response={}", content);
         StopWatch sw2 = new StopWatch(Thread.currentThread().getName());
         sw2.start();
 
-        content = removeSoapEnvelope(content);
+        content = Util.removeSoapEnvelope(content);
         logger.trace(content);
 
         //unmarshall XML to object
@@ -116,7 +118,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
             Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
             return jaxbUnmarshaller;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("absorbing ", e);
             return null;
         }
     });
@@ -303,18 +305,18 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         return r.getBody();
     }
 
-    private String removeSoapEnvelope(String content) {
-        // remove soap envelope (ugly)
-        final String prefix = "<?xml version='1.0' encoding='UTF-8'?><S:Envelope xmlns:S=\"http://schemas.xmlsoap.org/soap/envelope/\"><S:Body>";
-        final String suffix = "</S:Body></S:Envelope>";
-        if (content.startsWith(prefix)) {
-            content = content.substring(prefix.length());
-        }
-        if (content.endsWith(suffix)) {
-            content = content.substring(0,content.length()-suffix.length());
-        }
-        return content;
-    }
+//    private String removeSoapEnvelope(String content) {
+//        // remove soap envelope (ugly)
+//        final String prefix = "<?xml version='1.0' encoding='UTF-8'?><S:Envelope xmlns:S=\"http://schemas.xmlsoap.org/soap/envelope/\"><S:Body>";
+//        final String suffix = "</S:Body></S:Envelope>";
+//        if (content.startsWith(prefix)) {
+//            content = content.substring(prefix.length());
+//        }
+//        if (content.endsWith(suffix)) {
+//            content = content.substring(0,content.length()-suffix.length());
+//        }
+//        return content;
+//    }
 
     private GetStopMonitoringServiceResponse unmarshalXml(String xml) {
         try {

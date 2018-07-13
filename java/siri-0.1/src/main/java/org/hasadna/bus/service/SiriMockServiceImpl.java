@@ -3,6 +3,8 @@ package org.hasadna.bus.service;
 import org.hasadna.bus.entity.GetStopMonitoringServiceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -29,6 +31,8 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import static org.hasadna.bus.util.Util.removeSoapEnvelope;
+
 @Component
 @Profile("!production")
 public class SiriMockServiceImpl implements SiriConsumeService {
@@ -36,6 +40,9 @@ public class SiriMockServiceImpl implements SiriConsumeService {
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     final String SIRI_SERVICES_URL = "http://siri.motrealtime.co.il:8081/Siri/SiriServices";
+
+    @Autowired
+    ReadFile readFile;
 
     @Override
     public GetStopMonitoringServiceResponse retrieveSiri(Command command) {
@@ -78,44 +85,51 @@ public class SiriMockServiceImpl implements SiriConsumeService {
     @Override
     public String retrieveSpecificLineAndStop(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
         if (lineRef.equals("7023")) {
-            logger.info("reading 480-06.xml");
+            logger.trace("reading 480-06.xml");
             return readFromFile("480-06");  // localhost:8080/data/oneStop/20594/7023/PT4H - 480 Jer-TA
         }
         else if (lineRef.equals("7453")) {
-            logger.info("reading 394-01.xml");
+            logger.trace("reading 394-01.xml");
             return readFromFile("394-01");  // localhost:8080/data/soap/oneStop/10331/7453/PT24H - 394 Eilat-TA
         }
         else if (lineRef.equals("10255")) {
-            logger.info("reading 59Jer-01.xml");
+            logger.trace("reading 59Jer-01.xml");
             return readFromFile("394-01");  // localhost:8080/data/soap/oneStop/10331/7453/PT24H - 394 Eilat-TA
         }
+        logger.trace("reading 480-01.xml");
         return readFromFile("480-01");
     }
 
     private String readFromFile(String name) {
-        String fileName = name + ".xml";
-        try {
-            Path path = Paths.get(getClass().getClassLoader().getResource("samples/" + fileName).toURI());
-            String content = new String(Files.readAllBytes(path), Charset.forName("UTF8"));
-            return content;
-        } catch (IOException e) {
-            logger.error("can't read file", e);
-        } catch (URISyntaxException e) {
-            logger.error("can't read file", e);
-        }
-        return null;
+        return readFile.readFromFile(name);
+//        String fileName = name + ".xml";
+//        try {
+//            Path path = Paths.get(getClass().getClassLoader().getResource("samples/" + fileName).toURI());
+//            String content = new String(Files.readAllBytes(path), Charset.forName("UTF8"));
+//            return content;
+//        } catch (IOException e) {
+//            logger.error("can't read file", e);
+//        } catch (URISyntaxException e) {
+//            logger.error("can't read file", e);
+//        }
+//        return null;
     }
 
+    private ThreadLocal<Unmarshaller> jaxbUnmarshaller = new ThreadLocal<>();
 
     public GetStopMonitoringServiceResponse retrieveSiri(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
         try {
             logger.trace("retrieveSiri");
             String content = retrieveSpecificLineAndStop(stopCode, previewInterval, lineRef, maxStopVisits);
-            logger.debug("xml retrieved, converting to response...");
-            JAXBContext jaxbContext = JAXBContext.newInstance(GetStopMonitoringServiceResponse.class);
-            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+            //content = removeSoapEnvelope(content);
+            logger.trace("xml retrieved, converting to response...");
+            if (jaxbUnmarshaller.get() == null) {
+                JAXBContext jaxbContext = JAXBContext.newInstance(GetStopMonitoringServiceResponse.class);
+                Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+                jaxbUnmarshaller.set(unmarshaller);
+            }
             StreamSource streamSource = new StreamSource(new StringReader(content));
-            JAXBElement<GetStopMonitoringServiceResponse> je = jaxbUnmarshaller.unmarshal(streamSource, GetStopMonitoringServiceResponse.class);
+            JAXBElement<GetStopMonitoringServiceResponse> je = jaxbUnmarshaller.get().unmarshal(streamSource, GetStopMonitoringServiceResponse.class);
 
             GetStopMonitoringServiceResponse response = (GetStopMonitoringServiceResponse)je.getValue();
             logger.trace("converting done");
