@@ -3,20 +3,12 @@ package il.org.hasadna.siri_client.gtfs.analysis;
 import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import il.org.hasadna.siri_client.gtfs.crud.*;
 import il.org.hasadna.siri_client.gtfs.crud.Calendar;
-import il.org.hasadna.siri_client.gtfs.crud.GtfsCrud;
-import il.org.hasadna.siri_client.gtfs.crud.ServiceId;
-import il.org.hasadna.siri_client.gtfs.crud.Stop;
-import il.org.hasadna.siri_client.gtfs.crud.StopTime;
-import il.org.hasadna.siri_client.gtfs.crud.Trip;
 
 public class GtfsDataManipulations {
 
@@ -26,6 +18,7 @@ public class GtfsDataManipulations {
 	private Map<String, Trip> trips;
 	private Map<String, List<StopTime>> stopTimes;
 	private Map<Integer, Stop> stops;
+	private Map<String, Route> routes;
 
 	Map<ServiceId, Calendar> getCalendars() {
 		return calendars;
@@ -45,6 +38,10 @@ public class GtfsDataManipulations {
 
 	public GtfsCrud getGtfsCrud() {
 		return gtfsCrud;
+	}
+
+	public Map<String, Route> getRoutes() {
+		return routes;
 	}
 
 	public GtfsDataManipulations(GtfsCrud gtfsCrud) {
@@ -100,6 +97,25 @@ public class GtfsDataManipulations {
 
 		stops = filterStops(stopTimes.values().stream().flatMap(Collection::stream).map(StopTime::getStopId)
 				.collect(Collectors.toSet())).stream().collect(Collectors.toMap(Stop::getStopId, i -> i));
+
+		routes = filterRoutes(trips);
+	}
+
+	private Map<String,Route> filterRoutes(Map<String, Trip> trips) throws IOException {
+		Set<String> routesOfTrips = trips.values().stream().map(tr -> tr.getRouteId()).collect(Collectors.toSet());
+		Map<String, Route> routesByRouteId
+				= getGtfsCrud().getRoutes().
+				filter(r -> routesOfTrips.contains(r.getRouteId())).
+				collect(Collectors.toMap(Route::getRouteId, r -> r));
+		return routesByRouteId;
+//		Map<String, List<Trip>> tripsByRouteId = trips.values().stream().collect(Collectors.groupingBy(Trip::getRouteId));
+//		Map<String, Route> routesByTripId = new HashMap<>();
+//		for (String routeId : tripsByRouteId.keySet()) {
+//			tripsByRouteId.get(routeId).forEach( trip ->
+//					routesByTripId.put(trip.getTripId(), routesByRouteId.get(routeId))
+//			);
+//		}
+//		return routesByTripId;
 	}
 
 	public Collection<GtfsRecord> combine(LocalDate date) throws IOException {

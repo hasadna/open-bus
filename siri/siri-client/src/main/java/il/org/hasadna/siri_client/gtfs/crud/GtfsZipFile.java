@@ -15,6 +15,8 @@ public class GtfsZipFile {
 	static final String STOP_TIME_FILE_NAME = "stop_times.txt";
 	static final String TRIPS_FILE_NAME = "trips.txt";
 	static final String STOPS_FILE_NAME ="stops.txt";
+	static final String ROUTES_FILE_NAME ="routes.txt";
+
 	Path gtfsZip;
 
 	public GtfsZipFile(Path gtfsZip) {
@@ -86,4 +88,10 @@ public class GtfsZipFile {
 
 		return extractFile(STOPS_FILE_NAME, null);
 	}
+
+	public Path extractRoutesFile() throws IOException {
+
+		return extractFile(ROUTES_FILE_NAME, null);
+	}
+
 }

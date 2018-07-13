@@ -19,6 +19,7 @@ public class GtfsCrud {
 	private Crud<Calendar> calendarCrud;
 	private Crud<StopTime> stopTimesCrud;
 	private Crud<Stop> stopsCrud;
+	private Crud<Route> routesCrud;
 
 	Crud<Trip> getTripCrud() {
 		return tripCrud;
@@ -36,6 +37,10 @@ public class GtfsCrud {
 		return stopsCrud;
 	}
 
+	Crud<Route> getRoutesCrud() {
+		return routesCrud;
+	}
+
 	/**
 	 * @param gtfsZipFile
 	 * @throws IOException if an I/O error occurs when extracting files
@@ -44,7 +49,9 @@ public class GtfsCrud {
 		this(new TripCrud(gtfsZipFile.extractTripsFile()), 
 				new CalendarCrud(gtfsZipFile.extractCalendarFile()),
 				new StopTimesCrud(gtfsZipFile.extractStopTimesFile()), 
-				new StopsCrud(gtfsZipFile.extractStopsFile()));
+				new StopsCrud(gtfsZipFile.extractStopsFile()),
+				new RoutesCrud(gtfsZipFile.extractRoutesFile())
+		);
 	}
 
 	/**
@@ -53,11 +60,12 @@ public class GtfsCrud {
 	 * @param stopTimesCrud
 	 * @param stopsCrud
 	 */
-	public GtfsCrud(Crud<Trip> tripCrud,  Crud<Calendar> calendarCrud, Crud<StopTime> stopTimesCrud, Crud<Stop> stopsCrud) {
+	public GtfsCrud(Crud<Trip> tripCrud,  Crud<Calendar> calendarCrud, Crud<StopTime> stopTimesCrud, Crud<Stop> stopsCrud, Crud<Route> routesCrud) {
 		this.tripCrud = Objects.requireNonNull(tripCrud,"tripCrud");
 		this.calendarCrud = Objects.requireNonNull(calendarCrud,"calendarCrud");
 		this.stopTimesCrud = Objects.requireNonNull(stopTimesCrud,"stopTimesCrud");
 		this.stopsCrud = Objects.requireNonNull(stopsCrud,"stopsCrud");
+		this.routesCrud = Objects.requireNonNull(routesCrud,"routesCrud");
 	}
 
 	public Stream<Trip> getTrips() throws IOException {
@@ -91,4 +99,7 @@ public class GtfsCrud {
 		return getStopsCrud().ReadAll();
 	}
 
+	public Stream<Route> getRoutes() throws IOException {
+		return getRoutesCrud().ReadAll();
+	}
 }

@@ -15,20 +15,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import il.org.hasadna.siri_client.gtfs.crud.*;
 import org.junit.Before;
 import org.junit.Test;
-
-import il.org.hasadna.siri_client.gtfs.crud.BaseCalendar;
-import il.org.hasadna.siri_client.gtfs.crud.BaseStop;
-import il.org.hasadna.siri_client.gtfs.crud.BaseStopTime;
-import il.org.hasadna.siri_client.gtfs.crud.BaseTrip;
-import il.org.hasadna.siri_client.gtfs.crud.Calendar;
-import il.org.hasadna.siri_client.gtfs.crud.Crud;
-import il.org.hasadna.siri_client.gtfs.crud.GtfsCrud;
-import il.org.hasadna.siri_client.gtfs.crud.ServiceId;
-import il.org.hasadna.siri_client.gtfs.crud.Stop;
-import il.org.hasadna.siri_client.gtfs.crud.StopTime;
-import il.org.hasadna.siri_client.gtfs.crud.Trip;
 
 public class GtfsDataManipulationsTest {
 
@@ -102,6 +91,11 @@ public class GtfsDataManipulationsTest {
 			public Stream<Stop> ReadAll() throws IOException {
 				return Stream.of(firstStop, lastStop);
 			}
+		}, new Crud<Route>() {
+			@Override
+			public Stream<Route> ReadAll() throws IOException {
+				return Stream.empty();
+			}
 		});
 
 	}
@@ -135,7 +129,7 @@ public class GtfsDataManipulationsTest {
 		};
 		/* create gtfs CRUD with the calendar CRUD and the other CRUD as empty CRUDs */
 		GtfsCrud gtfsCrud = new GtfsCrud(new Crud.EmptyCrud<>(), calendarCrud, new Crud.EmptyCrud<>(),
-				new Crud.EmptyCrud<>());
+				new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>());
 
 		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud);
 
@@ -161,7 +155,7 @@ public class GtfsDataManipulationsTest {
 				return Stream.of(tripToFind, otherTrip);
 			}
 
-		}, new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>());
+		}, new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>());
 
 		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud);
 		Set<ServiceId> ServiceIds = new HashSet<>(Arrays.asList(new ServiceId("foo")));
@@ -198,7 +192,7 @@ public class GtfsDataManipulationsTest {
 		};
 
 		GtfsCrud GtfsCrud = new GtfsCrud(new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>(), stopTimeCrud,
-				new Crud.EmptyCrud<>());
+				new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>());
 
 		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(GtfsCrud);
 		// Execute
@@ -225,7 +219,7 @@ public class GtfsDataManipulationsTest {
 
 		};
 		GtfsCrud gtfsCrud = new GtfsCrud(new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>(), new Crud.EmptyCrud<>(),
-				stopsCrud);
+				stopsCrud, new Crud.EmptyCrud<>());
 		GtfsDataManipulations gtfsDataManipulations = new GtfsDataManipulations(gtfsCrud);
 
 		Set<Integer> tripIDs = new HashSet<>(Arrays.asList(111));
