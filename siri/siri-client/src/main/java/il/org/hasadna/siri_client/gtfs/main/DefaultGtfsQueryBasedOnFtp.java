@@ -85,7 +85,7 @@ public class DefaultGtfsQueryBasedOnFtp {
             logger.info("size: {}", records.size());
 
             SchedulingDataCreator schedulingDataCreator = new SchedulingDataCreator();
-            schedulingDataCreator.createScheduleForSiri(records, gtfs);
+            schedulingDataCreator.createScheduleForSiri(records, gtfs, configProperties.schedulesLocation);
 
             informSiriJavaClientToReschedule();
         }
@@ -152,6 +152,9 @@ public class DefaultGtfsQueryBasedOnFtp {
         LocalTime whenToDownload = LocalTime.of(3, 30);
         LocalDate dateOfLastDownload = LocalDate.of(2000, 1, 1);
         Integer secondsBetweenChecks = 60;
+        String schedulesLocation = "/home/evyatar/logs/";
+        String rescheduleUrl = "http://localhost:8080/data/schedules/read/all";
+        List<String> agencies = Arrays.asList("5"); // , "16" , "3"
 
         public void initFromSystemProperties() {
             downloadTodaysFile = Boolean.parseBoolean( fromSystemProp("gtfs.downloadToday", downloadTodaysFile.toString()) );
@@ -159,6 +162,15 @@ public class DefaultGtfsQueryBasedOnFtp {
             whenToDownload = LocalTime.parse( fromSystemProp("gtfs.whenToDownload", whenToDownload.toString()) , DateTimeFormatter.ofPattern("HH:mm") );
             dateOfLastDownload = LocalDate.parse( fromSystemProp("gtfs.dateOfLastDownload", dateOfLastDownload.toString()) , DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             secondsBetweenChecks = Integer.parseInt( fromSystemProp("gtfs.secondsBetweenChecks", secondsBetweenChecks.toString() ) );
+            schedulesLocation = fromSystemProp("gtfs.schedules.location", schedulesLocation);
+            rescheduleUrl = fromSystemProp("gtfs.reschedule.url", rescheduleUrl);
+            agencies = parseList(fromSystemProp("gtfs.agencies", agencies.toString()));
+        }
+
+        private List<String> parseList(String s) {
+            s = s.substring(1+s.indexOf("["), s.lastIndexOf("]"));
+            String[] items = s.split(",");
+            return new ArrayList<>(Arrays.asList(items));
         }
 
         private String fromSystemProp(String propName, String defaultValue) {

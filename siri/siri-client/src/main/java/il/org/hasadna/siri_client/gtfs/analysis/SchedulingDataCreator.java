@@ -24,7 +24,7 @@ public class SchedulingDataCreator {
     public SchedulingDataCreator() {
     }
 
-    public void createScheduleForSiri(Collection<GtfsRecord> records, GtfsDataManipulations gtfs) {
+    public void createScheduleForSiri(Collection<GtfsRecord> records, GtfsDataManipulations gtfs, String toDir) {
         logger.info("size: {}", records.size());
         Function<GtfsRecord, String> f = new Function<GtfsRecord, String>() {
             @Override
@@ -71,14 +71,17 @@ public class SchedulingDataCreator {
                     + "]}";
             String fileName = "siri.schedule." + agency + ".json";
             logger.info("writing to file {}", fileName);
-            writeToFile(fileName, json);
+            writeToFile(toDir, fileName, json);
         }
         logger.info("schedules created.");
     }
 
-    private void writeToFile(final String fileName, final String content) {
+    private void writeToFile(String toDir, final String fileName, final String content) {
         try {
-            Files.write(Paths.get(fileName), content.getBytes(Charset.forName("UTF-8")));
+            if (!toDir.endsWith("/")) {
+                toDir = toDir + "/";
+            }
+            Files.write(Paths.get(toDir + fileName), content.getBytes(Charset.forName("UTF-8")));
         } catch (IOException e) {
             logger.error("exception when writing json to file {}", fileName, e);
         }
