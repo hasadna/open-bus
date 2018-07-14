@@ -10,6 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -83,6 +86,8 @@ public class DefaultGtfsQueryBasedOnFtp {
 
             SchedulingDataCreator schedulingDataCreator = new SchedulingDataCreator();
             schedulingDataCreator.createScheduleForSiri(records, gtfs);
+
+            informSiriJavaClientToReschedule();
         }
         catch (IOException e) {
             logger.error("unhandled exception in main", e);
@@ -92,6 +97,21 @@ public class DefaultGtfsQueryBasedOnFtp {
         }
     }
 
+    private int informSiriJavaClientToReschedule() {
+        //call http GET localhost:8080/data/schedules/read/all
+        try {
+            logger.info("calling API to reschedule all...");
+            URL url = new URL("http://localhost:9003/data/schedules/read/all");
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            int status = con.getResponseCode();
+            logger.info(" ... Done. status = {}", status);
+            return status;
+        } catch (Exception e) {
+            logger.error("calling API schedules/read/all failed", e);
+            return 0 ;
+        }
+    }
 
 
     public void scheduleGtfs() {
