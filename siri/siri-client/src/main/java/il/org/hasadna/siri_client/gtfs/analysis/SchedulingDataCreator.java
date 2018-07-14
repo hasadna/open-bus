@@ -24,7 +24,7 @@ public class SchedulingDataCreator {
     public SchedulingDataCreator() {
     }
 
-    public void createScheduleForSiri(Collection<GtfsRecord> records, GtfsDataManipulations gtfs, String toDir) {
+    public void createScheduleForSiri(Collection<GtfsRecord> records, GtfsDataManipulations gtfs, String toDir, List<String> onlyAgencies) {
         logger.info("size: {}", records.size());
         Function<GtfsRecord, String> f = new Function<GtfsRecord, String>() {
             @Override
@@ -37,7 +37,7 @@ public class SchedulingDataCreator {
         logger.info("generating json for all routes...");
 
         // Filter!!! only  Dan(5), Superbus(16)
-        List<String> onlyAgencies = Arrays.asList("5", "16");
+        //List<String> onlyAgencies = Arrays.asList("5", "16");
         for (String agency : onlyAgencies) {
             List<SchedulingData> all =
                     tripsOfRoute.keySet().stream().

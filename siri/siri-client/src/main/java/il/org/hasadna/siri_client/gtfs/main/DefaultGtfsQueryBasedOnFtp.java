@@ -85,7 +85,7 @@ public class DefaultGtfsQueryBasedOnFtp {
             logger.info("size: {}", records.size());
 
             SchedulingDataCreator schedulingDataCreator = new SchedulingDataCreator();
-            schedulingDataCreator.createScheduleForSiri(records, gtfs, configProperties.schedulesLocation);
+            schedulingDataCreator.createScheduleForSiri(records, gtfs, configProperties.schedulesLocation, configProperties.agencies);
 
             informSiriJavaClientToReschedule();
         }
