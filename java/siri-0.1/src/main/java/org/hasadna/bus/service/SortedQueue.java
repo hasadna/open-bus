@@ -83,6 +83,14 @@ public class SortedQueue {
         return removed;
     }
 
+    /**
+     * Beware! This operation will delete all schedulings from the queue!!
+     * Are you sure this is what you intended?
+     */
+    public void removeAll() {
+        // use removeIf with a predicate that always returns true
+        queue.removeIf(c -> true);
+    }
 
     private Queue<Command> queue = new PriorityBlockingQueue<>(20, (c1, c2) -> c1.nextExecution.isBefore(c2.nextExecution)?-1:1);
 

@@ -128,4 +128,11 @@ public class SiriController {
     }
 
 
+    @GetMapping(value="/schedules/read/all")
+    public String reReadAllSchedules() {
+        logger.info("before reading all schedules again");
+        scheduleRetrieval.reReadSchedulingAndReplace();
+        logger.info("all schedules read again");
+        return "OK";
+    }
 }

@@ -272,4 +272,28 @@ public class ScheduleRetrieval {
             logger.error("absorbing unhandled exception", ex);
         }
     }
+
+
+    // removing all entries, read again everything from schedule files
+    // expect 4-10 seconds delay
+    public void reReadSchedulingAndReplace() {
+        logger.info("reading all schedules again");
+        List<Command> data = readSchedulingDataAllFiles(dataFileFullPath);
+
+        logger.info("{} schedules were read", data.size());
+
+        // we currently don't filter out entries - only log warnings
+        validateScheduling(data);
+
+        // remove ALL current schedules
+        logger.info("removing all schedules");
+        queue.removeAll();
+
+        // add the new schedules
+        logger.info("inserting all new schedules");
+        for (Command c : data) {
+            queue.put(c);
+        }
+
+    }
 }

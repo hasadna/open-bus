@@ -4,11 +4,13 @@ import org.hasadna.bus.entity.GetStopMonitoringServiceResponse;
 import org.hasadna.bus.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -55,6 +57,8 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
     }
 
     private boolean cancelRequestIfNoServiceHour(LocalDateTime now, String makat) {
+        // TODO implement correctly
+        // this implementation currently does nothing
         return  false;
     }
 
@@ -123,7 +127,8 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         }
     });
 
-
+    @Autowired
+    HttpPost httpPostRequest;
 
     @Override
     public String retrieveSpecificLineAndStop(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
@@ -131,26 +136,10 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         String requestXmlString = buildServiceRequest(stopCode, previewInterval, lineRef, maxStopVisits);
         HttpEntity<String> entity = new HttpEntity<String>(requestXmlString, createHeaders());
 
-        // measure time
-        StopWatch sw = new StopWatch(Thread.currentThread().getName());
-        sw.start();
-
-        RestTemplate restTemplate = new RestTemplate();
         logger.trace(requestXmlString);
-        ResponseEntity<String> r = null ;
-        try {
-            r = restTemplate.postForEntity(url, entity, String.class);
-        }
-        catch (ResourceAccessException ex) {
-            logger.error("absorbing unhandled", ex);
-            return null;
-        }
-        catch (RestClientException ex) {
-            logger.error("absorbing unhandled", ex);
-            return null;
-        }
-        sw.stop();
-        logger.info("network to MOT server: {} ms", sw.getTotalTimeMillis());
+
+        // the implementation will take care of retry
+        ResponseEntity<String> r = httpPostRequest.postHttpRequest(url, entity);
 
         logger.trace("status={}", r.getStatusCode());
         logger.trace("statusCodeValue={}", r.getStatusCodeValue());
