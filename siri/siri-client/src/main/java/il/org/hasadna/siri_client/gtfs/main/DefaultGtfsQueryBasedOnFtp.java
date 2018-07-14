@@ -101,7 +101,7 @@ public class DefaultGtfsQueryBasedOnFtp {
         //call http GET localhost:8080/data/schedules/read/all
         try {
             logger.info("calling API to reschedule all...");
-            URL url = new URL("http://localhost:9003/data/schedules/read/all");
+            URL url = new URL("http://localhost:8080/data/schedules/read/all");
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             int status = con.getResponseCode();
