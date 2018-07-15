@@ -41,6 +41,7 @@ public class DefaultGtfsQueryBasedOnFtp {
 
     ConfigProperties configProperties = new ConfigProperties();
 
+    LocalDate dateOfLastReschedule = LocalDate.of(2000, 1, 1);
 
     private LocalDate date;
 
@@ -71,23 +72,33 @@ public class DefaultGtfsQueryBasedOnFtp {
     }
 
     public void run() {
+        run(true);
+    }
+
+    public void run(boolean download) {
         try {
             logger.info("reading gtfs file");
             if (configProperties.disableDownload) {
                 logger.trace("download disabled, return without any change");
                 return;
             }
-            GtfsZipFile gtfsZipFile = new GtfsZipFile(new GtfsFtp().downloadGtfsZipFile());
-            date = LocalDate.now();
-            gtfsCrud = new GtfsCrud(gtfsZipFile);
+            if (download) {
+                GtfsZipFile gtfsZipFile = new GtfsZipFile(new GtfsFtp().downloadGtfsZipFile());
+                gtfsCrud = new GtfsCrud(gtfsZipFile);
+            }
             GtfsDataManipulations gtfs = new GtfsDataManipulations(gtfsCrud);
+            date = LocalDate.now();
             Collection<GtfsRecord> records = gtfs.combine(date);
             logger.info("size: {}", records.size());
 
             SchedulingDataCreator schedulingDataCreator = new SchedulingDataCreator();
             schedulingDataCreator.createScheduleForSiri(records, gtfs, configProperties.schedulesLocation, configProperties.agencies);
 
-            informSiriJavaClientToReschedule();
+            int result = informSiriJavaClientToReschedule();
+            if (result == 200) {
+                logger.trace("updating dateOfLastReschedule to {}", LocalDate.now());
+                dateOfLastReschedule = LocalDate.now();
+            }
         }
         catch (IOException e) {
             logger.error("unhandled exception in main", e);
@@ -116,10 +127,8 @@ public class DefaultGtfsQueryBasedOnFtp {
 
     public void scheduleGtfs() {
         logger.trace("Scheduler Started!");
+
         while (true) {
-            try {
-                Thread.sleep(configProperties.secondsBetweenChecks * 1000);
-            } catch (InterruptedException e) {   }
 
             logger.trace("check if it is time to replace gtfs...");
             if (LocalTime.now().isAfter(configProperties.whenToDownload)) {
@@ -134,6 +143,11 @@ public class DefaultGtfsQueryBasedOnFtp {
                     configProperties.dateOfLastDownload = LocalDate.now();
                     logger.trace("updated dateOfLastDownload to {}", configProperties.dateOfLastDownload.toString());
                 }
+                else if (LocalDate.now().isAfter(dateOfLastReschedule)) {
+                    // do not download, but we must reschedule
+                    // because it is another day...
+                    run(false);
+                }
                 else {
                     logger.trace(" ... already downloaded gtfs today");
                 }
@@ -141,6 +155,11 @@ public class DefaultGtfsQueryBasedOnFtp {
             else {
                 logger.trace(" ... not yet.");
             }
+
+            try {
+                logger.trace(" sleeping {} seconds... ", configProperties.secondsBetweenChecks);
+                Thread.sleep(configProperties.secondsBetweenChecks * 1000);
+            } catch (InterruptedException e) {   }
 
         }
     }
@@ -151,7 +170,7 @@ public class DefaultGtfsQueryBasedOnFtp {
         Boolean disableDownload = false;
         LocalTime whenToDownload = LocalTime.of(3, 30);
         LocalDate dateOfLastDownload = LocalDate.of(2000, 1, 1);
-        Integer secondsBetweenChecks = 60;
+        Integer secondsBetweenChecks = 15 * 60; // 15 minutep-s
         String schedulesLocation = "/home/evyatar/logs/";
         String rescheduleUrl = "http://localhost:8080/data/schedules/read/all";
         List<String> agencies = Arrays.asList("5"); // , "16" , "3"

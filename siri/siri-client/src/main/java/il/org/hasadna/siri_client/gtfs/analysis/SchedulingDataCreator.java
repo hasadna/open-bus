@@ -45,11 +45,14 @@ public class SchedulingDataCreator {
                             map(routeId -> {
                                 String lineRef = routeId;
                                 Route route = gtfs.getRoutes().get(routeId);
+                                String desc1 = parseLongName(route.getRouteLongName());
                                 String makat = route.getRouteDesc().substring(0, 5);
                                 String direction = route.getRouteDesc().split("-")[1];
                                 String alternative = route.getRouteDesc().split("-")[2];
                                 String stopCode = Integer.toString(tripsOfRoute.get(routeId).get(0).getLastStop().getStopCode());
-                                String description = " --- Line " + route.getRouteShortName() +
+                                String desc2 = "קו " + route.getRouteShortName() + " " + desc1 ;
+                                //String description = " --- Line " + route.getRouteShortName() +
+                                String description = " --- " + desc2 +
                                         "  --- Makat " + makat +
                                         "  --- Direction " + direction +
                                         "  --- Alternative " + alternative +
@@ -57,7 +60,7 @@ public class SchedulingDataCreator {
                                 String previewInterval = "PT2H";
                                 String maxStopVisits = "7";
                                 String executeEvery = "60";
-                                SchedulingData sd = generateSchedulingData(description, stopCode, previewInterval, lineRef, maxStopVisits, executeEvery);
+                                SchedulingData sd = generateSchedulingData(description, makat, stopCode, previewInterval, lineRef, maxStopVisits, executeEvery);
                                 return sd;
                             }).
                             collect(Collectors.toList());
@@ -76,6 +79,32 @@ public class SchedulingDataCreator {
         logger.info("schedules created.");
     }
 
+    private String parseLongName(String routeLongName) {
+        String result = "";
+        try {
+            String[] parts = routeLongName.split("<->");
+            if (parts.length == 2) {
+                String from = parts[0];
+                String fromCity = from.split("-")[1];
+
+                String to = parts[1];
+                String toCity = to.split("-")[1];
+
+                if (fromCity.equals(toCity)) {
+                    result = "ב" +fromCity ;
+                }
+                else {
+                    result = "מ" +fromCity + " אל" + " " + toCity;
+                }
+            }
+        }
+        catch (Exception ex) {
+            // parsing failed, so
+            result = "";
+        }
+        return result;
+    }
+
     private void writeToFile(String toDir, final String fileName, final String content) {
         try {
             if (!toDir.endsWith("/")) {
@@ -87,8 +116,8 @@ public class SchedulingDataCreator {
         }
     }
 
-    private SchedulingData generateSchedulingData(String description, String stopCode, String previewInterval, String lineRef, String maxStopVisits, String executeEvery) {
-        SchedulingData sd = new SchedulingData(description, stopCode, previewInterval, lineRef, maxStopVisits, executeEvery);
+    private SchedulingData generateSchedulingData(String description, String makat, String stopCode, String previewInterval, String lineRef, String maxStopVisits, String executeEvery) {
+        SchedulingData sd = new SchedulingData(description, makat, stopCode, previewInterval, lineRef, maxStopVisits, executeEvery);
         return sd;
     }
 
@@ -125,14 +154,16 @@ public class SchedulingDataCreator {
 //                }
     private class SchedulingData {
         public String description;
+        public String makat;
         public String stopCode;
         public String previewInterval;
         public String lineRef;
         public String maxStopVisits;
         public String executeEvery;
 
-        public SchedulingData(String description, String stopCode, String previewInterval, String lineRef, String maxStopVisits, String executeEvery) {
+        public SchedulingData(String description, String makat, String stopCode, String previewInterval, String lineRef, String maxStopVisits, String executeEvery) {
             this.description = description;
+            this.makat = makat;
             this.stopCode = stopCode;
             this.previewInterval = previewInterval;
             this.lineRef = lineRef;

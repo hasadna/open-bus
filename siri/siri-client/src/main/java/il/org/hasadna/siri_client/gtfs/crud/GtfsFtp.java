@@ -2,6 +2,7 @@ package il.org.hasadna.siri_client.gtfs.crud;
 
 import java.io.*;
 import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.nio.file.*;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -22,11 +23,20 @@ public class GtfsFtp {
 	private static final String HOST = "gtfs.mot.gov.il";
 	private static final String FILE_NAME = "israel-public-transportation.zip";
     private static final String TEMP_DIR = "/tmp/";
-    
+
 	private static Logger logger = LoggerFactory.getLogger(GtfsFtp.class);
 
 	FTPClient connect(String host) throws IOException {
 		FTPClient ftpClient = createFTPClient();
+		try {
+		if (System.getProperty("gtfs.connect.timeout") != null) {
+		    int timeout = Integer.parseInt(System.getProperty("gtfs.connect.timeout"));
+            ftpClient.setConnectTimeout(timeout);    // seconds
+        } }
+        catch (Exception ex) {
+		    // absorb on purpose, timeout will remain as it was
+            logger.warn("absorbing exception while parsing value of system property gtfs.connect.timeout", ex);
+        }
 		ftpClient.connect(host);
 		ftpClient.login("anonymous", "");
 		ftpClient.enterLocalPassiveMode();
@@ -79,19 +89,23 @@ public class GtfsFtp {
 	private Path downloadGtfsZipFile(Path path) throws IOException {
         OutputStream out = null ;
 	    try {
-            logger.info("connect to ftp...");
-            FTPClient conn = connect(HOST);
-            out = new BufferedOutputStream(new FileOutputStream(path.toFile()));
-
-            logger.info("start downloading from ftp...");
-
             try {
+                logger.info("connect to ftp...");
+                FTPClient conn = connect(HOST);
+                out = new BufferedOutputStream(new FileOutputStream(path.toFile()));
+
+                logger.info("start downloading from ftp...");
+
                 if (!conn.retrieveFile(FILE_NAME, out)) {
                     logger.error("retrieveFile returned false, fileName={}", FILE_NAME);
                     throw new DownloadFailedException("Failed to download the file: " + FILE_NAME);
                 }
             }
             catch (ConnectException ex) {
+                logger.error("failed to retrieve GTFS file from ftp", ex);
+                throw new DownloadFailedException("Failed to download the file: " + FILE_NAME);
+            }
+            catch (SocketTimeoutException ex) {
                 logger.error("failed to retrieve GTFS file from ftp", ex);
                 throw new DownloadFailedException("Failed to download the file: " + FILE_NAME);
             }
