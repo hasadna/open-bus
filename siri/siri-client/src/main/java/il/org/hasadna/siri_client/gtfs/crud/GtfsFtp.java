@@ -21,7 +21,8 @@ public class GtfsFtp {
 
 	private static final String HOST = "gtfs.mot.gov.il";
 	private static final String FILE_NAME = "israel-public-transportation.zip";
-
+    private static final String TEMP_DIR = "/tmp/";
+    
 	private static Logger logger = LoggerFactory.getLogger(GtfsFtp.class);
 
 	FTPClient connect(String host) throws IOException {
@@ -50,9 +51,9 @@ public class GtfsFtp {
 	}
 
     private Path findOlderGtfsFile(LocalDate now) throws IOException {
-	    File dir = new File("/tmp/");
+	    File dir = new File(TEMP_DIR);
 	    if (!dir.isDirectory()) {
-	        throw new DownloadFailedException("can't find directory /tmp");
+	        throw new DownloadFailedException("can't find directory " + TEMP_DIR);
         }
         File[] x = dir.listFiles();
 	    logger.trace("all files: [{}]", Arrays.stream(x).map(file -> file.getName()).collect(Collectors.joining(",")));
@@ -65,7 +66,7 @@ public class GtfsFtp {
         logger.info("all gtfs files: [{}]", allGtfsFiles.stream().map(file -> file.getName()).collect(Collectors.joining(",")));
         File newestGtfs = allGtfsFiles.stream().
                 findFirst().
-                orElseThrow(() -> new DownloadFailedException("can't find older gtfs files in /tmp"));
+                orElseThrow(() -> new DownloadFailedException("can't find older gtfs files in " + TEMP_DIR));
         logger.info("newest gtfs file: {}", newestGtfs.getName());
         return Paths.get(newestGtfs.getAbsolutePath());
     }
@@ -111,7 +112,7 @@ public class GtfsFtp {
 
     private Path renameFile(final Path path) {
 	    try {
-            String meaningfulName = "gtfs" + LocalDate.now().toString() + ".zip";
+            String meaningfulName = TEMP_DIR + "gtfs" + LocalDate.now().toString() + ".zip";
             Path newName = Paths.get(meaningfulName);
             Path newPath = Files.move(path, newName, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             return newPath;
