@@ -5,7 +5,7 @@ Provide in command line args the path to config file
 """
 
 from configparser import ConfigParser
-from boto3.session import Session
+# from boto3.session import Session
 from ftplib import FTP
 import datetime
 import time
@@ -42,7 +42,7 @@ def get_local_date_and_time_hyphen_delimited():
 
 
 def ftp_get_file(local_path, host=MOT_FTP, remote_path=GTFS_FILE_NAME):
-    """ get file remote_name from FTP host host and copy it into local_path"""
+    """ get file remote_path from FTP host and copy it into local_path"""
     print("Starting to download '%s' from host '%s' => '%s'" % (remote_path, host, local_path))
     f = FTP(host)
     f.login()
@@ -96,6 +96,8 @@ def md5_for_file(path, block_size=4096):
 
 
 def connect_to_bucket(aws_args):
+    from boto3.session import Session
+
     session = Session(aws_access_key_id=aws_args['aws_access_key_id'],
                       aws_secret_access_key=aws_args['aws_secret_access_key'])
     s3 = session.resource("s3")
@@ -114,22 +116,23 @@ def parse_config(config_file_name):
     return config_dict
 
 
-def upload_gtfs_file_to_s3_bucket(connection, file_name, force=False):
+def download_file_and_upload_to_s3_bucket(connection, remote_file_name, force=False):
     """ download gtfs zip file from mot, and upload to s3 Bucket """
-    # file_name = get_utc_date() + '.zip'
-    tmp_file = '/tmp/' + file_name
+    filename = os.path.splitext(remote_file_name)[0] + datetime.datetime.now().strftime(
+        '-%Y-%m-%dT%H-%M-%S') + '.zip'
 
-    print('Downloading GTFS to tmp file...')
-    ftp_get_file(MOT_FTP, GTFS_FILE_NAME, tmp_file)
+    print("Downloading '%s' to tmp file..." % remote_file_name)
+    file_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), filename))
+    ftp_get_file(file_path, MOT_FTP, remote_file_name)
 
     if not force:
-        tmp_md5 = md5_for_file(tmp_file)
+        tmp_md5 = md5_for_file(file_path)
         try:
             # check if identical file already exists - retrieve current md5 of zip with same name
-            last_md5 = connection.Object(file_name).e_tag[1:-1]  # boto3 relives with ""
+            last_md5 = connection.Object(filename).e_tag[1:-1]  # boto3 relives with ""
             if str(last_md5) == tmp_md5:
                 print("Checksum's are identical - removing tmp file...")
-                os.remove(tmp_file)
+                os.remove(file_path)
                 return None
         except Exception as e:
             # file didn't exists
@@ -138,13 +141,25 @@ def upload_gtfs_file_to_s3_bucket(connection, file_name, force=False):
     print('No file exists yet, checksum for latest is different or force enabled -> copying...')
 
     # upload to bucket
-    data = open(tmp_file, 'rb')
-    connection.put_object(Key=file_name, Body=data)
+    data = open(file_path, 'rb')
+    connection.put_object(Key=filename, Body=data)
     data.close()
     
     # remove tmp file
-    os.remove(tmp_file)
-    print('GTFS file retrieved to bucket')
+    os.remove(file_path)
+    print("'%s' retrieved to bucket" % remote_file_name)
+    # print("Downloading '%s' to tmp file..." % remote_file_name)
+    return
+
+
+def upload_file_to_s3_bucket(connection, file_name, force=False):
+    """ download gtfs zip file from mot, and upload to s3 Bucket """
+
+    # upload to bucket
+    data = open(file_name, 'rb')
+    connection.put_object(Key=file_name, Body=data)
+    data.close()
+
     return
 
 
@@ -241,7 +256,7 @@ def download_file(dest_dir, remote_file_name, force_download):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--aws", type=str, dest='aws_config_file_name', help="download to AWS. "
+    parser.add_argument("--aws", type=str, dest='aws_config_file_name', help="upload current MOT FTP content to AWS S3 "
                         "See /conf/gtfs_download.config.example for a template for the configuration file")
     parser.add_argument("-d", dest='destination_directory', metavar='DIRECTORY', help="download to local library")
     parser.add_argument("-f", dest='force_download', action='store_true', help="skip timestamp comparing and force download from ftp")
@@ -253,12 +268,11 @@ def main():
     ftp_filenames_array=[GTFS_FILE_NAME, CLUSTER_TO_LINE_FILE_NAME, TARIFF_FILE_NAME, TRAIN_OFFICE_FILE_NAME, TRIP_ID_FILE_NAME, ZONES_FILE_NAME]
 
     if args.aws_config_file_name:
-        remote_file_name = GTFS_FILE_NAME
-        filename = os.path.splitext(remote_file_name)[0] + datetime.datetime.now().strftime(
-            '-%Y-%m-%dT%H-%M-%S') + '.zip'
+        # remote_file_name = TRIP_ID_FILE_NAME
         args = parse_config(args.aws_config_file_name)
-        connection = connect_to_bucket(args)
-        upload_gtfs_file_to_s3_bucket(connection, filename)
+        for remote_file_name in ftp_filenames_array:
+            connection = connect_to_bucket(args)
+            download_file_and_upload_to_s3_bucket(connection, remote_file_name)
 
     if args.destination_directory:
         # remote_file_name = TARIFF_FILE_NAME
