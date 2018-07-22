@@ -401,8 +401,14 @@ def _get_valid_files_for_stats(bucket, existing_output_files):
                                                    for g in existing_output_files 
                                                    if g[1]=='route_stats']]
 
+def parse_date(file_name):
+    date_str = file_name.split('.')[0]
+    date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+    return (date, date_str)
+  
 def batch_stats_s3(bucket_name = BUCKET_NAME, output_folder = OUTPUT_DIR, 
-                   gtfs_folder = GTFS_FEEDS_PATH, delete_downloaded_gtfs_zips=False):
+                   gtfs_folder = GTFS_FEEDS_PATH, delete_downloaded_gtfs_zips=False,
+                   logger = None):
     try:
         if os.path.exists(output_folder):
             existing_output_files = _get_existing_output_files(output_folder)
@@ -425,8 +431,7 @@ def batch_stats_s3(bucket_name = BUCKET_NAME, output_folder = OUTPUT_DIR,
         for file in valid_files:
 
             logger.info(f'extracting date from file name "{file}"')
-            date_str = file.split('.')[0]
-            date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+            date, date_str = parse_date(file)
 
             trip_stats_output_path = output_folder+date_str+'_trip_stats.pkl.gz'
             if os.path.exists(trip_stats_output_path):
@@ -518,11 +523,10 @@ def get_logger():
     logger.addHandler(ch)
     return logger
 
-logger = get_logger()
-
 def main():
+    logger = get_logger()
     logger.info(f'starting batch_stats_s3 with default config')
-    batch_stats_s3(delete_downloaded_gtfs_zips = DELETE_DOWNLOADED_GTFS_ZIPS)
+    batch_stats_s3(delete_downloaded_gtfs_zips = DELETE_DOWNLOADED_GTFS_ZIPS, logger = logger)
     
 
 if __name__ == '__main__':
