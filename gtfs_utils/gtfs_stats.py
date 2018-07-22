@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 import datetime
 import time
-import gtfs_utils as gu
+import gtfs_utils.gtfs_utils as gu
 import gtfstk
 from collections import OrderedDict
 import os
@@ -21,7 +21,7 @@ import boto3
 import logging
 from zipfile import BadZipFile
 import itertools
-from gtfs_stats_conf import *
+from gtfs_utils.gtfs_stats_conf import *
 
 def compute_trip_stats_partridge(feed, zones):
     """
