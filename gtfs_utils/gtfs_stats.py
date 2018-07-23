@@ -324,98 +324,154 @@ def compute_route_stats_base_partridge(trip_stats_subset,
         d['num_zones_missing'] = group['num_zones_missing'].iat[0]
 
         return pd.Series(d)
-    
+
     g = f.groupby('route_id').apply(
         compute_route_stats).reset_index()
 
     # Compute a few more stats
-    g['service_speed'] = g['service_distance']/g['service_duration']
-    g['mean_trip_distance'] = g['service_distance']/g['num_trips']
-    g['mean_trip_duration'] = g['service_duration']/g['num_trips']
-    
+    g['service_speed'] = g['service_distance'] / g['service_duration']
+    g['mean_trip_distance'] = g['service_distance'] / g['num_trips']
+    g['mean_trip_duration'] = g['service_duration'] / g['num_trips']
+
     # Convert route times to time strings
     time_cols = ['start_time', 'end_time', 'peak_start_time', 'peak_end_time']
     g[time_cols] = g[time_cols].applymap(lambda x: gtfstk.helpers.timestr_to_seconds(x, inverse=True))
-    
-    g['service_speed'] = g.service_speed/1000
 
-    g = g[['route_id', 'route_short_name', 'agency_id', 'agency_name', 
-           'route_long_name', 'route_type', 'num_trips', 'num_trip_starts', 
+    g['service_speed'] = g.service_speed / 1000
+
+    g = g[['route_id', 'route_short_name', 'agency_id', 'agency_name',
+           'route_long_name', 'route_type', 'num_trips', 'num_trip_starts',
            'num_trip_ends', 'is_loop', 'is_bidirectional', 'start_time',
-           'end_time', 'max_headway', 'min_headway', 'mean_headway', 
+           'end_time', 'max_headway', 'min_headway', 'mean_headway',
            'peak_num_trips', 'peak_start_time', 'peak_end_time',
            'service_distance', 'service_duration', 'service_speed',
            'mean_trip_distance', 'mean_trip_duration', 'start_stop_id',
-           'end_stop_id', 'start_stop_lat', 'start_stop_lon', 'end_stop_lat', 
-           'end_stop_lon', 'num_stops', 'start_zone', 'end_zone', 
+           'end_stop_id', 'start_stop_lat', 'start_stop_lon', 'end_stop_lat',
+           'end_stop_lon', 'num_stops', 'start_zone', 'end_zone',
            'num_zones', 'num_zones_missing'
            ]]
-    
+
     return g
+
 
 def retry(delays=(0, 1, 5, 30, 180, 600, 3600),
           exception=Exception):
-    def wrapper(function):
+    """
+Decorator which performs retries with dynamic intervals set by given delays tuple. Also pulls report kwarg from the
+wrapped function call for logging.
+    :param delays: tuple of wait time (seconds)
+    :type delays: tuple
+    :param exception: what exception to catch for retries
+    :type exception: type
+    :return: wrapped function
+    :rtype: function
+    """
+    def wrapper(func):
         def wrapped(*args, **kwargs):
+            report = kwargs['report']
             problems = []
-            for delay in itertools.chain(delays, [ None ]):
+            for delay in itertools.chain(delays, [None]):
                 try:
-                    return function(*args, **kwargs)
+                    return func(*args, **kwargs)
                 except exception as problem:
                     problems.append(problem)
                     if delay is None:
-                        logger.error("retryable failed definitely:", problems)
+                        report("retryable failed definitely:", problems)
                         raise
                     else:
-                        logger.error("retryable failed:", problem,
-                            "-- delaying for %ds" % delay)
+                        report("retryable failed:", problem,
+                               "-- delaying for %ds" % delay)
                         time.sleep(delay)
+
         return wrapped
+
     return wrapper
 
+
 @retry()
-def s3_download(bucket, key, output_path):
+def s3_download(bucket, key, output_path, report=print):
+    """
+Download file from s3 bucket. Retry using decorator, and report to logger given in report parameter.
+    :param bucket: s3 boto bucket object
+    :type bucket: boto3.resources.factory.s3.Bucket
+    :param key: key of the file to download
+    :type key: str
+    :param output_path: output path to download the file to
+    :type output_path: str
+    :param report: callable to use for logging (e.g. logging logger object)
+    :type report: callable
+    """
     bucket.download_file(key, output_path)
+
 
 def batch_stats(folder=GTFS_FEEDS_PATH, output_folder=OUTPUT_DIR):
     for file in os.listdir(folder):
         date_str = file.split('.')[0]
         date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-        feed = gu.get_partridge_feed_by_date(output_folder+file, date)
+        feed = gu.get_partridge_feed_by_date(output_folder + file, date)
         zones = gu.get_zones_df(LOCAL_TARIFF_PATH)
         ts = compute_trip_stats_partridge(feed, zones)
-        ts.to_pickle(output_folder+date_str+'_trip_stats.pkl.gz', compression='gzip')
+        ts.to_pickle(output_folder + date_str + '_trip_stats.pkl.gz', compression='gzip')
         rs = compute_route_stats_base_partridge(ts)
-        rs.to_pickle(output_folder+date_str+'_route_stats.pkl.gz', compression='gzip')
+        rs.to_pickle(output_folder + date_str + '_route_stats.pkl.gz', compression='gzip')
+
 
 def _get_existing_output_files(output_folder):
-    return [(g[0], g[1]) for g in 
-                              (re.match(OUTPUT_FILE_NAME_RE, file).groups() 
-                               for file in os.listdir(output_folder))]
+    """
+Get existing output files in the given folder, in a list containing tuples of dates and output types.
+    :param output_folder: a folder to check for
+    :type output_folder:
+    :return: list of 2-tuples (date_str, output_file_type)
+    :rtype: list
+    """
+    return [(g[0], g[1]) for g in
+            (re.match(OUTPUT_FILE_NAME_RE, file).groups()
+             for file in os.listdir(output_folder))]
+
 
 def _get_valid_files_for_stats(bucket, existing_output_files):
-    return [obj.key for obj in bucket.objects.all() 
-                       if re.match(BUCKET_VALID_FILES_RE, obj.key) and 
-                                   obj.key not in [g[0]+'.zip' 
-                                                   for g in existing_output_files 
-                                                   if g[1]=='route_stats']]
+    """
+Get list of valid for stat computation file keys from s3 which down't have route_stats output in the given list
+of existing_output_files.
+    :param bucket: s3 boto bucket object
+    :type bucket: boto3.resources.factory.s3.Bucket
+    :param existing_output_files: list of 2-tuples as returned by _get_existing_output_files
+    :type existing_output_files: list
+    :return: list of valid file keys for stat computation
+    :rtype: list
+    """
+    return [obj.key for obj in bucket.objects.all()
+            if re.match(BUCKET_VALID_FILES_RE, obj.key) and
+            obj.key not in [g[0] + '.zip'
+                            for g in existing_output_files
+                            if g[1] == 'route_stats']]
+
 
 def parse_date(file_name):
+    """
+Parse date from file name
+    :param file_name: file name in YYYY-mm-dd.zip format
+    :type file_name: str
+    :return: date object and date string
+    :rtype: tuple
+    """
     date_str = file_name.split('.')[0]
     date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-    return (date, date_str)
-  
-def batch_stats_s3(bucket_name = BUCKET_NAME, output_folder = OUTPUT_DIR, 
-                   gtfs_folder = GTFS_FEEDS_PATH, delete_downloaded_gtfs_zips=False,
-                   logger = None):
+    return date, date_str
+
+
+def batch_stats_s3(bucket_name=BUCKET_NAME, output_folder=OUTPUT_DIR,
+                   gtfs_folder=GTFS_FEEDS_PATH, delete_downloaded_gtfs_zips=False,
+                   logger=None):
     try:
+        existing_output_files = []
         if os.path.exists(output_folder):
             existing_output_files = _get_existing_output_files(output_folder)
             logger.info(f'found {len(existing_output_files)} output files in output folder {output_folder}')
         else:
             logger.info(f'creating output folder {output_folder}')
-            os.mkdirs(output_folder)
-            
+            os.makedirs(output_folder)
+
         s3 = boto3.resource('s3')
         bucket = s3.Bucket(bucket_name)
 
