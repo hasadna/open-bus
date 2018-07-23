@@ -128,9 +128,9 @@ def parse_config(config_file_name):
 
 
 def download_file_and_upload_to_s3_bucket(connection, remote_file_name, force=False):
-    """ download gtfs zip file from mot, and upload to s3 Bucket """
+    """ download remote file from mot, and upload to s3 Bucket """
     filename = os.path.splitext(remote_file_name)[0] + datetime.datetime.now().strftime(
-        '-%Y-%m-%dT%H-%M-%S') + '.zip'
+        '_%Y-%m-%dT%H-%M-%S') + '.zip'
 
     logger.info("Downloading '%s' to tmp file..." % remote_file_name)
     file_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), filename))
