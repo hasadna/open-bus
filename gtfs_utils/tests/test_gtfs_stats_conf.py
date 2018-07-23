@@ -20,3 +20,4 @@ def test_conf():
     assert isinstance(WRITE_FEED_DANGEROUSLY, bool)
     assert isinstance(FILTERED_FEEDS_PATH, str)
     assert isinstance(STATS_TYPES, list)
+    assert isinstance(LOG_FOLDER, str)
