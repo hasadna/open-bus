@@ -16,6 +16,16 @@ import re
 import pickle
 import operator
 # import pytz
+import logging
+import logging.config
+
+"""
+Based on http://docs.python.org/howto/logging.html#configuring-logging
+"""
+# logging.config.fileConfig('logging.conf')
+log_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf')
+logging.config.fileConfig(log_file_path)
+logger = logging.getLogger("default")
 
 MOT_FTP = 'gtfs.mot.gov.il'
 # PICKLE_FILE_NAME = 'gtfs-downloads-pickle.p'
@@ -41,16 +51,17 @@ def get_local_date_and_time_hyphen_delimited():
     return t.strftime('%Y-%m-%d-%H-%M-%S')
 
 
-def ftp_get_file(local_path, host=MOT_FTP, remote_path=GTFS_FILE_NAME):
+def ftp_get_file(local_path, host, remote_path):
     """ get file remote_path from FTP host and copy it into local_path"""
-    print("Starting to download '%s' from host '%s' => '%s'" % (remote_path, host, local_path))
+    # print("Starting to download '%s' from host '%s' => '%s'" % (remote_path, host, local_path))
+    logger.info("Starting to download '%s' from host '%s' => '%s'" % (remote_path, host, local_path))
     f = FTP(host)
     f.login()
     fh = open(local_path, 'wb')
     f.retrbinary('RETR %s' % remote_path, fh.write)
     fh.close()
     f.quit()
-    print("Retrieved from host %s: %s => %s" % (host, remote_path, local_path))
+    logger.info("Retrieved from host %s: %s => %s" % (host, remote_path, local_path))
 
 
 def get_uptodateness(local_timestamp, host=MOT_FTP, remote_file_name=GTFS_FILE_NAME):
@@ -121,7 +132,7 @@ def download_file_and_upload_to_s3_bucket(connection, remote_file_name, force=Fa
     filename = os.path.splitext(remote_file_name)[0] + datetime.datetime.now().strftime(
         '-%Y-%m-%dT%H-%M-%S') + '.zip'
 
-    print("Downloading '%s' to tmp file..." % remote_file_name)
+    logger.info("Downloading '%s' to tmp file..." % remote_file_name)
     file_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), filename))
     ftp_get_file(file_path, MOT_FTP, remote_file_name)
 
@@ -131,14 +142,14 @@ def download_file_and_upload_to_s3_bucket(connection, remote_file_name, force=Fa
             # check if identical file already exists - retrieve current md5 of zip with same name
             last_md5 = connection.Object(filename).e_tag[1:-1]  # boto3 relives with ""
             if str(last_md5) == tmp_md5:
-                print("Checksum's are identical - removing tmp file...")
+                logger.debug("Checksum's are identical - removing tmp file...")
                 os.remove(file_path)
                 return None
         except Exception as e:
             # file didn't exists
             pass
 
-    print('No file exists yet, checksum for latest is different or force enabled -> copying...')
+    logger.debug('No file exists yet, checksum for latest is different or force enabled -> copying...')
 
     # upload to bucket
     data = open(file_path, 'rb')
@@ -147,7 +158,7 @@ def download_file_and_upload_to_s3_bucket(connection, remote_file_name, force=Fa
     
     # remove tmp file
     os.remove(file_path)
-    print("'%s' retrieved to bucket" % remote_file_name)
+    logger.info("'%s' retrieved to bucket" % remote_file_name)
     # print("Downloading '%s' to tmp file..." % remote_file_name)
     return
 
@@ -178,8 +189,8 @@ def dump_to_pickle_dict(dl_files_dict):
 
 def print_dl_files_dict(dl_files_dict):
     for keys, values in dl_files_dict.items():
-        print("md5 hash: " + keys)
-        print("[filename, epoch in seconds]: ", values)
+        logger.debug("md5 hash: " + keys)
+        logger.debug("[filename, epoch in seconds]: ", values)
 
 
 def load_pickle_dict(path):
@@ -204,7 +215,7 @@ def load_pickle_dict(path):
 def check_if_path_exists(path):
     """" check if path exists, if not, return cwd """
     if not os.path.exists(path):
-        print("ERROR: the path '" + path + "' does not exist, setting destination path to " + os.getcwd())
+        logger.error("ERROR: the path '" + path + "' does not exist, setting destination path to " + os.getcwd())
         path = os.getcwd()
     return path
 
@@ -239,17 +250,17 @@ def download_file(dest_dir, remote_file_name, force_download):
 
     # if get_uptodateness(latest_local_timestamp, MOT_FTP, remote_file_name) or args.force_download:
     if get_uptodateness(latest_local_timestamp, MOT_FTP, remote_file_name) or force_download:
-        print("New file have been found on " + MOT_FTP + " or the '-f' flag is on")
+        logger.debug("New file have been found on " + MOT_FTP + " or the '-f' flag is on")
         ftp_get_file(file_path, MOT_FTP, remote_file_name)
         file_md5 = md5_for_file(file_path)
         # check if md5 already exists and add it if so
         if not (file_md5 in dl_files_dict):
             save_and_dump_pickle_dict(filename, epoch_now, file_md5, dl_files_dict)
         else:
-            print("The downloaded file '" + remote_file_name + "' already exists (according to md5 check), removing")
+            logger.debug("The downloaded file '" + remote_file_name + "' already exists (according to md5 check), removing")
             os.remove(file_path)
     else:
-        print("No newer (timestamp comparing) file have been found on FTP server")
+        logger.debug("No newer (timestamp comparing) file have been found on FTP server")
 
     return
 
