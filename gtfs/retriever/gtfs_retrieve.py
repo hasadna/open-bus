@@ -18,6 +18,8 @@ import operator
 # import pytz
 import logging
 import logging.config
+import pathlib
+
 
 """
 Based on http://docs.python.org/howto/logging.html#configuring-logging
@@ -64,7 +66,7 @@ def ftp_get_file(local_path, host, remote_path):
     logger.info("Retrieved from host %s: %s => %s" % (host, remote_path, local_path))
 
 
-def get_uptodateness(local_timestamp, host=MOT_FTP, remote_file_name=GTFS_FILE_NAME):
+def get_uptodateness(local_timestamp, host, remote_file_name):
     """" returns true if remote file timestamp is newer than local_timestamp """
     conn = FTP(host)
     conn.login()
@@ -130,7 +132,8 @@ def parse_config(config_file_name):
 def download_file_and_upload_to_s3_bucket(connection, remote_file_name, force=False):
     """ download remote file from mot, and upload to s3 Bucket """
     filename = os.path.splitext(remote_file_name)[0] + datetime.datetime.now().strftime(
-        '_%Y-%m-%dT%H-%M-%S') + '.zip'
+        '_%Y-%m-%dT%H-%M-%S') + pathlib.Path(remote_file_name).suffix
+        # '_%Y-%m-%dT%H-%M-%S') + '.zip'
 
     logger.info("Downloading '%s' to tmp file..." % remote_file_name)
     file_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), filename))
