@@ -642,7 +642,7 @@ if __name__ == '__main__':
 # 1. add day and night headways and num_trips (maybe noon also)
 # 1. create a function for reading all the pickles and 
 #    make necessary conversions (make it a timeseries good for pandas)
-#    1. times to propper datetimes, date to time period
+#    1. times to proper datetimes, date to time period
 #    1. bools to bools
 #    1. add day of week
 # 1. insert to sql
