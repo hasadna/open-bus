@@ -16,7 +16,6 @@ import gtfs_utils as gu
 import gtfstk
 from collections import OrderedDict
 import os
-import re
 import boto3
 import logging
 from zipfile import BadZipFile
