@@ -463,6 +463,21 @@ Parse date from file name
 def batch_stats_s3(bucket_name=BUCKET_NAME, output_folder=OUTPUT_DIR,
                    gtfs_folder=GTFS_FEEDS_PATH, delete_downloaded_gtfs_zips=False,
                    logger=None):
+    """
+Create daily trip_stats and route_stats DataFrame pickles, based on the files in an S3 bucket and
+their dates - `YYYY-mm-dd.zip`.
+Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
+    :param bucket_name: name of s3 bucket with GTFS feeds
+    :type bucket_name: str
+    :param output_folder: local path to write output files to
+    :type output_folder: str
+    :param gtfs_folder: local path containing GTFS feeds
+    :type gtfs_folder: str
+    :param delete_downloaded_gtfs_zips: whether to delete GTFS feed files that have been downloaded by the function.
+    :type delete_downloaded_gtfs_zips: bool
+    :param logger: logger to write to
+    :type logger: logging.Logger
+    """
     try:
         existing_output_files = []
         if os.path.exists(output_folder):
@@ -567,6 +582,15 @@ def batch_stats_s3(bucket_name=BUCKET_NAME, output_folder=OUTPUT_DIR,
 
 
 def get_logger():
+    """
+Returns a logger object. Writes all (up to DEBUG) to a file in the configured `LOG_FOLDER`. Errors are also written to
+stdout.
+TODO: use logging conf file
+TODO: use __name__ and call this from each function
+TODO: decorate
+    :return: logger object
+    :rtype: logging.Logger
+    """
     # create logger with 'gtfs_stats'
     logger = logging.getLogger('gtfs_stats')
     logger.setLevel(logging.DEBUG)
