@@ -1,5 +1,6 @@
 import datetime
-from gtfs_utils.gtfs_stats import parse_date
+from gtfs_stats import parse_date
+
 
 def test_parse_date():
     date, date_str = parse_date('2099-01-01.zip')

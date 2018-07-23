@@ -1,11 +1,12 @@
 import re
 
-from gtfs_utils.gtfs_stats_conf import \
+from gtfs_stats_conf import \
     LOCAL_TARIFF_PATH, GTFS_FEEDS_PATH, OUTPUT_DIR, \
     OUTPUT_FILE_NAME_RE, BUCKET_NAME, BUCKET_VALID_FILES_RE, \
     DELETE_DOWNLOADED_GTFS_ZIPS, WRITE_FEED_DANGEROUSLY, \
     FILTERED_FEEDS_PATH, STATS_TYPES
-        
+
+
 def test_conf():
     assert isinstance(LOCAL_TARIFF_PATH, str)
     assert isinstance(GTFS_FEEDS_PATH, str)
