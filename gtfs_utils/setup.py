@@ -15,7 +15,9 @@ with io.open('src/__version__.py', 'r', encoding='utf-8') as f:
 requirements = [
     'partridge>=0.10.0',
     'gtfstk',
+    'numpy'
     'pandas',
+    'boto3'
 ]
 
 setup_requirements = [
