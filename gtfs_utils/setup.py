@@ -3,7 +3,6 @@
 
 """The setup script."""
 import io
-import sys
 
 from setuptools import setup, find_packages
 
@@ -33,10 +32,10 @@ setup(
     version=about['__version__'],
     description='gtfs_utils is python library for working with archives of'
                 'GTFS feeds using pandas DataFrames.',
-#    long_description=readme + '\n\n' + history,
+    #    long_description=readme + '\n\n' + history,
     author='Dan Bareket',
     author_email='dbareket@gmail.com',
-#    url='https://github.com/remix/partridge',
+    #    url='https://github.com/remix/partridge',
     packages=find_packages(include=['src']),
     include_package_data=True,
     install_requires=requirements,
