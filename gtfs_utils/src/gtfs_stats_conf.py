@@ -1,6 +1,6 @@
 import re
 
-BASE_FOLDER = '../../'
+BASE_FOLDER = '../../../'
 
 DATA_FOLDER = BASE_FOLDER + 'data/'
 
