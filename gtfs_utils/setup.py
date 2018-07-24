@@ -8,15 +8,15 @@ from setuptools import setup, find_packages
 
 # About dict to store version and package info
 about = dict()
-with io.open('src/__version__.py', 'r', encoding='utf-8') as f:
+with io.open('gtfs_utils/__version__.py', 'r', encoding='utf-8') as f:
     exec(f.read(), about)
 
 requirements = [
     'partridge>=0.10.0',
     'gtfstk',
-    'numpy'
+    'numpy',
     'pandas',
-    'boto3'
+    'boto3',
 ]
 
 setup_requirements = [
@@ -36,7 +36,7 @@ setup(
     author='Dan Bareket',
     author_email='dbareket@gmail.com',
     #    url='https://github.com/remix/partridge',
-    packages=find_packages(include=['src']),
+    packages=find_packages(include=['gtfs_utils']),
     include_package_data=True,
     install_requires=requirements,
     license='MIT license',

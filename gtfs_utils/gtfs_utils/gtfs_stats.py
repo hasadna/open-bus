@@ -695,5 +695,9 @@ if __name__ == '__main__':
 # 1. insert to sql
 # 1. Think about creating an archive of pruned GTFS (only 1 day each)
 # 1. mean_headway doesn't mean much when num_trips low (maybe num_trips cutoffs will be enough)
-# 
-#
+# 1. add info from other files in the FTP
+# GTFS aggregated data from all the transit companies of Israel
+# ClusterToLine.zip to map same-numbered route lines of different cities (clusters) correctly
+# TrainOfficeLineId.zip trips of lines of Israel Railways
+# TripIdToDate.zip to map trips to dates and days of operation
+# Tariff.zip fares for periodic (daily/weekly/monthly) passes for every zone
