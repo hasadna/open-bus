@@ -182,7 +182,7 @@ def get_active_trips_df(trip_times):
     """
     active_trips = pd.concat([pd.Series(1, trip_times.start_time),  # departed add 1
                               pd.Series(-1, trip_times.end_time)    # arrived subtract 1
-                              ]).sort_index().cumsum().ffill()
+                              ]).groupby(level=0, sort=True).sum().cumsum().ffill()
     return active_trips
 
 
