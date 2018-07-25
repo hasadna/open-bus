@@ -1,5 +1,6 @@
 package org.hasadna.bus.service;
 
+import io.micrometer.core.annotation.Timed;
 import org.hasadna.bus.entity.GetStopMonitoringServiceResponse;
 import org.hasadna.bus.util.Util;
 import org.slf4j.Logger;
@@ -42,6 +43,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
 
 
     @Override
+    //@Timed
     public GetStopMonitoringServiceResponse retrieveSiri(Command command) {
 
         if ("extended".equals(command.stopCode)) {

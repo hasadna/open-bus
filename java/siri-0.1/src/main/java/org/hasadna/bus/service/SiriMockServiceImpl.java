@@ -1,5 +1,8 @@
 package org.hasadna.bus.service;
 
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.*;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
 import org.hasadna.bus.entity.GetStopMonitoringServiceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -28,8 +32,11 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import static org.hasadna.bus.util.Util.removeSoapEnvelope;
 
@@ -42,7 +49,31 @@ public class SiriMockServiceImpl implements SiriConsumeService {
     final String SIRI_SERVICES_URL = "http://siri.motrealtime.co.il:8081/Siri/SiriServices";
 
     @Autowired
+    private PrometheusMeterRegistry registry;
+
+
+    @Autowired
     ReadFile readFile;
+
+
+    Timer timer ;
+
+    @PostConstruct
+    public void init() {
+//        timer = Timer
+//                .builder("my.timer")
+//                .description("a description of what this timer does") // optional
+//                .tags("region", "test") // optional
+//                .publishPercentileHistogram().publishPercentileHistogram(true).publishPercentiles(.5, .9, .95)
+//                .register(registry);
+
+        Timer.builder("retrieve.Siri")
+                .publishPercentiles(0.5, 0.95) // median and 95th percentile
+                .publishPercentileHistogram()
+                //.sla(Duration.ofMillis(100))
+                .minimumExpectedValue(Duration.ofMillis(1))
+                .maximumExpectedValue(Duration.ofSeconds(10000)).register(registry);
+    }
 
     @Override
     public GetStopMonitoringServiceResponse retrieveSiri(Command command) {
@@ -51,7 +82,14 @@ public class SiriMockServiceImpl implements SiriConsumeService {
             invokeAccordingTo(command);
         }
         else {
-            return retrieveSiri(command.stopCode, command.previewInterval, command.lineRef, command.maxStopVisits);
+            GetStopMonitoringServiceResponse result = null;
+            Timer.Sample sample = Timer.start(registry);
+            result = retrieveSiri ( command.stopCode,
+                                    command.previewInterval,
+                                    command.lineRef,
+                                    command.maxStopVisits);
+            sample.stop(registry.timer("retrieve.Siri"));//, "stopCode", command.stopCode, "routeId", command.lineRef));
+            return result;
         }
         return null;
     }
@@ -82,8 +120,12 @@ public class SiriMockServiceImpl implements SiriConsumeService {
 
 // lineRef 19740 is 947
 
+    Random r = new Random();
     @Override
     public String retrieveSpecificLineAndStop(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
+
+        try {            Thread.sleep(r.nextInt(10000));        } catch (InterruptedException e) {}
+
         if (lineRef.equals("7023")) {
             logger.trace("reading 480-06.xml");
             return readFromFile("480-06");  // localhost:8080/data/oneStop/20594/7023/PT4H - 480 Jer-TA

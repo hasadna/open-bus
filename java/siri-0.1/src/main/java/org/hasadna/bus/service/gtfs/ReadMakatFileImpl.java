@@ -63,27 +63,12 @@ public class ReadMakatFileImpl implements ReadRoutesFile {
         if (!dirOfGtfsFiles.endsWith("/")) {
             dirOfGtfsFiles = dirOfGtfsFiles + "/";
         }
-//        fullPath = dirOfGtfsFiles + fileName;
-//        tripsFullPath = dirOfGtfsFiles + tripsFileName;
-//        stopTimesFullPath = dirOfGtfsFiles + stopTimesFileName;
-//        stopsFullPath = dirOfGtfsFiles + stopsFileName;
-//        calendarFullPath = dirOfGtfsFiles + calendarFileName;
         makatFullPath = dirOfGtfsFiles + makatFileName;
 
-        logger.warn("makatFile read starting");
-        mapByRoute = readMakatFile();
-        mapDepartueTimesOfRoute = processMapByRoute(mapByRoute);
-//        logger.warn("15452: {}", mapDepartueTimesOfRoute.getOrDefault ("15452", new MakatData() ).toString());
-//        logger.warn("19740: {}", mapDepartueTimesOfRoute.getOrDefault("19740", new MakatData()).toString());
-//        logger.warn("15664: {}", mapDepartueTimesOfRoute.getOrDefault("15664", new MakatData()).toString());
-        logger.warn("makatFile read done");
-
-//        cacheCalendars();
-//        initStops();
-//        cacheAllTrips();
-//
-//        cacheRoutes();
-//        initializeRoutesByPublishedNameMap();
+//        logger.warn("makatFile read starting");
+//        mapByRoute = readMakatFile();
+//        mapDepartueTimesOfRoute = processMapByRoute(mapByRoute);
+//        logger.warn("makatFile read done");
 
         // this will cache StopTimes, and init stopTimesByTripId
         //dataInit.initStopTimesByTripId(this);

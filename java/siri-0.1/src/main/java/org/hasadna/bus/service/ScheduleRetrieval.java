@@ -3,6 +3,9 @@ package org.hasadna.bus.service;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
 import org.hasadna.bus.entity.GetStopMonitoringServiceResponse;
 import org.hasadna.bus.service.gtfs.DepartureTimes;
 import org.hasadna.bus.service.gtfs.ReadRoutesFile;
@@ -57,6 +60,8 @@ public class ScheduleRetrieval {
     ReadRoutesFile makatFile ;
 
 
+
+
     @PostConstruct
     public void init() {
         List<Command> data = readSchedulingDataAllFiles(dataFileFullPath);
@@ -67,6 +72,8 @@ public class ScheduleRetrieval {
         for (Command c : data) {
             queue.put(c);
         }
+
+
 
         logger.info("scheduler initialized.");
     }
@@ -230,6 +237,7 @@ public class ScheduleRetrieval {
 
     @Scheduled(fixedRate=300000)    // every 5 minutes.
     @Async
+    //@Timed("validate")
     public void updateSchedulingDataPeriodically() {
         // hopefully validate won't change the data from inside...
         validateScheduling(queue.getAllSchedules());
@@ -247,7 +255,7 @@ public class ScheduleRetrieval {
      * Before executing, it adds the same task again to the queue (with an updated
      * date for next execution)
      */
-    @Scheduled(fixedRate=100)    // every 100 ms.
+    @Scheduled(fixedRate=50)    // every 50 ms.
     @Async("http-retrieve")
     public void retrieveCommandPeriodically() {
         if (!schedulerEnable) return;

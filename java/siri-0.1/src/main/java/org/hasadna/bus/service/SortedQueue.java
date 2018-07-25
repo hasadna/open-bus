@@ -1,9 +1,13 @@
 package org.hasadna.bus.service;
 
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -17,6 +21,14 @@ import java.util.stream.Collectors;
 public class SortedQueue {
 
     protected final Logger logger = LoggerFactory.getLogger(SortedQueue.class);
+
+    @Autowired
+    private PrometheusMeterRegistry registry;
+
+    @PostConstruct
+    public void init() {
+        this.registry.gaugeCollectionSize("siri.scheduler.queue", Tags.empty(), this.queue);
+    }
 
     void put(Command command) {
         queue.offer(command);
