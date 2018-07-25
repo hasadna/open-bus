@@ -100,13 +100,13 @@ def compute_trip_stats_partridge(feed, zones):
     f = feed.trips
     f = (
         f[['route_id', 'trip_id', 'direction_id', 'shape_id']]
-        .merge(feed.routes[['route_id', 'route_short_name', 'route_long_name',
-                            'route_type', 'agency_id']])
-        .merge(feed.agency[['agency_id', 'agency_name']], how='left', on='agency_id')
-        .merge(feed.stop_times)
-        .merge(feed.stops[['stop_id', 'stop_name', 'stop_lat', 'stop_lon', 'stop_code']])
-        .merge(zones, how='left')
-        .sort_values(['trip_id', 'stop_sequence'])
+            .merge(feed.routes[['route_id', 'route_short_name', 'route_long_name',
+                                'route_type', 'agency_id']])
+            .merge(feed.agency[['agency_id', 'agency_name']], how='left', on='agency_id')
+            .merge(feed.stop_times)
+            .merge(feed.stops[['stop_id', 'stop_name', 'stop_lat', 'stop_lon', 'stop_code']])
+            .merge(zones, how='left')
+            .sort_values(['trip_id', 'stop_sequence'])
         # .assign(departure_time=lambda x: x['departure_time'].map(
         #    hp.timestr_to_seconds)
         #       )
@@ -159,6 +159,31 @@ def compute_trip_stats_partridge(feed, zones):
             lambda x: gtfstk.helpers.timestr_to_seconds(x, inverse=True))
     )
     return h
+
+
+def get_active_trips_df(trip_times):
+    """
+    Count the number of trips in ``trip_times`` that are active
+    at any given time.
+
+    Parameters
+    ----------
+    trip_times : DataFrame
+        Contains columns
+
+        - start_time: start time of the trip in seconds past midnight
+        - end_time: end time of the trip in seconds past midnight
+
+    Returns
+    -------
+    Series
+        index is times from midnight when trips start and end, values are number of active trips for that time
+
+    """
+    active_trips = pd.concat([pd.Series(1, trip_times.start_time),  # departed add 1
+                              pd.Series(-1, trip_times.end_time)    # arrived subtract 1
+                              ]).sort_index().cumsum().ffill()
+    return active_trips
 
 
 def compute_route_stats_base_partridge(trip_stats_subset,
@@ -297,8 +322,10 @@ def compute_route_stats_base_partridge(trip_stats_subset,
             d['mean_headway'] = np.nan
 
         # Compute peak num trips
-        times = np.unique(group[['start_time', 'end_time']].values)
-        counts = [gtfstk.helpers.count_active_trips(group, t) for t in times]
+        # times = np.unique(group[['start_time', 'end_time']].values)
+        # counts = [gtfstk.helpers.count_active_trips(group, t) for t in times]
+        active_trips = get_active_trips_df(group[['start_time', 'end_time']])
+        times, counts = active_trips.index.values, active_trips.values
         start, end = gtfstk.helpers.get_peak_indices(times, counts)
         d['peak_num_trips'] = counts[start]
         d['peak_start_time'] = times[start]
