@@ -664,7 +664,12 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if PROFILE:
+        import cProfile
+
+        cProfile.run('main()', filename=PROFILE_PATH)
+    else:
+        main()
 
 # ## What's next
 # 
