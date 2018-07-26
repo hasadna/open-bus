@@ -13,7 +13,7 @@ import datetime
 import time
 import gtfs_utils as gu
 import gtfstk
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import os
 import boto3
 import logging
@@ -181,7 +181,7 @@ def get_active_trips_df(trip_times):
 
     """
     active_trips = pd.concat([pd.Series(1, trip_times.start_time),  # departed add 1
-                              pd.Series(-1, trip_times.end_time)    # arrived subtract 1
+                              pd.Series(-1, trip_times.end_time)  # arrived subtract 1
                               ]).groupby(level=0, sort=True).sum().cumsum().ffill()
     return active_trips
 
@@ -457,22 +457,79 @@ Get existing output files in the given folder, in a list containing tuples of da
              for file in os.listdir(output_folder))]
 
 
-def _get_valid_files_for_stats(bucket, existing_output_files):
+def get_bucket_valid_files(bucket_objects):
     """
-Get list of valid for stat computation file keys from s3 which down't have route_stats output in the given list
-of existing_output_files.
-    :param bucket: s3 boto bucket object
-    :type bucket: boto3.resources.factory.s3.Bucket
+Get list of valid files from bucket, as set by BUCKET_VALID_FILES_RE
+    :param bucket_objects: collection of bucket objects
+    :type bucket_objects: s3.Bucket.objectsCollection
+    :return: list of valid file keys
+    :rtype: list of str
+    """
+    return [obj.key for obj in bucket_objects
+            if re.match(BUCKET_VALID_FILES_RE, obj.key)]
+
+
+def get_dates_without_output(valid_files, existing_output_files):
+    """
+Get list of dates without output files (currently just route_stats is considered)
+    :param valid_files: list of valid file keys
+    :rtype: list of str
     :param existing_output_files: list of 2-tuples as returned by _get_existing_output_files
     :type existing_output_files: list
     :return: list of valid file keys for stat computation
     :rtype: list
     """
-    return [obj.key for obj in bucket.objects.all()
-            if re.match(BUCKET_VALID_FILES_RE, obj.key) and
-            obj.key not in [g[0] + '.zip'
+    return [parse_date(file)[1] for file in valid_files
+            if file not in [g[0] + '.zip'
                             for g in existing_output_files
                             if g[1] == 'route_stats']]
+
+
+def get_forward_fill_dict(valid_files):
+    """
+get a dictionary mapping gtfs file names to a list of dates for forward fill by scanning for missing dates for files
+    :param valid_files: list of valid file keys
+    :rtype: list of str
+    :return dictionary mapping file names to dates
+    :rtype defaultdict of lists (defaults to empty list)
+    """
+    existing_dates = pd.DatetimeIndex([parse_date(file)[0] for file in valid_files])
+    expected_dates = pd.DatetimeIndex(start=existing_dates.min(), end=existing_dates.max(), freq='D')
+    date_df = pd.Series(pd.NaT, expected_dates)
+    date_df[existing_dates] = existing_dates
+    date_df = date_df.fillna(method='ffill', limit=59)
+    # TODO: remove dates that aren't in the 59 day gap
+    # BUG: will act unexcpectedly if more than 59 day gap
+    ffill = defaultdict(list)
+    for file_date, stats_date in zip(date_df.dt.strftime('%Y-%m-%d'), date_df.index.strftime('%Y-%m-%d')):
+        ffill[file_date+'.zip'].append(stats_date)
+
+    return ffill
+
+
+def get_valid_file_dates_dict(bucket_objects, existing_output_files, logger, forward_fill):
+    logger.info(f'BUCKET_VALID_FILES_RE={BUCKET_VALID_FILES_RE}')
+    bucket_valid_files = get_bucket_valid_files(bucket_objects)
+    if forward_fill:
+        logger.info(f'applying forward fill')
+        ffill_dict = get_forward_fill_dict(bucket_valid_files)
+        logger.info(f'found {sum([len(l) for l in ffill_dict.values()]) - len(bucket_valid_files)} missing dates for '
+                    'forward fill.')
+
+        files_for_stats = defaultdict(list)
+        for file in ffill_dict:
+            files_for_stats[file] = get_dates_without_output([date_str + '.zip' for date_str in ffill_dict[file]],
+                                                             existing_output_files)
+
+    else:
+        files_for_stats = defaultdict(list)
+        for date in get_dates_without_output(bucket_valid_files, existing_output_files):
+            files_for_stats[date + '.zip'].append(date)
+
+    logger.info(f'found {len([key for key in files_for_stats if len(files_for_stats[key])>0])} GTFS files valid for '
+                'stats calculations in bucket')
+    logger.debug(f'Files: { {key: value for key, value in files_for_stats.items() if len(files_for_stats[key])>0} }')
+    return files_for_stats
 
 
 def parse_date(file_name):
@@ -516,32 +573,25 @@ def get_gtfs_file(file, gtfs_folder, bucket, logger, force=False):
     return downloaded
 
 
-def handle_gtfs_file(file, bucket, first_day_only=True, output_folder=OUTPUT_DIR,
-                     gtfs_folder=GTFS_FEEDS_PATH, delete_downloaded_gtfs_zips=False,
-                     logger=None):
+def handle_gtfs_date(date_str, file, bucket, output_folder=OUTPUT_DIR,
+                     gtfs_folder=GTFS_FEEDS_PATH, logger=None):
     """
-Handle a single GTFS file. Download if necessary compute and save stats files (currently trip_stats and route_stats).
+Handle a single date for a single GTFS file. Download if necessary compute and save stats files (currently trip_stats and route_stats).
+    :param date_str: %Y-%m-%d
+    :type date_str: str
     :param file: gtfs file name (currently only YYYY-mm-dd.zip)
     :type file: str
     :param bucket: s3 boto bucket object
     :type bucket: boto3.resources.factory.s3.Bucket
-    :param first_day_only: compute stats for first day only
-    :type first_day_only: bool
     :param output_folder: local path to write output files to
     :type output_folder: str
     :param gtfs_folder: local path containing GTFS feeds
     :type gtfs_folder: str
-    :param delete_downloaded_gtfs_zips: whether to delete GTFS feed files that have been downloaded by the function.
-    :type delete_downloaded_gtfs_zips: bool
     :param logger: logger to write to
     :type logger: logging.Logger
     """
-    if first_day_only:
-        logger.info(f'extracting date from file name "{file}"')
-        date, date_str = parse_date(file)
-    else:
-        logger.error('Only first day of the feed implemented.')
-        raise NotImplementedError
+    date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+
     downloaded = False
 
     trip_stats_output_path = output_folder + date_str + '_trip_stats.pkl.gz'
@@ -561,7 +611,7 @@ Handle a single GTFS file. Download if necessary compute and save stats files (c
 
         logger.debug(f'finished creating daily partridge feed for file "{gtfs_folder+file}" with date "{date}"')
 
-        # TODO: add changing zones from archive            
+        # TODO: add changing zones from archive
         logger.info(f'creating zones DF from "{LOCAL_TARIFF_PATH}"')
         zones = gu.get_zones_df(LOCAL_TARIFF_PATH)
 
@@ -600,6 +650,34 @@ Handle a single GTFS file. Download if necessary compute and save stats files (c
     logger.info(f'saving route stats result DF to gzipped pickle "{route_stats_output_path}"')
     rs.to_pickle(route_stats_output_path, compression='gzip')
 
+    return downloaded
+
+
+def handle_gtfs_file(file, bucket, stats_dates, output_folder=OUTPUT_DIR,
+                     gtfs_folder=GTFS_FEEDS_PATH, delete_downloaded_gtfs_zips=False,
+                     logger=None):
+    """
+Handle a single GTFS file. Download if necessary compute and save stats files (currently trip_stats and route_stats).
+    :param file: gtfs file name (currently only YYYY-mm-dd.zip)
+    :type file: str
+    :param bucket: s3 boto bucket object
+    :type bucket: boto3.resources.factory.s3.Bucket
+    :param output_folder: local path to write output files to
+    :type output_folder: str
+    :param gtfs_folder: local path containing GTFS feeds
+    :type gtfs_folder: str
+    :param delete_downloaded_gtfs_zips: whether to delete GTFS feed files that have been downloaded by the function.
+    :type delete_downloaded_gtfs_zips: bool
+    :param logger: logger to write to
+    :type logger: logging.Logger
+    """
+
+    downloaded = False
+
+    for date_str in stats_dates:
+        downloaded = handle_gtfs_date(date_str, file, bucket, output_folder=output_folder,
+                                      gtfs_folder=gtfs_folder, logger=logger)
+
     if delete_downloaded_gtfs_zips and downloaded:
         logger.info(f'deleting gtfs zip file "{gtfs_folder+file}"')
         os.remove(gtfs_folder + file)
@@ -609,7 +687,7 @@ Handle a single GTFS file. Download if necessary compute and save stats files (c
 
 def batch_stats_s3(bucket_name=BUCKET_NAME, output_folder=OUTPUT_DIR,
                    gtfs_folder=GTFS_FEEDS_PATH, delete_downloaded_gtfs_zips=False,
-                   logger=None):
+                   forward_fill=FORWARD_FILL, logger=None):
     """
 Create daily trip_stats and route_stats DataFrame pickles, based on the files in an S3 bucket and
 their dates - `YYYY-mm-dd.zip`.
@@ -622,6 +700,8 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
     :type gtfs_folder: str
     :param delete_downloaded_gtfs_zips: whether to delete GTFS feed files that have been downloaded by the function.
     :type delete_downloaded_gtfs_zips: bool
+    :param forward_fill: flag for performing forward fill for missing dates using existing files
+    :type forward_fill: bool
     :param logger: logger to write to
     :type logger: logging.Logger
     """
@@ -639,16 +719,23 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
 
         logger.info(f'connected to S3 bucket {bucket_name}')
 
-        valid_files = _get_valid_files_for_stats(bucket, existing_output_files)
-        logger.info(f'BUCKET_VALID_FILES_RE={BUCKET_VALID_FILES_RE}')
-        logger.info(f'found {len(valid_files)} valid files (GTFS) in bucket {bucket_name}')
-        logger.debug(f'Files: {valid_files}')
+        bucket_objects = bucket.objects.all()
+        logger.info(f'number of objects in bucket: {sum(1 for _ in bucket_objects)}')
+
+        if forward_fill:
+            file_dates_dict = get_valid_file_dates_dict(bucket_objects, existing_output_files, logger,
+                                                        forward_fill=True)
+        else:
+            file_dates_dict = get_valid_file_dates_dict(bucket_objects, existing_output_files, logger,
+                                                        forward_fill=False)
+
+        for file in file_dates_dict:
+            if len(file_dates_dict[file]) > 0:
+                handle_gtfs_file(file, bucket, output_folder=output_folder,
+                                 gtfs_folder=gtfs_folder, delete_downloaded_gtfs_zips=delete_downloaded_gtfs_zips,
+                                 stats_dates=file_dates_dict[file], logger=logger)
 
         logger.info(f'starting synchronous gtfs file download and stats computation from s3 bucket {bucket_name}')
-        for file in valid_files:
-            handle_gtfs_file(file, bucket, first_day_only=True, output_folder=output_folder,
-                             gtfs_folder=gtfs_folder, delete_downloaded_gtfs_zips=delete_downloaded_gtfs_zips,
-                             logger=logger)
 
         logger.info(f'finished synchronous gtfs file download and stats computation from s3 bucket {bucket_name}')
     except:
@@ -702,8 +789,7 @@ if __name__ == '__main__':
 # 
 # TODO List
 # 
-# 1. divide and put proper docstrings for functions
-# 1. forward fill the gaps
+# 1. add file_name column
 # 1. separate to modules - run, conf, stats, utils...
 # 1. logging - 
 #    1. logging config and call in every function
@@ -725,6 +811,7 @@ if __name__ == '__main__':
 #    1. bools to bools
 #    1. add day of week
 # 1. insert to sql
+# 1. add progress bar
 # 1. Think about creating an archive of pruned GTFS (only 1 day each)
 # 1. mean_headway doesn't mean much when num_trips low (maybe num_trips cutoffs will be enough)
 # 1. add info from other files in the FTP
