@@ -19,6 +19,7 @@ import boto3
 import logging
 from zipfile import BadZipFile
 import itertools
+from tqdm import tqdm, trange
 from gtfs_stats_conf import *
 
 
@@ -673,10 +674,11 @@ Handle a single GTFS file. Download if necessary compute and save stats files (c
     """
 
     downloaded = False
-
-    for date_str in stats_dates:
-        downloaded = handle_gtfs_date(date_str, file, bucket, output_folder=output_folder,
-                                      gtfs_folder=gtfs_folder, logger=logger)
+    with tqdm(stats_dates, postfix='initializing', unit='date', desc='dates', leave=False) as t:
+        for date_str in t:
+            t.set_postfix_str(date_str)
+            downloaded = handle_gtfs_date(date_str, file, bucket, output_folder=output_folder,
+                                          gtfs_folder=gtfs_folder, logger=logger)
 
     if delete_downloaded_gtfs_zips and downloaded:
         logger.info(f'deleting gtfs zip file "{gtfs_folder+file}"')
@@ -729,8 +731,10 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
             file_dates_dict = get_valid_file_dates_dict(bucket_objects, existing_output_files, logger,
                                                         forward_fill=False)
 
-        for file in file_dates_dict:
-            if len(file_dates_dict[file]) > 0:
+        non_empty_file_dates = {key: value for key, value in file_dates_dict.items() if len(file_dates_dict[key])>0}
+        with tqdm(non_empty_file_dates, postfix='initializing', unit='file', desc='files') as t:
+            for file in t:
+                t.set_postfix_str(file)
                 handle_gtfs_file(file, bucket, output_folder=output_folder,
                                  gtfs_folder=gtfs_folder, delete_downloaded_gtfs_zips=delete_downloaded_gtfs_zips,
                                  stats_dates=file_dates_dict[file], logger=logger)
@@ -811,7 +815,6 @@ if __name__ == '__main__':
 #    1. bools to bools
 #    1. add day of week
 # 1. insert to sql
-# 1. add progress bar
 # 1. Think about creating an archive of pruned GTFS (only 1 day each)
 # 1. mean_headway doesn't mean much when num_trips low (maybe num_trips cutoffs will be enough)
 # 1. add info from other files in the FTP

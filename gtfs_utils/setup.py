@@ -17,6 +17,7 @@ requirements = [
     'numpy',
     'pandas',
     'boto3',
+    'tqdm',
 ]
 
 setup_requirements = [
