@@ -1,6 +1,8 @@
 package org.hasadna.bus.service;
 
 import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.datadog.DatadogMeterRegistry;
 import org.hasadna.bus.entity.GetStopMonitoringServiceResponse;
 import org.hasadna.bus.util.Util;
 import org.slf4j.Logger;
@@ -24,6 +26,7 @@ import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.stream.StreamSource;
 import java.io.StringReader;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.IntStream;
 
@@ -37,13 +40,15 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
     @Value("${duration.of.interval.in.minutes:5}")
     int durationOfIntervalInMinutes ;
 
+    @Autowired
+    private DatadogMeterRegistry registry;
+
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     final String SIRI_SERVICES_URL = "http://siri.motrealtime.co.il:8081/Siri/SiriServices";
 
 
     @Override
-    //@Timed
     public GetStopMonitoringServiceResponse retrieveSiri(Command command) {
 
         if ("extended".equals(command.stopCode)) {
@@ -53,7 +58,14 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
             if (cancelRequestIfNoServiceHour(LocalDateTime.now(), command.makat)) {
                 return null;
             }
-            return retrieveSiri(command.stopCode, command.previewInterval, command.lineRef, command.maxStopVisits);
+            Timer.Sample sample = Timer.start(registry);
+
+            GetStopMonitoringServiceResponse result = retrieveSiri(command.stopCode, command.previewInterval, command.lineRef, command.maxStopVisits);
+
+            // measure response time, and log it to datadog with some tags
+            sample.stop(registry.timer("retrieve.siri", "profile", "prod", "hour", Integer.toString(LocalTime.now().getHour())));
+
+            return result;
         }
         return null;
     }

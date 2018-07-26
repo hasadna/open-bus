@@ -2,13 +2,15 @@ package org.hasadna.bus.service;
 
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.*;
-import io.micrometer.prometheus.PrometheusMeterRegistry;
+import io.micrometer.datadog.DatadogConfig;
+import io.micrometer.datadog.DatadogMeterRegistry;
 import org.hasadna.bus.entity.GetStopMonitoringServiceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +36,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -49,31 +52,10 @@ public class SiriMockServiceImpl implements SiriConsumeService {
     final String SIRI_SERVICES_URL = "http://siri.motrealtime.co.il:8081/Siri/SiriServices";
 
     @Autowired
-    private PrometheusMeterRegistry registry;
-
+    private DatadogMeterRegistry registry;
 
     @Autowired
     ReadFile readFile;
-
-
-    Timer timer ;
-
-    @PostConstruct
-    public void init() {
-//        timer = Timer
-//                .builder("my.timer")
-//                .description("a description of what this timer does") // optional
-//                .tags("region", "test") // optional
-//                .publishPercentileHistogram().publishPercentileHistogram(true).publishPercentiles(.5, .9, .95)
-//                .register(registry);
-
-        Timer.builder("retrieve.Siri")
-                .publishPercentiles(0.5, 0.95) // median and 95th percentile
-                .publishPercentileHistogram()
-                //.sla(Duration.ofMillis(100))
-                .minimumExpectedValue(Duration.ofMillis(1))
-                .maximumExpectedValue(Duration.ofSeconds(10000)).register(registry);
-    }
 
     @Override
     public GetStopMonitoringServiceResponse retrieveSiri(Command command) {
@@ -84,11 +66,16 @@ public class SiriMockServiceImpl implements SiriConsumeService {
         else {
             GetStopMonitoringServiceResponse result = null;
             Timer.Sample sample = Timer.start(registry);
+
+            // retrieve the data from siri
             result = retrieveSiri ( command.stopCode,
                                     command.previewInterval,
                                     command.lineRef,
                                     command.maxStopVisits);
-            sample.stop(registry.timer("retrieve.Siri"));//, "stopCode", command.stopCode, "routeId", command.lineRef));
+
+            // measure response time, and log it to datadog with some tags
+            sample.stop(registry.timer("retrieve.siri", "hour", Integer.toString(LocalTime.now().getHour())));
+
             return result;
         }
         return null;
@@ -118,13 +105,12 @@ public class SiriMockServiceImpl implements SiriConsumeService {
         return null;
     }
 
-// lineRef 19740 is 947
 
     Random r = new Random();
     @Override
     public String retrieveSpecificLineAndStop(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
 
-        try {            Thread.sleep(r.nextInt(10000));        } catch (InterruptedException e) {}
+        try {            Thread.sleep(r.nextInt(1000));        } catch (InterruptedException e) {}
 
         if (lineRef.equals("7023")) {
             logger.trace("reading 480-06.xml");
@@ -144,17 +130,6 @@ public class SiriMockServiceImpl implements SiriConsumeService {
 
     private String readFromFile(String name) {
         return readFile.readFromFile(name);
-//        String fileName = name + ".xml";
-//        try {
-//            Path path = Paths.get(getClass().getClassLoader().getResource("samples/" + fileName).toURI());
-//            String content = new String(Files.readAllBytes(path), Charset.forName("UTF8"));
-//            return content;
-//        } catch (IOException e) {
-//            logger.error("can't read file", e);
-//        } catch (URISyntaxException e) {
-//            logger.error("can't read file", e);
-//        }
-//        return null;
     }
 
     private ThreadLocal<Unmarshaller> jaxbUnmarshaller = new ThreadLocal<>();

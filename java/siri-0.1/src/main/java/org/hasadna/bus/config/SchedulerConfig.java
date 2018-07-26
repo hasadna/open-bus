@@ -1,13 +1,19 @@
 package org.hasadna.bus.config;
 
+import io.micrometer.core.instrument.Clock;
+import io.micrometer.datadog.DatadogConfig;
+import io.micrometer.datadog.DatadogMeterRegistry;
 import org.hasadna.bus.service.ScheduleRetrieval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
+
+import java.time.Duration;
 
 @Configuration
 public class SchedulerConfig implements SchedulingConfigurer {
