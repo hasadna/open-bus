@@ -63,8 +63,8 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
             GetStopMonitoringServiceResponse result = retrieveSiri(command.stopCode, command.previewInterval, command.lineRef, command.maxStopVisits);
 
             // measure response time, and log it to datadog with some tags
-            long latencyNano = sample.stop(registry.timer("retrieve.siri", "profile", "prod", "hour", Integer.toString(LocalTime.now().getHour())));
-            logger.trace("latency {} ms", latencyNano / 1000000);
+            long latencyNano = sample.stop(registry.timer("siri.latency"));
+            logger.info("latency {} ms", latencyNano / 1000000);
             return result;
         }
         return null;
