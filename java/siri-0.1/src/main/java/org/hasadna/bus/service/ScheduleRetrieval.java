@@ -270,9 +270,9 @@ public class ScheduleRetrieval {
             Command next = c.myClone();
             next.nextExecution = now.plusSeconds(next.executeEvery);
             queue.put(next);
-            logger.info("retrieving {} ...", c.lineRef);
+            logger.debug("retrieving {} ...", c.lineRef);
             GetStopMonitoringServiceResponse result = siriConsumeService.retrieveSiri(c);   // this part is synchronous
-            logger.info("retrieving {} ... done", c.lineRef);
+            logger.debug("retrieving {} ... done", c.lineRef);
             siriProcessService.process(result); // asynchronous invocation
         }
         catch (Exception ex) {

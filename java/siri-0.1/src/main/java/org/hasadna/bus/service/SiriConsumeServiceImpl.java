@@ -63,8 +63,8 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
             GetStopMonitoringServiceResponse result = retrieveSiri(command.stopCode, command.previewInterval, command.lineRef, command.maxStopVisits);
 
             // measure response time, and log it to datadog with some tags
-            sample.stop(registry.timer("retrieve.siri", "profile", "prod", "hour", Integer.toString(LocalTime.now().getHour())));
-
+            long latencyNano = sample.stop(registry.timer("retrieve.siri", "profile", "prod", "hour", Integer.toString(LocalTime.now().getHour())));
+            logger.trace("latency {} ms", latencyNano / 1000000);
             return result;
         }
         return null;
@@ -87,15 +87,13 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
 
     @Override
     public GetStopMonitoringServiceResponse retrieveSiri(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
+        logger.debug("retrieving... {}", lineRef);
         StopWatch sw1 = new StopWatch(Thread.currentThread().getName());
         sw1.start();
-        logger.info("retrieving... {}", lineRef);
         String content = retrieveSpecificLineAndStop(stopCode, previewInterval, lineRef, maxStopVisits);
         if (content == null) {
             return null;
         }
-        sw1.stop();
-        logger.info("retrieving...Done ({} ms)", sw1.getTotalTimeMillis());
         logger.debug("lineRef={}, stopCode={}, previewInterval={}", lineRef, stopCode, previewInterval);
         logger.trace(" response={}", content);
         StopWatch sw2 = new StopWatch(Thread.currentThread().getName());
@@ -108,7 +106,9 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         GetStopMonitoringServiceResponse response = unmarshalXml(content);
 
         sw2.stop();
-        logger.info("unmarshal to POJO: {} ms", sw2.getTotalTimeMillis());
+        logger.debug("unmarshal to POJO: {} ms", sw2.getTotalTimeMillis());
+        sw1.stop();
+        logger.info("retrieving route {} ...Done ({} ms)", lineRef, sw1.getTotalTimeMillis());
 
         return response;
     }

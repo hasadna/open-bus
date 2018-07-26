@@ -59,7 +59,7 @@ public class HttpPostRestTemplateImpl implements HttpPost {
             return null;
         }
         sw.stop();
-        logger.info("network to MOT server: {} ms", sw.getTotalTimeMillis());
+        logger.debug("network to MOT server: {} ms", sw.getTotalTimeMillis());
         return r;
     }
 

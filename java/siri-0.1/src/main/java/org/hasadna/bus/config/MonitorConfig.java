@@ -21,7 +21,9 @@ public class MonitorConfig {
         DatadogConfig config = new DatadogConfig() {
             @Override
             public Duration step() {
-                return Duration.ofSeconds(30);
+                // setting this to 60 seconds means causes all graphs of DataDog to be "per Minute"
+                // Do not change this!
+                return Duration.ofSeconds(60);
             }
 
             @Override
@@ -33,6 +35,7 @@ public class MonitorConfig {
             }
         };
         DatadogMeterRegistry registry = new DatadogMeterRegistry(config, Clock.SYSTEM);
+
         return registry;
     }
 }

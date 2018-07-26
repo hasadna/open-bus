@@ -74,7 +74,8 @@ public class SiriMockServiceImpl implements SiriConsumeService {
                                     command.maxStopVisits);
 
             // measure response time, and log it to datadog with some tags
-            sample.stop(registry.timer("retrieve.siri", "hour", Integer.toString(LocalTime.now().getHour())));
+            long latencyNano = sample.stop(registry.timer("mock.latency", "profile", "dev", "hour", Integer.toString(LocalTime.now().getHour())));
+            logger.info("latency {} ms (0 -100 plus hour, so at 16:xx expecting average of 58", latencyNano / 1000000);
 
             return result;
         }
@@ -110,7 +111,7 @@ public class SiriMockServiceImpl implements SiriConsumeService {
     @Override
     public String retrieveSpecificLineAndStop(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
 
-        try {            Thread.sleep(r.nextInt(1000));        } catch (InterruptedException e) {}
+        try {            Thread.sleep(r.nextInt(100) + LocalTime.now().getHour());        } catch (InterruptedException e) {}
 
         if (lineRef.equals("7023")) {
             logger.trace("reading 480-06.xml");
