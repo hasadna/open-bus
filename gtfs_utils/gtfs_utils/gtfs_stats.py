@@ -19,7 +19,7 @@ import boto3
 import logging
 from zipfile import BadZipFile
 import itertools
-from tqdm import tqdm, trange
+from tqdm import tqdm
 from gtfs_stats_conf import *
 
 
@@ -99,19 +99,18 @@ def compute_trip_stats_partridge(feed, zones):
 
     """
     f = feed.trips
-    f = (
-        f[['route_id', 'trip_id', 'direction_id', 'shape_id']]
-            .merge(feed.routes[['route_id', 'route_short_name', 'route_long_name',
-                                'route_type', 'agency_id']])
-            .merge(feed.agency[['agency_id', 'agency_name']], how='left', on='agency_id')
-            .merge(feed.stop_times)
-            .merge(feed.stops[['stop_id', 'stop_name', 'stop_lat', 'stop_lon', 'stop_code']])
-            .merge(zones, how='left')
-            .sort_values(['trip_id', 'stop_sequence'])
-        # .assign(departure_time=lambda x: x['departure_time'].map(
-        #    hp.timestr_to_seconds)
-        #       )
-    )
+    f = (f[['route_id', 'trip_id', 'direction_id', 'shape_id']]
+         .merge(feed.routes[['route_id', 'route_short_name', 'route_long_name',
+                             'route_type', 'agency_id']])
+         .merge(feed.agency[['agency_id', 'agency_name']], how='left', on='agency_id')
+         .merge(feed.stop_times)
+         .merge(feed.stops[['stop_id', 'stop_name', 'stop_lat', 'stop_lon', 'stop_code']])
+         .merge(zones, how='left')
+         .sort_values(['trip_id', 'stop_sequence'])
+         # .assign(departure_time=lambda x: x['departure_time'].map(
+         #    hp.timestr_to_seconds)
+         #       )
+         )
     geometry_by_stop = gtfstk.build_geometry_by_stop(feed, use_utm=True)
 
     g = f.groupby('trip_id')
@@ -323,8 +322,6 @@ def compute_route_stats_base_partridge(trip_stats_subset,
             d['mean_headway'] = np.nan
 
         # Compute peak num trips
-        # times = np.unique(group[['start_time', 'end_time']].values)
-        # counts = [gtfstk.helpers.count_active_trips(group, t) for t in times]
         active_trips = get_active_trips_df(group[['start_time', 'end_time']])
         times, counts = active_trips.index.values, active_trips.values
         start, end = gtfstk.helpers.get_peak_indices(times, counts)
@@ -503,7 +500,7 @@ get a dictionary mapping gtfs file names to a list of dates for forward fill by 
     # BUG: will act unexcpectedly if more than 59 day gap
     ffill = defaultdict(list)
     for file_date, stats_date in zip(date_df.dt.strftime('%Y-%m-%d'), date_df.index.strftime('%Y-%m-%d')):
-        ffill[file_date+'.zip'].append(stats_date)
+        ffill[file_date + '.zip'].append(stats_date)
 
     return ffill
 
@@ -577,7 +574,8 @@ def get_gtfs_file(file, gtfs_folder, bucket, logger, force=False):
 def handle_gtfs_date(date_str, file, bucket, output_folder=OUTPUT_DIR,
                      gtfs_folder=GTFS_FEEDS_PATH, logger=None):
     """
-Handle a single date for a single GTFS file. Download if necessary compute and save stats files (currently trip_stats and route_stats).
+Handle a single date for a single GTFS file. Download if necessary compute and save stats files (currently trip_stats
+and route_stats).
     :param date_str: %Y-%m-%d
     :type date_str: str
     :param file: gtfs file name (currently only YYYY-mm-dd.zip)
@@ -731,7 +729,7 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
             file_dates_dict = get_valid_file_dates_dict(bucket_objects, existing_output_files, logger,
                                                         forward_fill=False)
 
-        non_empty_file_dates = {key: value for key, value in file_dates_dict.items() if len(file_dates_dict[key])>0}
+        non_empty_file_dates = {key: value for key, value in file_dates_dict.items() if len(file_dates_dict[key]) > 0}
         with tqdm(non_empty_file_dates, postfix='initializing', unit='file', desc='files') as t:
             for file in t:
                 t.set_postfix_str(file)
