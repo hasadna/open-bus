@@ -1,7 +1,7 @@
 package org.hasadna.bus.service;
 
 import io.micrometer.core.instrument.Tags;
-import io.micrometer.prometheus.PrometheusMeterRegistry;
+import io.micrometer.datadog.DatadogMeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class SortedQueue {
     protected final Logger logger = LoggerFactory.getLogger(SortedQueue.class);
 
     @Autowired
-    private PrometheusMeterRegistry registry;
+    private DatadogMeterRegistry registry;
 
     @PostConstruct
     public void init() {
