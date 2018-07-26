@@ -99,6 +99,25 @@ def get_zones_df(local_tariff_zip_path):
     return zones
 
 
+def get_cluster_to_line_df(path):
+    cols = ['agency_name', 'route_id', 'route_short_name',
+            'cluster_name', 'from_date', 'to_date', 'cluster_id',
+            'route_type', 'route_type_desc', 'cluster_sub_desc', 'EXTRA']
+    ctl = (pd.read_csv(path, encoding='windows-1255',
+                       skiprows=[0], header=None, names=cols)
+           .drop(columns=['EXTRA']))
+    return ctl
+
+
+def get_train_office_line_id_df(path):
+    cols = ['office_line_id', 'operator_line_id', 'direction', 'line_alternative', 'train_office_line_id',
+            'line_detail_record_id', 'from_date', 'to_date', 'trip_id', 'EXTRA']
+    tolid = (pd.read_csv(path, encoding='windows-1255',
+                         skiprows=[0], header=None, names=cols)
+             .drop(columns=['EXTRA']))
+    return tolid
+
+
 def get_partridge_feed_by_date(zip_path, date):
     service_ids_by_date = ptg.read_service_ids_by_date(zip_path)  # , encoding='utf-8')
     service_ids = service_ids_by_date[date]
