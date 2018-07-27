@@ -8,6 +8,7 @@ public class Command {
     public String description = "";
     public String makat = "";
     public String stopCode;
+    public String lineShortName = "";
     public String previewInterval;
     public String lineRef;
     public int maxStopVisits;

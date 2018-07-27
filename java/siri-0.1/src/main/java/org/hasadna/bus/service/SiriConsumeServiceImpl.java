@@ -152,9 +152,10 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
 
         logger.trace(requestXmlString);
 
-        // the implementation will take care of retry
+        // the implementation will take care of retry (might return null)
         ResponseEntity<String> r = httpPostRequest.postHttpRequest(url, entity);
 
+        if (r == null) return null;
         logger.trace("status={}", r.getStatusCode());
         logger.trace("statusCodeValue={}", r.getStatusCodeValue());
         logger.trace(r.getBody());

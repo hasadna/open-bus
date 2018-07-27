@@ -9,10 +9,7 @@ import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.*;
 
 @Component
 public class HttpPostRestTemplateImpl implements HttpPost {
@@ -35,7 +32,7 @@ public class HttpPostRestTemplateImpl implements HttpPost {
      * @return
      */
     @Override
-    @Retryable(value = {HttpServerErrorException.class},
+    @Retryable(value = {HttpClientErrorException.class, HttpServerErrorException.class},
             maxAttempts = 5, backoff = @Backoff(delay = 1000, multiplier = 2))
     public ResponseEntity<String> postHttpRequest(String url, HttpEntity<String> entity) {
         StopWatch sw = new StopWatch(Thread.currentThread().getName());
@@ -53,9 +50,27 @@ public class HttpPostRestTemplateImpl implements HttpPost {
             // probably 503 Service Unavailable
             // backpressure - reduce frequency of requests until MOT Siri service is up again
             logger.error("handling exception, will retry the same request", ex);
+            try {
+                logger.error("status code {}", ex.getRawStatusCode());
+                logger.error("most specific cause: {}", ex.getMostSpecificCause()); ;
+            } catch (Exception e) { ; }
             throw ex;
-        } catch (RestClientException ex) {
+        } catch (HttpClientErrorException ex) {
+            // probably 408 Request Time-out
+            // backpressure - reduce frequency of requests until MOT Siri service is up again
+            logger.error("handling exception, will retry the same request", ex);
+            try {
+                logger.error("status code {}", ex.getRawStatusCode());
+                logger.error("most specific cause: {}", ex.getMostSpecificCause()); ;
+            } catch (Exception e) { ; }
+            throw ex;
+        }
+        catch (RestClientException ex) {
             logger.error("absorbing unhandled", ex);
+            return null;
+        }
+        catch (Exception ex) {
+            logger.error("absorbing unexpected", ex);
             return null;
         }
         sw.stop();

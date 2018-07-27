@@ -132,7 +132,7 @@ public class ScheduleRetrieval {
 
     public List<Command> readSchedulingDataAllFiles(String location) {
         if (Paths.get(location).toFile().isDirectory()) {
-            String pattern = "siri\\.schedule\\..*json";
+            String pattern = "siri.schedule.*.json";
             File[] ff = Paths.get(location).toFile().listFiles();
             List<File> files = Arrays.asList(ff);
             files.forEach(file -> logger.info("{},", file.getName()));
@@ -158,10 +158,11 @@ public class ScheduleRetrieval {
         return list;
     }
 
-    private boolean match(final String name, final String literal) {
-        Pattern pattern = Pattern.compile(literal);
-        Matcher matcher = pattern.matcher(name);
-        return matcher.find();
+    // assume the pattern is always prefix*suffix
+    private boolean match(final String name, final String pattern) {
+        String prefix = pattern.split("\\*")[0];
+        String suffix = pattern.split("\\*")[1];
+        return name.startsWith(prefix) && name.endsWith(suffix);
     }
 
     public List<Command> readSchedulingData(String dataFile) {
