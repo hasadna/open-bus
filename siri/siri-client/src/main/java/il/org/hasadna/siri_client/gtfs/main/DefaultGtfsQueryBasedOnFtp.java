@@ -170,7 +170,7 @@ public class DefaultGtfsQueryBasedOnFtp {
         Boolean disableDownload = false;
         LocalTime whenToDownload = LocalTime.of(3, 30);
         LocalDate dateOfLastDownload = LocalDate.of(2000, 1, 1);
-        Integer secondsBetweenChecks = 15 * 60; // 15 minutep-s
+        Integer secondsBetweenChecks = 15 * 60; // 15 minutes
         String schedulesLocation = "/home/evyatar/logs/";
         String rescheduleUrl = "http://localhost:8080/data/schedules/read/all";
         List<String> agencies = Arrays.asList("5"); // , "16" , "3"
