@@ -26,7 +26,6 @@ import java.util.stream.Stream;
 
 @Component
 @Profile({"production", "dev"})
-//@Profile("production")
 public class ReadMakatFileImpl implements ReadRoutesFile {
 
     @Value("${gtfs.dir.location:/home/evyatar/work/hasadna/open-bus/gtfs/GTFS-2018-06-20/}")
@@ -38,18 +37,6 @@ public class ReadMakatFileImpl implements ReadRoutesFile {
 
     protected final static Logger logger = LoggerFactory.getLogger("console");
 
-    //public static ReadRoutesFileImpl gtfsFiles ;
-
-//    public Map<String, List<StopTimes>> stopTimesByTripId = new ConcurrentHashMap<>();
-//    private static List<String> cacheStopTimes = new LinkedList<>();
-//    public Map<String, Stop> stopsById = new HashMap<>();
-//    public Map<String, Stop> stopsByCode = new HashMap<>();
-//    public List<Stop> stops = new ArrayList<>();
-//    public List<Trip> allTrips = new ArrayList<>();
-//    public Map<String, Route> routesById = new ConcurrentHashMap<>();
-//    List<Calendar> allCalendars = new ArrayList<>();
-//    // map publishedName (such as "480") to list of routes
-//    public Map<String, List<Route>> routesByPublishedName = new ConcurrentHashMap<>();
 
     public Map<String, List<MakatData> > mapByRoute = new HashMap<>();
     public Map<String, MakatData> mapDepartueTimesOfRoute = new HashMap<>();
@@ -65,13 +52,16 @@ public class ReadMakatFileImpl implements ReadRoutesFile {
         }
         makatFullPath = dirOfGtfsFiles + makatFileName;
 
-//        logger.warn("makatFile read starting");
-//        mapByRoute = readMakatFile();
-//        mapDepartueTimesOfRoute = processMapByRoute(mapByRoute);
-//        logger.warn("makatFile read done");
+        try {
+            logger.warn("makatFile read starting");
+            mapByRoute = readMakatFile();
+            mapDepartueTimesOfRoute = processMapByRoute(mapByRoute);
+            logger.warn("makatFile read done");
+        }
+        catch (Exception ex) {
+            logger.error("absorbing unhandled exception during reading makat file");
+        }
 
-        // this will cache StopTimes, and init stopTimesByTripId
-        //dataInit.initStopTimesByTripId(this);
         logger.info("init in PostConstruct completed");
     }
 
@@ -154,7 +144,13 @@ public class ReadMakatFileImpl implements ReadRoutesFile {
             allLines = br.lines().skip(1).collect(Collectors.toList());
             br.close();
         } catch (Exception e) {
-            logger.error("", e);
+            logger.error("while trying to read makat file {}", makatFullPath, e);
+            // handling - allLines will remain an empty list
+
+            // such an exception usualy means that the file was not downloaded.
+            // It will cause the periodic validation to not find departure times
+            // because our current implementation takes them from makat file
+            // (an alternative is to get them from GTFS files)
         }
         doneOnce = true;
         return allLines;

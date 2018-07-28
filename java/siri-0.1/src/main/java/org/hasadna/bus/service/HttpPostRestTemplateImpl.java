@@ -2,6 +2,8 @@ package org.hasadna.bus.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.retry.annotation.Backoff;
@@ -15,6 +17,9 @@ import org.springframework.web.client.*;
 public class HttpPostRestTemplateImpl implements HttpPost {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Autowired
+    RestTemplateBuilder restTemplateBuilder;
 
     /**
      * This implementation of post http request uses the Spring Retry functionality.
@@ -38,7 +43,16 @@ public class HttpPostRestTemplateImpl implements HttpPost {
         StopWatch sw = new StopWatch(Thread.currentThread().getName());
         sw.start();
 
-        RestTemplate restTemplate = new RestTemplate();
+        // we must use the builder, in order to get all its predefined meters.
+        // see https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/html/production-ready-metrics.html#production-ready-metrics-http-clients
+        // The pre-defined name of the meter is http.client.requests
+        // so in DataDog we will see Metrics with the following names:
+        // http.client.requests.count - how many requests in the last minute (throughput)
+        // http.client.requests.avg - average response time (latency), in milliseconds, for the last minute
+        // http.client.requests.max - maximal response time in the last minute, in milliseconds
+        // http.client.requests.sum - sum of all response times in the last minute (in milliseconds)
+        // it seems that currently we can't display histograms in DataDog.
+        RestTemplate restTemplate = restTemplateBuilder.build();
 
         ResponseEntity<String> r = null;
         try {

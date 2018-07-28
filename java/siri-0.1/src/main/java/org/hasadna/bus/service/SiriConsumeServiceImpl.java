@@ -58,13 +58,9 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
             if (cancelRequestIfNoServiceHour(LocalDateTime.now(), command.makat)) {
                 return null;
             }
-            Timer.Sample sample = Timer.start(registry);
 
             GetStopMonitoringServiceResponse result = retrieveSiri(command.stopCode, command.previewInterval, command.lineRef, command.maxStopVisits);
 
-            // measure response time, and log it to datadog with some tags
-            long latencyNano = sample.stop(registry.timer("siri.latency"));
-            logger.info("latency {} ms", latencyNano / 1000000);
             return result;
         }
         return null;
@@ -88,16 +84,13 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
     @Override
     public GetStopMonitoringServiceResponse retrieveSiri(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
         logger.debug("retrieving... {}", lineRef);
-        StopWatch sw1 = new StopWatch(Thread.currentThread().getName());
-        sw1.start();
+
         String content = retrieveSpecificLineAndStop(stopCode, previewInterval, lineRef, maxStopVisits);
         if (content == null) {
             return null;
         }
         logger.debug("lineRef={}, stopCode={}, previewInterval={}", lineRef, stopCode, previewInterval);
         logger.trace(" response={}", content);
-        StopWatch sw2 = new StopWatch(Thread.currentThread().getName());
-        sw2.start();
 
         content = Util.removeSoapEnvelope(content);
         logger.trace(content);
@@ -105,10 +98,8 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         //unmarshall XML to object
         GetStopMonitoringServiceResponse response = unmarshalXml(content);
 
-        sw2.stop();
-        logger.debug("unmarshal to POJO: {} ms", sw2.getTotalTimeMillis());
-        sw1.stop();
-        logger.info("retrieving route {} ...Done ({} ms)", lineRef, sw1.getTotalTimeMillis());
+        logger.debug("unmarshal to POJO completed");
+        logger.info("retrieving route {} ...Done ", lineRef);
 
         return response;
     }

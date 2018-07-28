@@ -72,49 +72,63 @@ public class ScheduleRetrieval {
             queue.put(c);
         }
 
-
-
         logger.info("scheduler initialized.");
     }
 
     private List<Command> validateScheduling(List<Command> data) {
         logger.info("validating ...");
-        data = data.stream().filter(c -> {
-            try {
-                boolean result = true;
-                logger.info("validating route {}", c.lineRef);
-                String routeId = c.lineRef;
-                DepartureTimes dt = makatFile.findDeparturesByRouteId(routeId);
-                if (dt == null) {
-                    logger.warn("no departures found for route {}", routeId);
-                    return false;
-                }
-                List<String> departuesToday = dt.departures.get(LocalDateTime.now().getDayOfWeek());
-                if (departuesToday.isEmpty()) {
-                    // today there are no departures for this route
-                    logger.warn("no departures on day {} for route {}", LocalDateTime.now().getDayOfWeek(), routeId);
-                    result = false;
-                }
-                String firstDeparture = departuesToday.stream().min(Comparator.naturalOrder()).orElse("00:00");
-                String lastDeparture = departuesToday.stream().max(Comparator.naturalOrder()).orElse("23:59");
-                if (LocalDateTime.now().toLocalTime().isBefore(
-                        LocalTime.parse(firstDeparture, DateTimeFormatter.ofPattern("HH:mm")))) {
-                    logger.warn("route {} - first departure is only at {}", routeId, firstDeparture);
-                    result = false;
-                }
-                if (LocalDateTime.now().toLocalTime().isAfter(
-                        LocalTime.parse(lastDeparture, DateTimeFormatter.ofPattern("HH:mm")))) {
-                    logger.warn("route {} - No more departures today, last departure was at {}", routeId, lastDeparture);
-                    result = false;
-                }
-                return result;
-            }
-            catch (Exception ex) {
-                logger.error("absorbing exception {}", ex.getMessage());
-                return true;
-            }
-        }).collect(Collectors.toList());
+        data = data.stream()
+                .filter(c -> nextExecutionBefore2330(c))    // this will filter out those that their nextExecution was already changed
+                .filter(c -> !keepQuerying(c)).collect(Collectors.toList());
+        // after filtering with NOT keepQuerying, what we have in data are
+        // the Command objects that we do not need to query at all until the end of this day
         return data;
+    }
+
+    private boolean nextExecutionBefore2330(Command c) {
+        return
+            (c.nextExecution != null) &&
+                c.nextExecution.toLocalTime().isBefore(LocalTime.of(23, 30));
+
+    }
+
+    private boolean keepQuerying(Command c) {
+        if (c == null) return true;
+        String routeId = c.lineRef;
+        try {
+            boolean result = true;
+            logger.debug("validating route {}", c.lineRef);
+            DepartureTimes dt = makatFile.findDeparturesByRouteId(routeId);
+            if (dt == null) {
+                logger.warn("no departures found for route {}", routeId);
+                return false;
+            }
+            List<String> departuesToday = dt.departures.get(LocalDateTime.now().getDayOfWeek());
+            if (departuesToday.isEmpty()) {
+                // today there are no departures for this route
+                logger.warn("no departures on day {} for route {}", LocalDateTime.now().getDayOfWeek(), routeId);
+                result = false;
+            }
+            String firstDeparture = departuesToday.stream().min(Comparator.naturalOrder()).orElse("00:00");
+            String lastDeparture = departuesToday.stream().max(Comparator.naturalOrder()).orElse("23:59");
+            if (LocalDateTime.now().toLocalTime().isBefore(
+                    LocalTime.parse(firstDeparture, DateTimeFormatter.ofPattern("HH:mm")))) {
+                logger.warn("route {} - first departure is only at {}", routeId, firstDeparture);
+                result = true;  // though we could reduce frequency until time of first departure
+            }
+            // parsing last departure sometimes fails, because the hour is 24:15 or even 27:45
+            // TODO handle these cases correctly
+            if (LocalDateTime.now().toLocalTime().isAfter(
+                    LocalTime.parse(lastDeparture, DateTimeFormatter.ofPattern("HH:mm")))) {
+                logger.warn("route {} - No more departures today, last departure was at {}", routeId, lastDeparture);
+                result = false;
+            }
+            return result;
+        }
+        catch (Exception ex) {
+            logger.error("route {} - absorbing exception {}", routeId, ex.getMessage());
+            return true;
+        }
     }
 
     public void write() {
@@ -237,10 +251,18 @@ public class ScheduleRetrieval {
 
     @Scheduled(fixedRate=300000)    // every 5 minutes.
     @Async
-    //@Timed("validate")
     public void updateSchedulingDataPeriodically() {
-        // hopefully validate won't change the data from inside...
-        validateScheduling(queue.getAllSchedules());
+        try {
+            // from validate we get list of all routeIds that will not depart any more TODAY.
+            List<String> notNeededToday =
+                    validateScheduling(queue.getAllSchedules())
+                            .stream().map(c -> c.lineRef).collect(Collectors.toList());
+            // so we change their nextExecute to about 23:45
+            queue.stopQueryingToday(notNeededToday);
+        }
+        catch (Exception ex) {
+            logger.error("absorbing exception when updating Scheduling Data. You should initiate re-read of all schedules", ex);
+        }
     }
 
 

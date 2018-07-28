@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -59,6 +62,39 @@ public class SortedQueue {
             data[i++] = iter.next();
         }
         return data;
+    }
+
+    public void stopQueryingToday(List<String> notNeededTillTomorrow) {
+        logger.info("stop querying these routes: {}", notNeededTillTomorrow);
+        List<Command> candidatesForUpdatingNextExecution = new ArrayList<>();
+        notNeededTillTomorrow.forEach(routeId ->
+            candidatesForUpdatingNextExecution.addAll(removeByLineRef(routeId))
+        );
+        // now we change nextExecution in all of them
+        List<Command> updatedNextExecution = new ArrayList<>();
+        for (Command c : candidatesForUpdatingNextExecution) {
+            if (!c.nextExecution.toLocalDate().isAfter(LocalDate.now())) {
+                c.nextExecution = LocalTime.of(23, 45).atDate(c.nextExecution.toLocalDate());
+            }
+            updatedNextExecution.add(c);
+        }
+        // add the back to the queue
+        int count = 0;
+        for (Command c : updatedNextExecution) {
+            try {
+                boolean result = queue.offer(c);
+                if (!result) {
+                    logger.error("could not re-add to queue route id {}. To add it back you should call /schedules/read/all", c.lineRef);
+                } else {
+                    count = count + 1;
+                }
+            }
+            catch (Exception ex) {
+                logger.warn("absorbing exception during queue offer of route id {}. Check if it is in the Queue. If not, initiate re-read", c.lineRef);
+                logger.error("absorbing", ex);
+            }
+        }
+        logger.info("changed nextExecution for {} routes (postponed to 23:45)", count);
     }
 
     public List<String> showAll() {
