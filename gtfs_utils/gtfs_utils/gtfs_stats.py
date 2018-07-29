@@ -427,7 +427,21 @@ Download file from s3 bucket. Retry using decorator, and report to logger given 
     :param report: callable to use for logging (e.g. logging logger object)
     :type report: callable
     """
-    bucket.download_file(key, output_path)
+
+    def hook(t):
+        def inner(bytes_amount):
+            t.update(bytes_amount)
+
+        return inner
+
+    # TODO: this is an S3 anti-pattern, and is inefficient - so defaulting to not doing this
+    if SIZE_FOR_DOWNLOAD_PBAR:
+        size = [obj.size for obj in bucket.objects.filter(Prefix=key, MaxKeys=1)][0]
+    else:
+        size = None
+
+    with tqdm(total=size, unit='B', unit_scale=True, desc='download ' + key, leave=True) as t:
+        bucket.download_file(key, output_path, Callback=hook(t))
 
 
 def batch_stats(folder=GTFS_FEEDS_PATH, output_folder=OUTPUT_DIR):
@@ -792,15 +806,17 @@ if __name__ == '__main__':
 # TODO List
 # 
 # 1. add file_name column
+# 1. remove zone and extra route details from trip_stats
+#   1. add them by merging to route_stats
 # 1. separate to modules - run, conf, stats, utils...
 # 1. logging - 
-#    1. logging config and call in every function
-#    1. BUG: logger not logging retries
-#    1. log __name__ with decorator 
-#    1. add ids to every record - process, file
+#   1. logging config and call in every function
+#   1. BUG: logger not logging retries
+#   1. log __name__ with decorator
+#   1. add ids to every record - process, file
 # 1. integrate with custom day cutoff
 # 1. add more fields for identifying routes and locations -
-#    details from stop_desc, geocode
+#    details from stop_desc, geocode, ClusterToLine.zip
 # 1. use daily tariff file to get zones when available
 # 1. run older files with older tariff file
 # 1. write tests
@@ -808,16 +824,10 @@ if __name__ == '__main__':
 # 1. add time between stops - max, min, mean (using delta)
 # 1. add day and night headways and num_trips (maybe noon also)
 # 1. create a function for reading all the pickles and 
-#    make necessary conversions (make it a timeseries good for pandas)
-#    1. times to proper datetimes, date to time period
-#    1. bools to bools
-#    1. add day of week
+#   make necessary conversions (make it a timeseries good for pandas)
+#   1. times to proper datetimes, date to time period
+#   1. bools to bools
+#   1. add day of week
 # 1. insert to sql
 # 1. Think about creating an archive of pruned GTFS (only 1 day each)
 # 1. mean_headway doesn't mean much when num_trips low (maybe num_trips cutoffs will be enough)
-# 1. add info from other files in the FTP
-# GTFS aggregated data from all the transit companies of Israel
-# ClusterToLine.zip to map same-numbered route lines of different cities (clusters) correctly
-# TrainOfficeLineId.zip trips of lines of Israel Railways
-# TripIdToDate.zip to map trips to dates and days of operation
-# Tariff.zip fares for periodic (daily/weekly/monthly) passes for every zone
