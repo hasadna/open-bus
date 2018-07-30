@@ -17,6 +17,7 @@ BUCKET_NAME = 's3.obus.hasadna.org.il'
 BUCKET_VALID_FILES_RE = re.compile('2018-\d\d-\d\d\.zip')
 FORWARD_FILL = False
 
+DOWNLOAD_PBAR = False
 SIZE_FOR_DOWNLOAD_PBAR = False
 DELETE_DOWNLOADED_GTFS_ZIPS = False
 WRITE_FEED_DANGEROUSLY = False

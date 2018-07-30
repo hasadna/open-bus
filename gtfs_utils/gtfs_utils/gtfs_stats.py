@@ -434,14 +434,17 @@ Download file from s3 bucket. Retry using decorator, and report to logger given 
 
         return inner
 
-    # TODO: this is an S3 anti-pattern, and is inefficient - so defaulting to not doing this
-    if SIZE_FOR_DOWNLOAD_PBAR:
-        size = [obj.size for obj in bucket.objects.filter(Prefix=key, MaxKeys=1)][0]
-    else:
-        size = None
+    if DOWNLOAD_PBAR:
+        # TODO: this is an S3 anti-pattern, and is inefficient - so defaulting to not doing this
+        if SIZE_FOR_DOWNLOAD_PBAR:
+            size = [obj.size for obj in bucket.objects.filter(Prefix=key, MaxKeys=1)][0]
+        else:
+            size = None
 
-    with tqdm(total=size, unit='B', unit_scale=True, desc='download ' + key, leave=True) as t:
-        bucket.download_file(key, output_path, Callback=hook(t))
+        with tqdm(total=size, unit='B', unit_scale=True, desc='download ' + key, leave=True) as t:
+            bucket.download_file(key, output_path, Callback=hook(t))
+    else:
+        bucket.download_file(key, output_path)
 
 
 def batch_stats(folder=GTFS_FEEDS_PATH, output_folder=OUTPUT_DIR):
@@ -806,6 +809,7 @@ if __name__ == '__main__':
 # TODO List
 # 
 # 1. add file_name column
+# 1. add a function for handling today's file only (download from ftp)
 # 1. remove zone and extra route details from trip_stats
 #   1. add them by merging to route_stats
 # 1. separate to modules - run, conf, stats, utils...
