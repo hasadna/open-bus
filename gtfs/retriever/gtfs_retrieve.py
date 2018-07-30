@@ -19,6 +19,7 @@ import operator
 import logging
 import logging.config
 import pathlib
+import tempfile
 
 """
  omerTODO - A general issue - I think the current md5 pickle is not a good method.
@@ -28,6 +29,8 @@ import pathlib
  and on the third day they put it back in, we will be missing that third day file with no possibility to know.
  Second, what happens if the pickle gets corrupted?
 """
+# omerTODO - use tempfile for EVERY download
+# omerTODO - only save md5 of the LAST downloaded file (by type)
 
 """
 Based on http://docs.python.org/howto/logging.html#configuring-logging
@@ -162,12 +165,14 @@ def download_file_and_upload_to_s3_bucket(connection, remote_file_name, force=Fa
     """ download remote file from mot, and upload to s3 Bucket """
     # filename = os.path.splitext(remote_file_name)[0] + datetime.datetime.now().strftime(
     #     '_%Y-%m-%dT%H-%M-%S') + pathlib.Path(remote_file_name).suffix
-    filename = datetime.datetime.now().strftime(
-        '_%Y-%m-%dT%H-%M-%S') + remote_file_name
+    filename = datetime.datetime.now().strftime('%Y-%m-%dT%H-%M-%S_') + remote_file_name
 
-    logger.info("Downloading '%s' to tmp file..." % remote_file_name)
-    # omerTODO - consider using tempfile module - https://docs.python.org/3/library/tempfile.html
-    file_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), filename))
+    logger.info("Downloading '%s' to temp file..." % remote_file_name)
+    file_path_temp = tempfile.NamedTemporaryFile(prefix=datetime.datetime.now().strftime('%Y-%m-%dT%H-%M-%S_') + remote_file_name, delete=False)
+    # closing file for now, will re-open when needed
+    file_path_temp.close()
+    file_path = file_path_temp.name
+
     ftp_get_file(file_path, MOT_FTP, remote_file_name)
 
     if not force:
@@ -177,7 +182,8 @@ def download_file_and_upload_to_s3_bucket(connection, remote_file_name, force=Fa
             last_md5 = connection.Object(filename).e_tag[1:-1]  # boto3 relives with ""
             if str(last_md5) == tmp_md5:
                 logger.debug("Checksum's are identical - removing tmp file...")
-                os.remove(file_path)
+    			# remove tmp file
+                os.unlink(file_path)
                 return None
         except Exception as e:
             # file didn't exists
@@ -191,7 +197,7 @@ def download_file_and_upload_to_s3_bucket(connection, remote_file_name, force=Fa
     data.close()
 
     # remove tmp file
-    os.remove(file_path)
+    os.unlink(file_path)
     logger.info("'%s' retrieved to bucket" % remote_file_name)
     # print("Downloading '%s' to tmp file..." % remote_file_name)
     return
