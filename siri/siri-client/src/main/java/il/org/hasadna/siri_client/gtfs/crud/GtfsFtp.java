@@ -4,14 +4,14 @@ import java.io.*;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.nio.file.*;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import il.org.hasadna.siri_client.gtfs.main.DefaultGtfsQueryBasedOnFtp;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
@@ -86,9 +86,16 @@ public class GtfsFtp {
 		return Files.createTempFile(null, null);
 	}
 
-	private Path downloadGtfsZipFile(Path path) throws IOException {
+
+    public Path downloadMakatZipFile() throws IOException {
+        final Path tempPath = Files.createTempFile( Paths.get("file://" + TEMP_DIR), null, null, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("a+rw")));
+        Path path = downloadFile(tempPath);
+        return path;
+    }
+
+    private Path downloadFile(Path path) throws IOException {
         OutputStream out = null ;
-	    try {
+        try {
             try {
                 logger.info("connect to ftp...");
                 FTPClient conn = connect(HOST);
@@ -102,20 +109,33 @@ public class GtfsFtp {
                 }
             }
             catch (ConnectException ex) {
-                logger.error("failed to retrieve GTFS file from ftp", ex);
+                logger.error("failed to retrieve file from ftp", ex);
                 throw new DownloadFailedException("Failed to download the file: " + FILE_NAME);
             }
             catch (SocketTimeoutException ex) {
-                logger.error("failed to retrieve GTFS file from ftp", ex);
+                logger.error("failed to retrieve file from ftp", ex);
                 throw new DownloadFailedException("Failed to download the file: " + FILE_NAME);
             }
             out.close();
             logger.info("                          ... done");
 
+            return path;
+        }
+        finally {
+            if (out != null) {
+                out.close();
+            }
+        }
+    }
+	private Path downloadGtfsZipFile(final Path pathIn) throws IOException {
+        OutputStream out = null ;
+	    try {
+	        Path path = downloadFile(pathIn);
+
             logger.info("renaming gtfs file...");
-            Path newPath = renameFile(path);
+            Path newPath = renameGtfsFile(path);
             logger.info("                  ...done");
-            return  newPath;
+            return newPath;
         }
         finally {
 	        if (out != null) {
@@ -124,7 +144,7 @@ public class GtfsFtp {
         }
 	}
 
-    private Path renameFile(final Path path) {
+    private Path renameGtfsFile(final Path path) {
 	    try {
             String meaningfulName = TEMP_DIR + "gtfs" + LocalDate.now().toString() + ".zip";
             Path newName = Paths.get(meaningfulName);

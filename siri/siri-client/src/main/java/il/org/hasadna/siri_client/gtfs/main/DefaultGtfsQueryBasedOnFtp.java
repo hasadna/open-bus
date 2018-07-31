@@ -53,13 +53,9 @@ public class DefaultGtfsQueryBasedOnFtp {
 
     public DefaultGtfsQueryBasedOnFtp(LocalDate date) throws IOException {
         this.date = date;
-        logger.info("111");
         Path gtfsZip = new GtfsFtp().downloadGtfsZipFile();
-        logger.info("222");
         GtfsZipFile gtfsZipFile = new GtfsZipFile(gtfsZip);
-        logger.info("333");
         gtfsCrud = new GtfsCrud(gtfsZipFile);
-        logger.info("444");
     }
 
     public Collection<GtfsRecord> exec() throws IOException {
@@ -85,6 +81,13 @@ public class DefaultGtfsQueryBasedOnFtp {
             if (download) {
                 GtfsZipFile gtfsZipFile = new GtfsZipFile(new GtfsFtp().downloadGtfsZipFile());
                 gtfsCrud = new GtfsCrud(gtfsZipFile);
+                try {
+                    Path makatFile = new GtfsFtp().downloadMakatZipFile();
+                    logger.info("makat file read done - {}", makatFile.toFile().getAbsolutePath());
+                }
+                catch (Exception ex) {
+                    logger.error("absorbing exception during download of makat file", ex);
+                }
             }
             GtfsDataManipulations gtfs = new GtfsDataManipulations(gtfsCrud);
             date = LocalDate.now();
