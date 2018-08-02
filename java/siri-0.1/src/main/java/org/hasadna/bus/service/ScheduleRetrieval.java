@@ -3,8 +3,6 @@ package org.hasadna.bus.service;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import io.micrometer.core.annotation.Timed;
-import io.micrometer.core.instrument.Tags;
 import org.hasadna.bus.entity.GetStopMonitoringServiceResponse;
 import org.hasadna.bus.service.gtfs.DepartureTimes;
 import org.hasadna.bus.service.gtfs.ReadRoutesFile;
@@ -15,21 +13,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
@@ -66,7 +62,7 @@ public class ScheduleRetrieval {
         List<Command> data = readSchedulingDataAllFiles(dataFileFullPath);
 
         // we currently don't filter out entries - only log warnings
-        validateScheduling(data);
+        validateScheduling(data, LocalDateTime.now());
 
         for (Command c : data) {
             queue.put(c);
@@ -75,14 +71,42 @@ public class ScheduleRetrieval {
         logger.info("scheduler initialized.");
     }
 
-    private List<Command> validateScheduling(List<Command> data) {
+    public List<Command> validateScheduling(List<Command> data, LocalDateTime currentTime) {
         logger.info("validating ...");
         data = data.stream()
                 .filter(c -> nextExecutionBefore2330(c))    // this will filter out those that their nextExecution was already changed
-                .filter(c -> !keepQuerying(c)).collect(Collectors.toList());
+                //.filter(c -> !keepQuerying(c))
+                .collect(Collectors.toList());
         // after filtering with NOT keepQuerying, what we have in data are
         // the Command objects that we do not need to query at all until the end of this day
-        return data;
+        for (Command c : data) {
+            DayOfWeek today = currentTime.getDayOfWeek();
+            if (!CollectionUtils.isEmpty(c.weeklyDepartureTimes) && c.weeklyDepartureTimes.containsKey(today)) {
+                String firstDeparture = c.weeklyDepartureTimes.get(today).get(0);
+                LocalDateTime timeOfFirstDeparture = toLocalTime(firstDeparture, currentTime);
+                if (timeOfFirstDeparture.isAfter(currentTime.plusMinutes(30))) {
+                    // set nextExecution to 30 minutes before firstDeparture
+                    c.nextExecution = timeOfFirstDeparture.minusMinutes(30);
+                }
+                LocalDateTime lastDeparture = toLocalTime(c.weeklyDepartureTimes.get(today).get(c.weeklyDepartureTimes.get(today).size() - 1), currentTime);
+                String lastArrivalStr = c.lastArrivalTimes.getOrDefault(today, "23:59");
+                if (lastArrivalStr.compareTo("23:59") > 0) lastArrivalStr = "23:59";
+                LocalDateTime lastArrival = toLocalTime(lastArrivalStr, currentTime);
+                if (currentTime.isAfter(lastDeparture)) {
+                    if (currentTime.isAfter(lastArrival.plusMinutes(30))) {
+                        //stopQuerying
+                        c.nextExecution = LocalTime.of(23, 45).atDate(currentTime.toLocalDate());
+                    }
+                }
+            }
+        }
+        return data.stream()
+                .filter(c -> nextExecutionBefore2330(c))    // this will further remove those that changed nextExecution in the loop above
+                .collect(Collectors.toList());
+    }
+
+    private LocalDateTime toLocalTime(String departureTime, LocalDateTime currentTime) {
+        return LocalTime.parse(departureTime.substring(0, 5), DateTimeFormatter.ofPattern("HH:mm")).atDate(currentTime.toLocalDate());
     }
 
     private boolean nextExecutionBefore2330(Command c) {
@@ -146,6 +170,10 @@ public class ScheduleRetrieval {
 
     public List<Command> readSchedulingDataAllFiles(String location) {
         if (Paths.get(location).toFile().isDirectory()) {
+            // This is NOT a regex pattern
+            // the match() method will split on the *
+            // so we will read all files that start with "siri.schedule."
+            // and end with ".json"
             String pattern = "siri.schedule.*.json";
             File[] ff = Paths.get(location).toFile().listFiles();
             List<File> files = Arrays.asList(ff);
@@ -153,7 +181,7 @@ public class ScheduleRetrieval {
             files = files.stream().
                     filter(file -> !file.isDirectory() && match(file.getName(), pattern)).
                     collect(Collectors.toList());
-            files.forEach(file -> logger.info("{},", file.getName()));
+            files.forEach(file -> logger.info("will read schedule file {},", file.getName()));
             return unifyAllLists(
                     files.stream().
                             map(file -> readSchedulingData(file.getAbsolutePath())).
@@ -248,6 +276,9 @@ public class ScheduleRetrieval {
         return queue.showAll();
     }
 
+    public List<String> findActive() {
+        return queue.showActive();
+    }
 
     @Scheduled(fixedRate=300000)    // every 5 minutes.
     @Async
@@ -255,7 +286,7 @@ public class ScheduleRetrieval {
         try {
             // from validate we get list of all routeIds that will not depart any more TODAY.
             List<String> notNeededToday =
-                    validateScheduling(queue.getAllSchedules())
+                    validateScheduling(queue.getAllSchedules(), LocalDateTime.now())
                             .stream().map(c -> c.lineRef).collect(Collectors.toList());
             // so we change their nextExecute to about 23:45
             queue.stopQueryingToday(notNeededToday);
@@ -299,7 +330,7 @@ public class ScheduleRetrieval {
             siriProcessService.process(result); // asynchronous invocation
         }
         catch (Exception ex) {
-            logger.error("absorbing unhandled exception", ex);
+            //logger.error("absorbing unhandled exception", ex);
         }
     }
 
@@ -312,8 +343,21 @@ public class ScheduleRetrieval {
 
         logger.info("{} schedules were read", data.size());
 
-        // we currently don't filter out entries - only log warnings
-        validateScheduling(data);
+        try {
+            if (makatFile != null && makatFile.getStatus()) {
+                for (Command c : data) {
+                    DepartureTimes dt = makatFile.findDeparturesByRouteId(c.lineRef);
+                    c.weeklyDepartureTimes = dt.departures;
+                }
+                logger.info("departure times updated from makat file");
+            }
+        }
+        catch (Exception ex) {
+            logger.error("absorbing exception during readin from makatFile", ex);
+        }
+
+        // changes data by possibly setting nextExecution to a later time
+        validateScheduling(data, LocalDateTime.now());
 
         // remove ALL current schedules
         logger.info("removing all schedules");

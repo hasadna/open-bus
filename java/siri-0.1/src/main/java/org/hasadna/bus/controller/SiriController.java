@@ -52,6 +52,13 @@ public class SiriController {
         logger.trace("{}", result);
         return result.toArray();
     }
+    @RequestMapping(value="/schedule/active", method={RequestMethod.GET}, produces = "application/json")
+    public Object[] findActiveSchedulingForRetrieval() {
+        logger.debug("displaying all schedules");
+        List<String> result = scheduleRetrieval.findActive();
+        logger.trace("{}", result);
+        return result.toArray();
+    }
 
     @RequestMapping(value="/schedule/{stopCode}/{lineRef}", method={RequestMethod.GET}, produces = "application/xml")
     public String addSchedulingForRetrieval(@PathVariable String stopCode, @PathVariable String lineRef, @RequestParam(defaultValue = "PT2H") String previewInterval) {

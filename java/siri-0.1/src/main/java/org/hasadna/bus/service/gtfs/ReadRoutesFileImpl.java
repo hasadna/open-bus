@@ -740,4 +740,9 @@ public class ReadRoutesFileImpl implements ReadRoutesFile {
             return s ;
         }
     }
+
+    @Override
+    public boolean getStatus() {
+        return true;
+    }
 }

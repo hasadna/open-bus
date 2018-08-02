@@ -40,4 +40,9 @@ public class ReadRoutesFileLeanImpl implements ReadRoutesFile {
     public Stop findStopById(String stopId) {
         return null;
     }
+
+    @Override
+    public boolean getStatus() {
+        return true;
+    }
 }

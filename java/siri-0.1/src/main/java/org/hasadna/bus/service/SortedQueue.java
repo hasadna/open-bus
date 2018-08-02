@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDate;
@@ -64,7 +65,10 @@ public class SortedQueue {
         return data;
     }
 
-    public void stopQueryingToday(List<String> notNeededTillTomorrow) {
+    public void stopQueryingToday(final List<String> notNeededTillTomorrow) {
+        if (CollectionUtils.isEmpty(notNeededTillTomorrow)) {
+            return;
+        }
         logger.info("stop querying these routes: {}", notNeededTillTomorrow);
         List<Command> candidatesForUpdatingNextExecution = new ArrayList<>();
         notNeededTillTomorrow.forEach(routeId ->
@@ -90,15 +94,25 @@ public class SortedQueue {
                 }
             }
             catch (Exception ex) {
-                logger.warn("absorbing exception during queue offer of route id {}. Check if it is in the Queue. If not, initiate re-read", c.lineRef);
-                logger.error("absorbing", ex);
+                logger.trace("absorbing exception during queue offer of route id {}. Check if it is in the Queue. If not, initiate re-read", c.lineRef);
+                logger.trace("absorbing", ex);
             }
         }
-        logger.info("changed nextExecution for {} routes (postponed to 23:45)", count);
+        if (count > 0) {
+            logger.info("changed nextExecution for {} routes (postponed to 23:45)", count);
+        }
+        logger.info("currently {} active routes in the queue", showActive().size());
     }
 
     public List<String> showAll() {
         return queue.stream().map(c -> c.toString()).collect(Collectors.toList());
+    }
+
+    // active schedules are schedules that were not re-scheduled to 23:45
+    public List<String> showActive() {
+        return queue.stream()
+                .filter(c -> c.nextExecution.isBefore(LocalTime.of(23,30).atDate(LocalDate.now())))
+                .map(c -> c.toString()).collect(Collectors.toList());
     }
 
     public List<Command> getAllSchedules() {

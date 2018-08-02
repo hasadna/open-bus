@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
-@Profile({"production", "dev"})
+//@Profile({"production", "dev"})
 public class ReadMakatFileImpl implements ReadRoutesFile {
 
     @Value("${gtfs.dir.location:/home/evyatar/work/hasadna/open-bus/gtfs/GTFS-2018-06-20/}")
@@ -43,9 +43,11 @@ public class ReadMakatFileImpl implements ReadRoutesFile {
 
     @Autowired
     DataInit dataInit;
+    boolean status = false;
 
     @PostConstruct
     public void init() {
+        status = false;
         logger.info("init in PostConstruct started");
         if (!dirOfGtfsFiles.endsWith("/")) {
             dirOfGtfsFiles = dirOfGtfsFiles + "/";
@@ -57,12 +59,17 @@ public class ReadMakatFileImpl implements ReadRoutesFile {
             mapByRoute = readMakatFile();
             mapDepartueTimesOfRoute = processMapByRoute(mapByRoute);
             logger.warn("makatFile read done");
+            status = true;
         }
         catch (Exception ex) {
             logger.error("absorbing unhandled exception during reading makat file");
         }
 
         logger.info("init in PostConstruct completed");
+    }
+
+    public boolean getStatus() {
+        return status;
     }
 
     private Map<String, MakatData> processMapByRoute(Map<String, List<MakatData>> mapByRoute) {
@@ -132,12 +139,13 @@ public class ReadMakatFileImpl implements ReadRoutesFile {
         return days.getOrDefault(num, DayOfWeek.SATURDAY);
     }
 
-    private boolean doneOnce = false;
+    public boolean doneOnce = false;
     private List<String> readAllLinesOfMakatFileAndDoItFast() {
         List<String> allLines = new ArrayList<>();
         if (doneOnce) return allLines;
         try{
             File inputF = new File(makatFullPath);
+            if (!inputF.exists()) return allLines;
             InputStream inputFS = new FileInputStream(inputF);
             BufferedReader br = new BufferedReader(new InputStreamReader(inputFS));
             // skip the header of the csv
@@ -187,6 +195,28 @@ public class ReadMakatFileImpl implements ReadRoutesFile {
 
         return dt;
     }
+
+//    @Override
+//    public Map<DayOfWeek, String> findArrivalTimesByRouteId(String routeId) {
+//        if ( (mapDepartueTimesOfRoute == null) || mapDepartueTimesOfRoute.isEmpty()) {
+//            return null;
+//        }
+//        if (StringUtils.isEmpty(routeId)) {
+//            return null;
+//        }
+//        MakatData md = mapDepartueTimesOfRoute.get(routeId);
+//        if (md == null) {
+//            return null;
+//        }
+//        // TODO check if now is between fromDate and toDate
+//
+//        DepartureTimes dt = new DepartureTimes(routeId, "");
+//        for (DayOfWeek day : md.departureTimesForDay.keySet()) {
+//            dt.addDepartureTimes(day, md.departureTimesForDay.get(day));
+//        }
+//
+//        return dt;
+//    }
 
     @Override
     public List<Route> findRouteByPublishedName(String linePublishedName, Optional<String> cityInRouteName) {

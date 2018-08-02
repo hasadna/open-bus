@@ -2,7 +2,11 @@ package org.hasadna.bus.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Command {
     public String description = "";
@@ -15,6 +19,12 @@ public class Command {
     @JsonIgnore
     public LocalDateTime nextExecution;
     public int executeEvery;
+    public Map<DayOfWeek, List<String>> weeklyDepartureTimes;
+    public Map<DayOfWeek, String> lastArrivalTimes;
+
+    // backward compatibility for previous json schema
+    @JsonIgnore
+    public List<String> departureTimes;
 
     public Command() {
     }
@@ -24,14 +34,14 @@ public class Command {
     }
 
     public Command(String stopCode, String previewInterval, String lineRef, int maxStopVisits, int executeEvery, String description) {
-        this(stopCode, previewInterval, lineRef, maxStopVisits, LocalDateTime.now(), executeEvery, description);
+        this(stopCode, previewInterval, lineRef, maxStopVisits, LocalDateTime.now(), executeEvery, description, new HashMap<>(), new HashMap<>());
     }
 
     public Command(String stopCode, String previewInterval, String lineRef, int maxStopVisits, LocalDateTime nextExecution, int executeEvery) {
-        this(stopCode, previewInterval, lineRef, maxStopVisits, nextExecution, executeEvery, "");
+        this(stopCode, previewInterval, lineRef, maxStopVisits, nextExecution, executeEvery, "", new HashMap<>(), new HashMap<>());
     }
 
-    public Command(String stopCode, String previewInterval, String lineRef, int maxStopVisits, LocalDateTime nextExecution, int executeEvery, String description) {
+    public Command(String stopCode, String previewInterval, String lineRef, int maxStopVisits, LocalDateTime nextExecution, int executeEvery, String description, Map<DayOfWeek, List<String>> weeklyDepartureTimes, Map<DayOfWeek, String> lastArrivalTimes) {
         this.stopCode = stopCode;
         this.previewInterval = previewInterval;
         this.lineRef = lineRef;
@@ -39,10 +49,12 @@ public class Command {
         this.nextExecution = nextExecution;
         this.executeEvery = executeEvery;
         this.description = description;
+        this.weeklyDepartureTimes = weeklyDepartureTimes;
+        this.lastArrivalTimes = lastArrivalTimes;
     }
 
     Command myClone() {
-        return new Command(this.stopCode, this.previewInterval, this.lineRef, this.maxStopVisits, this.nextExecution, this.executeEvery, this.description);
+        return new Command(this.stopCode, this.previewInterval, this.lineRef, this.maxStopVisits, this.nextExecution, this.executeEvery, this.description, this.weeklyDepartureTimes, this.lastArrivalTimes);
     }
 
     @Override
@@ -51,11 +63,13 @@ public class Command {
                 "description='" + description + '\'' +
                 ", makat='" + makat + '\'' +
                 ", stopCode='" + stopCode + '\'' +
+                ", lineShortName='" + lineShortName + '\'' +
                 ", previewInterval='" + previewInterval + '\'' +
                 ", lineRef='" + lineRef + '\'' +
                 ", maxStopVisits=" + maxStopVisits +
                 ", nextExecution=" + nextExecution +
                 ", executeEvery=" + executeEvery +
+                ", weeklyDepartureTimes=" + weeklyDepartureTimes +
                 '}';
     }
 
@@ -68,21 +82,31 @@ public class Command {
 
         if (maxStopVisits != command.maxStopVisits) return false;
         if (executeEvery != command.executeEvery) return false;
+        if (description != null ? !description.equals(command.description) : command.description != null) return false;
+        if (makat != null ? !makat.equals(command.makat) : command.makat != null) return false;
         if (stopCode != null ? !stopCode.equals(command.stopCode) : command.stopCode != null) return false;
+        if (lineShortName != null ? !lineShortName.equals(command.lineShortName) : command.lineShortName != null)
+            return false;
         if (previewInterval != null ? !previewInterval.equals(command.previewInterval) : command.previewInterval != null)
             return false;
         if (lineRef != null ? !lineRef.equals(command.lineRef) : command.lineRef != null) return false;
-        return nextExecution != null ? nextExecution.equals(command.nextExecution) : command.nextExecution == null;
+        if (nextExecution != null ? !nextExecution.equals(command.nextExecution) : command.nextExecution != null)
+            return false;
+        return weeklyDepartureTimes != null ? weeklyDepartureTimes.equals(command.weeklyDepartureTimes) : command.weeklyDepartureTimes == null;
     }
 
     @Override
     public int hashCode() {
-        int result = stopCode != null ? stopCode.hashCode() : 0;
+        int result = description != null ? description.hashCode() : 0;
+        result = 31 * result + (makat != null ? makat.hashCode() : 0);
+        result = 31 * result + (stopCode != null ? stopCode.hashCode() : 0);
+        result = 31 * result + (lineShortName != null ? lineShortName.hashCode() : 0);
         result = 31 * result + (previewInterval != null ? previewInterval.hashCode() : 0);
         result = 31 * result + (lineRef != null ? lineRef.hashCode() : 0);
         result = 31 * result + maxStopVisits;
         result = 31 * result + (nextExecution != null ? nextExecution.hashCode() : 0);
         result = 31 * result + executeEvery;
+        result = 31 * result + (weeklyDepartureTimes != null ? weeklyDepartureTimes.hashCode() : 0);
         return result;
     }
 }

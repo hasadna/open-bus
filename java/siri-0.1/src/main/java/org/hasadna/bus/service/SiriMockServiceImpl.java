@@ -51,8 +51,8 @@ public class SiriMockServiceImpl implements SiriConsumeService {
 
     final String SIRI_SERVICES_URL = "http://siri.motrealtime.co.il:8081/Siri/SiriServices";
 
-    @Autowired
-    private DatadogMeterRegistry registry;
+//    @Autowired
+//    private DatadogMeterRegistry registry;
 
     @Autowired
     ReadFile readFile;
@@ -65,7 +65,7 @@ public class SiriMockServiceImpl implements SiriConsumeService {
         }
         else {
             GetStopMonitoringServiceResponse result = null;
-            Timer.Sample sample = Timer.start(registry);
+            //Timer.Sample sample = Timer.start(registry);
 
             // retrieve the data from siri
             result = retrieveSiri ( command.stopCode,
@@ -74,8 +74,8 @@ public class SiriMockServiceImpl implements SiriConsumeService {
                                     command.maxStopVisits);
 
             // measure response time, and log it to datadog with some tags
-            long latencyNano = sample.stop(registry.timer("mock.latency", "profile", "dev", "hour", Integer.toString(LocalTime.now().getHour())));
-            logger.info("latency {} ms (0 -100 plus hour, so at 16:xx expecting average of 58", latencyNano / 1000000);
+            //long latencyNano = sample.stop(registry.timer("mock.latency", "profile", "dev", "hour", Integer.toString(LocalTime.now().getHour())));
+            //logger.trace("latency {} ms (0 -100 plus hour, so at 16:xx expecting average of 58", latencyNano / 1000000);
 
             return result;
         }

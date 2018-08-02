@@ -38,7 +38,7 @@ public class GtfsController {
         Route route = rrf.findRouteById(lineRef);
         List<String> lastStops = rrf.findLastStopCodeByRouteId(route.routeId, true);
         route.lastStopCode = lastStops.toString();
-        //route.departureTimes = rrf.findDeparturesByRouteId(route.routeId);
+        //route.weeklyDepartureTimes = rrf.findDeparturesByRouteId(route.routeId);
         return route;
     }
 
@@ -50,7 +50,7 @@ public class GtfsController {
                 map(route -> {
                     List<String> lastStops = rrf.findLastStopCodeByRouteId(route.routeId, true);
                     route.lastStopCode = lastStops.toString();
-                    //route.departureTimes = rrf.findDeparturesByRouteId(route.routeId);
+                    //route.weeklyDepartureTimes = rrf.findDeparturesByRouteId(route.routeId);
                     return route;
                 }).
                 collect(Collectors.toList());
@@ -76,7 +76,7 @@ public class GtfsController {
                     if (lastStops.size() == 1) {
                         route.lastStopCode = lastStops.get(0).toString();
                     }
-                    //route.departureTimes = rrf.findDeparturesByRouteId(route.routeId);
+                    //route.weeklyDepartureTimes = rrf.findDeparturesByRouteId(route.routeId);
                     return route;
                 }).
                 collect(Collectors.toList());
