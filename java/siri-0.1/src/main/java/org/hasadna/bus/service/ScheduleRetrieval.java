@@ -112,14 +112,18 @@ public class ScheduleRetrieval {
             String firstDeparture = departuesToday.stream().min(Comparator.naturalOrder()).orElse("00:00");
             String lastDeparture = departuesToday.stream().max(Comparator.naturalOrder()).orElse("23:59");
             if (LocalDateTime.now().toLocalTime().isBefore(
-                    LocalTime.parse(firstDeparture, DateTimeFormatter.ofPattern("HH:mm")))) {
+                    LocalTime.parse(firstDeparture, DateTimeFormatter.ofPattern("HH:mm")) )) {
                 logger.warn("route {} - first departure is only at {}", routeId, firstDeparture);
                 result = true;  // though we could reduce frequency until time of first departure
             }
             // parsing last departure sometimes fails, because the hour is 24:15 or even 27:45
             // TODO handle these cases correctly
             if (LocalDateTime.now().toLocalTime().isAfter(
-                    LocalTime.parse(lastDeparture, DateTimeFormatter.ofPattern("HH:mm")))) {
+                    LocalTime.parse(lastDeparture, DateTimeFormatter.ofPattern("HH:mm")).plusHours(2) )) {
+                // we add 2 hours because after last departure we still want to track the service
+                // until arrival of the last bus. So we here estimate that it will arrive less than
+                // 2 hours after its departure
+                // TODO this is not correct for some long-distance services, fix with data about arrival times
                 logger.warn("route {} - No more departures today, last departure was at {}", routeId, lastDeparture);
                 result = false;
             }
