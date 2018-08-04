@@ -16,8 +16,7 @@ public class DateTimeUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(DateTimeUtils.class);
 
-    public static Clock defaultC = Clock.systemDefaultZone();
-    public static Clock DEFAULT_CLOCK = Clock.offset(defaultC, Duration.ofDays(1)); // for test only!!
+    public static Clock DEFAULT_CLOCK = Clock.systemDefaultZone();
 
     public static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
     public static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
