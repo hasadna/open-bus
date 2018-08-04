@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.junit.Before;
@@ -18,7 +19,6 @@ public class DefaultGtfsQueryBasedOnFtpTest {
 	}
 
 	@Test
-	
 	public void testExec() throws IOException {
 		DefaultGtfsQueryBasedOnFtp defaultGtfsQueryBasedOnFtp = new DefaultGtfsQueryBasedOnFtp(LocalDate.now());
 		Collection<GtfsRecord> res = defaultGtfsQueryBasedOnFtp.exec();
@@ -26,4 +26,11 @@ public class DefaultGtfsQueryBasedOnFtpTest {
 		res.forEach(System.out::println);
 	}
 
+	@Test
+	public void testWithoutDownload() {
+
+		DefaultGtfsQueryBasedOnFtp x = new DefaultGtfsQueryBasedOnFtp();
+		x.configProperties.agencies = Arrays.asList("18");
+		x.run(false);
+	}
 }

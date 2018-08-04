@@ -78,24 +78,28 @@ public class DefaultGtfsQueryBasedOnFtp {
                 logger.trace("download disabled, return without any change");
                 return;
             }
+            Path olderGtfs = GtfsFtp.findOlderGtfsFile(LocalDate.now());
+            Path pathToGtfsFile = olderGtfs;    // default value, if we can't download a new GTFS
             if (download) {
-                GtfsZipFile gtfsZipFile = new GtfsZipFile(new GtfsFtp().downloadGtfsZipFile());
-                gtfsCrud = new GtfsCrud(gtfsZipFile);
+                pathToGtfsFile = new GtfsFtp().downloadGtfsZipFile();
                 try {
                     Path makatFile = new GtfsFtp().downloadMakatZipFile();
                     logger.info("makat file read done - {}", makatFile.toFile().getAbsolutePath());
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     logger.error("absorbing exception during download of makat file", ex);
                 }
             }
+
+            GtfsZipFile gtfsZipFile = new GtfsZipFile(pathToGtfsFile);
+            gtfsCrud = new GtfsCrud(gtfsZipFile);
+
             GtfsDataManipulations gtfs = new GtfsDataManipulations(gtfsCrud);
             date = LocalDate.now();
             Collection<GtfsRecord> records = gtfs.combine(date);
             logger.info("size: {}", records.size());
 
             SchedulingDataCreator schedulingDataCreator = new SchedulingDataCreator();
-            schedulingDataCreator.createScheduleForSiri(records, gtfs, configProperties.schedulesLocation, configProperties.agencies);
+            schedulingDataCreator.createScheduleForSiri(records, gtfs, configProperties.schedulesLocation, configProperties.agencies, date);
 
             int result = informSiriJavaClientToReschedule();
             if (result == 200) {
@@ -123,6 +127,7 @@ public class DefaultGtfsQueryBasedOnFtp {
             return status;
         } catch (Exception e) {
             logger.error("calling API schedules/read/all failed", e);
+            logger.trace("(this will cause another download of the GTFS in 15 minutes)");
             return 0 ;
         }
     }
@@ -132,21 +137,22 @@ public class DefaultGtfsQueryBasedOnFtp {
         logger.trace("Scheduler Started!");
 
         while (true) {
-
+            LocalTime now = LocalTime.now();
+            LocalDate dnow = LocalDate.now();
             logger.trace("check if it is time to replace gtfs...");
-            if (LocalTime.now().isAfter(configProperties.whenToDownload)) {
+            if (now.isAfter(configProperties.whenToDownload)) {
                 // do download, but only if it wasn't already done
-                if (LocalDate.now().isAfter(configProperties.dateOfLastDownload)) {
-                    logger.trace("start retrieving GTFS of {}", LocalDate.now().toString());
+                if (dnow.isAfter(configProperties.dateOfLastDownload)) {
+                    logger.trace("start retrieving GTFS of {}", dnow.toString());
 
                     // do download
                     run();
 
                     // signify that dl was done
-                    configProperties.dateOfLastDownload = LocalDate.now();
+                    configProperties.dateOfLastDownload = dnow;
                     logger.trace("updated dateOfLastDownload to {}", configProperties.dateOfLastDownload.toString());
                 }
-                else if (LocalDate.now().isAfter(dateOfLastReschedule)) {
+                else if (dnow.isAfter(dateOfLastReschedule)) {
                     // do not download, but we must reschedule
                     // because it is another day...
                     run(false);
@@ -168,7 +174,7 @@ public class DefaultGtfsQueryBasedOnFtp {
     }
 
 
-    private class ConfigProperties {
+    public class ConfigProperties {
         Boolean downloadTodaysFile = true;
         Boolean disableDownload = false;
         LocalTime whenToDownload = LocalTime.of(3, 30);

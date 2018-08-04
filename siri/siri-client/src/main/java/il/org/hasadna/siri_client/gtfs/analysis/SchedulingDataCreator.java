@@ -12,6 +12,11 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -24,8 +29,8 @@ public class SchedulingDataCreator {
     public SchedulingDataCreator() {
     }
 
-    public void createScheduleForSiri(Collection<GtfsRecord> records, GtfsDataManipulations gtfs, String toDir, List<String> onlyAgencies) {
-        logger.info("size: {}", records.size());
+    public void createScheduleForSiri(Collection<GtfsRecord> records, GtfsDataManipulations gtfs, String toDir, List<String> onlyAgencies, LocalDate date) {
+        logger.trace("creating schedule, size: {}", records.size());
         Function<GtfsRecord, String> f = new Function<GtfsRecord, String>() {
             @Override
             public String apply(GtfsRecord gtfsRecord) {
@@ -52,18 +57,24 @@ public class SchedulingDataCreator {
                                 String stopCode = Integer.toString(tripsOfRoute.get(routeId).get(0).getLastStop().getStopCode());
                                 String desc2 = "קו " + route.getRouteShortName() + " " + desc1 ;
                                 //String description = " --- Line " + route.getRouteShortName() +
+                                Map<DayOfWeek, List<String>> departureTimes = new HashMap<>();
+                                departureTimes.put(date.getDayOfWeek(), calcDepartueTimesForRoute(routeId, tripsOfRoute)); // temporary
                                 String description = " --- " + desc2 +
                                         "  --- Makat " + makat +
                                         "  --- Direction " + direction +
                                         "  --- Alternative " + alternative +
-                                        "  ------  " + calcDepartueTimesForRoute(routeId, tripsOfRoute);
+                                        "  ------  " + dayNameFromDate(date) +
+                                        "  ------  " + departureTimes.get(date.getDayOfWeek()) ;
                                 String previewInterval = "PT2H";
                                 String maxStopVisits = "7";
                                 String executeEvery = "60";
-                                SchedulingData sd = generateSchedulingData(description, makat, route.getRouteShortName(), stopCode, previewInterval, lineRef, maxStopVisits, executeEvery);
+                                Map<DayOfWeek, String> lastArrivals = new HashMap<>();
+                                lastArrivals.put(date.getDayOfWeek(), calcLastServiceArrivalTime(routeId, tripsOfRoute));
+                                SchedulingData sd = generateSchedulingData(description, makat, route.getRouteShortName(), stopCode, previewInterval, lineRef, maxStopVisits, executeEvery, departureTimes, lastArrivals);
                                 return sd;
                             }).
                             collect(Collectors.toList());
+            //tripsOfRoute.keySet().stream().
             logger.info("processed {} routes (agency {})", all.size(), agency);
             String json = "{  \"data\" :[" +
                     all.stream().
@@ -73,10 +84,17 @@ public class SchedulingDataCreator {
                             collect(Collectors.joining(","))
                     + "]}";
             String fileName = "siri.schedule." + agency + ".json";
+            DateTimeFormatter x = DateTimeFormatter.ISO_DATE ;
+            String archiveFileName = "siri.schedule." + agency + "." + dayNameFromDate(date) + ".json." + x.format(date) ;
             logger.info("writing to file {} (in {})", fileName, toDir);
             writeToFile(toDir, fileName, json);
+            writeToFile(toDir, archiveFileName, json);
         }
         logger.info("schedules created.");
+    }
+
+    public static String dayNameFromDate(LocalDate date) {
+        return date.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.CANADA);
     }
 
     private String parseLongName(String routeLongName) {
@@ -116,8 +134,8 @@ public class SchedulingDataCreator {
         }
     }
 
-    private SchedulingData generateSchedulingData(String description, String makat, String lineShortName, String stopCode, String previewInterval, String lineRef, String maxStopVisits, String executeEvery) {
-        SchedulingData sd = new SchedulingData(description, makat, lineShortName, stopCode, previewInterval, lineRef, maxStopVisits, executeEvery);
+    private SchedulingData generateSchedulingData(String description, String makat, String lineShortName, String stopCode, String previewInterval, String lineRef, String maxStopVisits, String executeEvery, Map<DayOfWeek, List<String>> departureTimes, Map<DayOfWeek, String> lastArrivalTimes) {
+        SchedulingData sd = new SchedulingData(description, makat, lineShortName, stopCode, previewInterval, lineRef, maxStopVisits, executeEvery, departureTimes, lastArrivalTimes);
         return sd;
     }
 
@@ -132,14 +150,22 @@ public class SchedulingDataCreator {
         }
     }
 
-    private String calcDepartueTimesForRoute(String routeId, Map<String, List<GtfsRecord>> tripsOfRoute) {
+    private String calcLastServiceArrivalTime(String routeId, Map<String, List<GtfsRecord>> tripsOfRoute) {
         List<GtfsRecord> allTrips = tripsOfRoute.get(routeId);
-        String departureTimes =
+        String lastArrival = allTrips.stream()
+                .map(gtfsRecord -> gtfsRecord.getLastStopTime().getArrivalTime())
+                .collect(Collectors.maxBy(Comparator.naturalOrder())).orElse("23:59");
+        return lastArrival;
+    }
+
+    private List<String> calcDepartueTimesForRoute(String routeId, Map<String, List<GtfsRecord>> tripsOfRoute) {
+        List<GtfsRecord> allTrips = tripsOfRoute.get(routeId);
+        List<String> departureTimes =
                 allTrips.stream().
                         map(gtfsRecord -> gtfsRecord.getFirstStopTime().getDepartureTime()).
                         map(stopTime -> stopTime.substring(0, 5)).
                         sorted().
-                        collect(Collectors.joining(","));
+                        collect(Collectors.toList());
         return departureTimes;
     }
 
@@ -161,8 +187,11 @@ public class SchedulingDataCreator {
         public String lineRef;
         public String maxStopVisits;
         public String executeEvery;
+        public List<LocalTime[]> activeRanges;
+        public Map<DayOfWeek, List<String>> departureTimes;
+        public Map<DayOfWeek, String> lastArrivalTimes;
 
-        public SchedulingData(String description, String makat, String lineShortName, String stopCode, String previewInterval, String lineRef, String maxStopVisits, String executeEvery) {
+        public SchedulingData(String description, String makat, String lineShortName, String stopCode, String previewInterval, String lineRef, String maxStopVisits, String executeEvery, Map<DayOfWeek, List<String>> departureTimes, Map<DayOfWeek, String> lastArrivalTimes) {
             this.description = description;
             this.makat = makat;
             this.lineShortName = lineShortName;
@@ -171,6 +200,8 @@ public class SchedulingDataCreator {
             this.lineRef = lineRef;
             this.maxStopVisits = maxStopVisits;
             this.executeEvery = executeEvery;
+            this.departureTimes = departureTimes;
+            this.lastArrivalTimes = lastArrivalTimes;
         }
     }
 

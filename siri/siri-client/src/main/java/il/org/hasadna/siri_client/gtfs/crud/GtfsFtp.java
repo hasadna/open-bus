@@ -60,7 +60,7 @@ public class GtfsFtp {
         }
 	}
 
-    private Path findOlderGtfsFile(LocalDate now) throws IOException {
+    public static Path findOlderGtfsFile(LocalDate now) throws IOException {
 	    File dir = new File(TEMP_DIR);
 	    if (!dir.isDirectory()) {
 	        throw new DownloadFailedException("can't find directory " + TEMP_DIR);
@@ -88,7 +88,7 @@ public class GtfsFtp {
 
 
     public Path downloadMakatZipFile() throws IOException {
-        final Path tempPath = Files.createTempFile( Paths.get("file://" + TEMP_DIR), null, null, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("a+rw")));
+        final Path tempPath = Files.createTempFile( Paths.get("file://" + TEMP_DIR), null, null, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")));
         Path path = downloadFile(tempPath);
         return path;
     }
@@ -113,6 +113,10 @@ public class GtfsFtp {
                 throw new DownloadFailedException("Failed to download the file: " + FILE_NAME);
             }
             catch (SocketTimeoutException ex) {
+                logger.error("failed to retrieve file from ftp", ex);
+                throw new DownloadFailedException("Failed to download the file: " + FILE_NAME);
+            }
+            catch (IOException ex) {
                 logger.error("failed to retrieve file from ftp", ex);
                 throw new DownloadFailedException("Failed to download the file: " + FILE_NAME);
             }
@@ -161,15 +165,4 @@ public class GtfsFtp {
 		return new FTPClient();
 	}
 
-	private class DownloadFailedException extends IOException {
-	    public DownloadFailedException() {
-	        super();
-        }
-        public DownloadFailedException(String message) {
-	        super(message);
-        }
-        public DownloadFailedException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
 }
