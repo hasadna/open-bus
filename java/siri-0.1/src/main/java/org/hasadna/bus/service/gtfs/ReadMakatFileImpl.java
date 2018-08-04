@@ -10,6 +10,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import static org.hasadna.bus.util.DateTimeUtils.DEFAULT_CLOCK;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
@@ -259,7 +260,7 @@ public class ReadMakatFileImpl implements ReadRoutesFile {
         }
 
         public MakatData() {
-            new MakatData("", "", "", "", LocalDateTime.now(), LocalDateTime.now(), "", DayOfWeek.SATURDAY, "");
+            new MakatData("", "", "", "", LocalDateTime.now(DEFAULT_CLOCK), LocalDateTime.now(DEFAULT_CLOCK), "", DayOfWeek.SATURDAY, "");
         }
 
 

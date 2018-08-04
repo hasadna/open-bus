@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import static org.hasadna.bus.util.DateTimeUtils.DEFAULT_CLOCK;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDate;
@@ -69,7 +70,7 @@ public class SortedQueue {
         if (CollectionUtils.isEmpty(notNeededTillTomorrow)) {
             return;
         }
-        logger.info("stop querying these routes: {}", notNeededTillTomorrow);
+        logger.info("stop querying {} routes: {}", notNeededTillTomorrow.size(), notNeededTillTomorrow);
         List<Command> candidatesForUpdatingNextExecution = new ArrayList<>();
         notNeededTillTomorrow.forEach(routeId ->
             candidatesForUpdatingNextExecution.addAll(removeByLineRef(routeId))
@@ -77,8 +78,9 @@ public class SortedQueue {
         // now we change nextExecution in all of them
         List<Command> updatedNextExecution = new ArrayList<>();
         for (Command c : candidatesForUpdatingNextExecution) {
-            if (!c.nextExecution.toLocalDate().isAfter(LocalDate.now())) {
+            if (!c.nextExecution.toLocalDate().isAfter(LocalDate.now(DEFAULT_CLOCK))) {
                 c.nextExecution = LocalTime.of(23, 45).atDate(c.nextExecution.toLocalDate());
+                c.isActive = false;
             }
             updatedNextExecution.add(c);
         }
@@ -111,7 +113,7 @@ public class SortedQueue {
     // active schedules are schedules that were not re-scheduled to 23:45
     public List<String> showActive() {
         return queue.stream()
-                .filter(c -> c.nextExecution.isBefore(LocalTime.of(23,30).atDate(LocalDate.now())))
+                .filter(c -> c.isActive)
                 .map(c -> c.toString()).collect(Collectors.toList());
     }
 

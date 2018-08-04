@@ -16,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import static org.hasadna.bus.util.DateTimeUtils.DEFAULT_CLOCK;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBContext;
@@ -34,6 +35,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -111,7 +113,7 @@ public class SiriMockServiceImpl implements SiriConsumeService {
     @Override
     public String retrieveSpecificLineAndStop(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
 
-        try {            Thread.sleep(r.nextInt(100) + LocalTime.now().getHour());        } catch (InterruptedException e) {}
+        try {            Thread.sleep(r.nextInt(100) + LocalTime.now(DEFAULT_CLOCK).getHour());        } catch (InterruptedException e) {}
 
         if (lineRef.equals("7023")) {
             logger.trace("reading 480-06.xml");
@@ -169,7 +171,7 @@ public class SiriMockServiceImpl implements SiriConsumeService {
     }
 
     private String generateTimestamp() {
-        return LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        return LocalDateTime.now(DEFAULT_CLOCK).format(DateTimeFormatter.ISO_DATE_TIME);
     }
 
     private String generateTimestamp(LocalDateTime ldt) {

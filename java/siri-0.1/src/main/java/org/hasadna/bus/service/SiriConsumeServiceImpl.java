@@ -17,6 +17,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import static org.hasadna.bus.util.DateTimeUtils.DEFAULT_CLOCK;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -25,6 +26,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.stream.StreamSource;
 import java.io.StringReader;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -39,6 +41,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
 
     @Value("${duration.of.interval.in.minutes:5}")
     int durationOfIntervalInMinutes ;
+
 
     @Autowired
     private DatadogMeterRegistry registry;
@@ -55,7 +58,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
             invokeAccordingTo(command);
         }
         else {
-            if (cancelRequestIfNoServiceHour(LocalDateTime.now(), command.makat)) {
+            if (cancelRequestIfNoServiceHour(LocalDateTime.now(DEFAULT_CLOCK), command.makat)) {
                 return null;
             }
 
@@ -112,7 +115,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
     }
 
     private String generateTimestamp() {
-        return LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        return LocalDateTime.now(DEFAULT_CLOCK).format(DateTimeFormatter.ISO_DATE_TIME);
     }
 
     private String generateTimestamp(LocalDateTime ldt) {
@@ -239,7 +242,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
                         "                    <siri:MaximumStopVisits>__MAX_STOP_VISITS__</siri:MaximumStopVisits>\n" +
                         "                </siri:StopMonitoringRequest>\n" ;
 
-        return template.replace("__START__", generateTimestamp( LocalDateTime.now().plusMinutes(minutesFromNow) ));
+        return template.replace("__START__", generateTimestamp( LocalDateTime.now(DEFAULT_CLOCK).plusMinutes(minutesFromNow) ));
     }
 
     private String generateStopMonitoringServiceRequestTemplate(int numberOfIntervals) {

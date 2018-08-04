@@ -4,10 +4,7 @@ import org.hasadna.bus.service.ScheduleRetrieval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
@@ -18,6 +15,9 @@ import java.util.List;
 public class DateTimeUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(DateTimeUtils.class);
+
+    public static Clock defaultC = Clock.systemDefaultZone();
+    public static Clock DEFAULT_CLOCK = Clock.offset(defaultC, Duration.ofDays(1)); // for test only!!
 
     public static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
     public static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -35,21 +35,46 @@ public class DateTimeUtils {
             int minutes = Integer.parseInt(hourAsStr.split(":")[1]);
             hour = hour - 24;
             LocalDate tomorrow = atDate.plusDays(1);
-            return LocalTime.of(hour, minutes).atDate(tomorrow);
+            return fixTimeStrAfterMidnight(hourAsStr, atDate);
         }
     }
 
-    public static LocalDateTime toDateTime(String hourAsStr) {
-        return toDateTime(hourAsStr, LocalDate.now());
+    public static LocalDateTime fixTimeStrAfterMidnight(String hourAsStr, LocalDate atDate) {
+        // assuming this is because the hour is 24:xx or 25:xx
+        int hour = Integer.parseInt(hourAsStr.split(":")[0]);
+        int minutes = Integer.parseInt(hourAsStr.split(":")[1]);
+        if (hour >= 24) {
+            hour = hour - 24;
+        }
+        LocalDate tomorrow = atDate.plusDays(1);
+        return LocalTime.of(hour, minutes).atDate(tomorrow);
     }
 
+    public static String upperBoundTimeStrAfterMidnight(String hourAsStr) {
+        int hour = Integer.parseInt(hourAsStr.split(":")[0]);
+        if (hour >= 24) {
+            return "23:59";
+        }
+        else return hourAsStr;
+    }
+
+    public static LocalDateTime toDateTime(String hourAsStr) {
+        return toDateTime(hourAsStr, LocalDate.now(DEFAULT_CLOCK));
+    }
+
+    /**
+     * return the specified time as a LocalTime type
+     * if hourAsStr is greater than "23:59" (e.g 24:05"), return "23:59"
+     * @param hourAsStr
+     * @return
+     */
     public static LocalTime toTime(String hourAsStr) {
         if (hourAsStr.length() == 8 && hourAsStr.lastIndexOf(':') == 5) {
             hourAsStr = hourAsStr.substring(0, 5);
         }
 
         // hourAsStr is of the format HH:mm
-        return LocalTime.parse(hourAsStr, TIME_FORMAT);
+        return LocalTime.parse(upperBoundTimeStrAfterMidnight(hourAsStr), TIME_FORMAT);
     }
 
     public static LocalDate toDate(String dateStr) {
@@ -67,7 +92,7 @@ public class DateTimeUtils {
     // "21:05" plus 30 will be "21:35"
     // "23:15" plus 50 will be "23:59"
     public static String addMinutesStopAtMidnight(String timeAsStr, int minutesToAdd) {
-        LocalDateTime original = toDateTime(timeAsStr, LocalDate.now());
+        LocalDateTime original = toDateTime(timeAsStr, LocalDate.now(DEFAULT_CLOCK));
         LocalDateTime theDateTime = original.plusMinutes(minutesToAdd);
         if (theDateTime.getDayOfYear() != original.getDayOfYear()) {
             return END_OF_DAY;
@@ -81,7 +106,7 @@ public class DateTimeUtils {
 
 
     public static String subtractMinutesStopAtMidnight(String timeAsStr, int minutesToSubtruct) {
-        LocalDateTime original = toDateTime(timeAsStr, LocalDate.now());
+        LocalDateTime original = toDateTime(timeAsStr, LocalDate.now(DEFAULT_CLOCK));
         LocalDateTime theDateTime = original.minusMinutes(minutesToSubtruct);
         if (theDateTime.getDayOfYear() != original.getDayOfYear()) {
             return START_OF_DAY;

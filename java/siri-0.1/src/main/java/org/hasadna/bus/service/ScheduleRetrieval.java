@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import org.hasadna.bus.entity.GetStopMonitoringServiceResponse;
 import org.hasadna.bus.service.gtfs.DepartureTimes;
 import org.hasadna.bus.service.gtfs.ReadRoutesFile;
+import org.hasadna.bus.util.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +21,7 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
@@ -43,6 +41,9 @@ public class ScheduleRetrieval {
 
     @Value("${scheduler.enable:true}")
     boolean schedulerEnable;
+
+    @Value("${scheduler.inactive.routes.mechanism.enabled:true}")
+    boolean schedulerInactiveMechanismEnabled;
 
     @Value("${scheduler.data.file:/home/evyatar/logs/siri.schedule.json}")
     private String dataFileFullPath ;
@@ -67,16 +68,16 @@ public class ScheduleRetrieval {
         List<Command> data = readSchedulingDataAllFiles(dataFileFullPath);
         addDepartures(data);
         // we currently don't filter out entries - only log warnings
-        validateScheduling(data, LocalDateTime.now());
+        validateScheduling(data, LocalDateTime.now(DEFAULT_CLOCK));
 
         for (Command c : data) {
             queue.put(c);
         }
 
-        logger.info("scheduler initialized.");
+        logger.info("scheduler initialized. status: " + status());
     }
 
-    // return false means - unschedule this command for the rest of the day
+    // return false means - we should unschedule this command for the rest of the day
     // return true means - keep it scheduled
     private boolean checkNecessityOfThisSchedulingForRestOfToday(Command c, LocalDateTime currentTime, boolean disabled) {
         DayOfWeek today = currentTime.getDayOfWeek();
@@ -86,22 +87,24 @@ public class ScheduleRetrieval {
                 !c.weeklyDepartureTimes.get(today).isEmpty()) {
             String firstDeparture = c.weeklyDepartureTimes.get(today).get(0);
             LocalDateTime timeOfFirstDeparture = toLocalTime(firstDeparture, currentTime);
-            if (timeOfFirstDeparture.isAfter(currentTime.plusMinutes(30))) {
+            //if (Duration.between(timeOfFirstDeparture, currentTime).toMinutes()
+            if (timeOfFirstDeparture.isAfter(currentTime.plusMinutes(30))) {    // timeOfFirstDeparture is more than 30 minutes from now
                 // set nextExecution to 30 minutes before firstDeparture
                 LocalDateTime nextExecution = timeOfFirstDeparture.minusMinutes(30);
                 logger.info("route {} - postpone next execution to {}, firstDeparture only at {}", c.lineRef, nextExecution, timeOfFirstDeparture);
                 return disabled; //notNeeded
             }
-            LocalDateTime lastDeparture = toLocalTime(c.weeklyDepartureTimes.get(today).get(c.weeklyDepartureTimes.get(today).size() - 1), currentTime);
+            String lastDeparture = c.weeklyDepartureTimes.get(today).get(c.weeklyDepartureTimes.get(today).size() - 1);
+            LocalDateTime timeOfLastDeparture = toLocalTime(lastDeparture, currentTime);
             String lastArrivalStr = "23:59";
             if (c.lastArrivalTimes != null) {
                 lastArrivalStr = c.lastArrivalTimes.getOrDefault(today, "23:59");
             }
             if (lastArrivalStr.compareTo("23:59") > 0) lastArrivalStr = "23:59";
             LocalDateTime lastArrival = toLocalTime(lastArrivalStr, currentTime);
-            if (currentTime.isAfter(lastDeparture)) {
+            if (currentTime.isAfter(timeOfLastDeparture)) {
                 if (currentTime.isAfter(lastArrival.plusMinutes(30))) {
-                    //stopQuerying
+                    //now is more than 30 minutes after planned last arrival - stopQuerying
                     LocalDateTime nextExecution = LocalTime.of(23, 45).atDate(currentTime.toLocalDate());
                     logger.info("route {} - postpone next execution to {}, last Arrival will be at {}", c.lineRef, nextExecution, lastArrival);
                     return disabled; //notNeeded
@@ -109,7 +112,8 @@ public class ScheduleRetrieval {
             }
             logger.info("route {} - not postponed! next execution {}, firstDeparture at {}", c.lineRef, c.nextExecution, timeOfFirstDeparture);
 
-            logger.info("active range: {}", calculateActiveRanges(c.weeklyDepartureTimes, today, c.lastArrivalTimes));
+            List<LocalTime[]> activeRanges = calculateActiveRanges(c.weeklyDepartureTimes, today, c.lastArrivalTimes);
+            logger.info("active range: {}", displayActiveRanges(activeRanges));
         }
         else {
             logger.info("route {} - not postponed! next execution {}, weekly departure times unknown", c.lineRef, c.nextExecution);
@@ -117,23 +121,33 @@ public class ScheduleRetrieval {
         return true;    // keep scheduling
     }
 
+    private String displayActiveRanges(List<LocalTime[]> activeRanges) {
+        String s = "";
+        for (LocalTime[] item : activeRanges) {
+            s = s + timeAsStr(item[0]) + "-" + timeAsStr(item[1]) + "  ";
+        }
+
+        return "[" + s + "]";
+    }
+
     public List<Command> validateScheduling(List<Command> data, LocalDateTime currentTime) {
         logger.info("validating ...");
         data = data.stream()
-                .filter(c -> nextExecutionBefore2330(c))    // this will filter out those that their nextExecution was already changed
-                //.filter(c -> !keepQuerying(c))
+                .filter(c -> c.isActive)    // this will filter out those that their nextExecution was already changed
                 .collect(Collectors.toList());
         // after filtering with NOT keepQuerying, what we have in data are
         // the Command objects that we do not need to query at all until the end of this day
         List<Command> notNeeded = new ArrayList<>();
         for (Command c : data) {
-            if (false == checkNecessityOfThisSchedulingForRestOfToday(c, currentTime, true)) {
+            if (false == checkNecessityOfThisSchedulingForRestOfToday(c, currentTime, !schedulerInactiveMechanismEnabled)) {
                 notNeeded.add(c);
                 // disabled = true means that this method will only log its result
             }
-
         }
         logger.debug("validateScheduling - return following routes that are not active any more today: {}", notNeeded.stream().map(c -> c.lineRef).collect(Collectors.toList()));
+
+        // Note that there is only one place where this returned list is actually used
+        // to reduce number of active schedulings (in updateSchedulingDataPeriodically)
         return notNeeded;
     }
 
@@ -157,44 +171,7 @@ public class ScheduleRetrieval {
 
     }
 
-    private boolean keepQuerying(Command c) {
-        if (c == null) return true;
-        String routeId = c.lineRef;
-        try {
-            boolean result = true;
-            logger.debug("validating route {}", c.lineRef);
-            DepartureTimes dt = makatFile.findDeparturesByRouteId(routeId);
-            if (dt == null) {
-                logger.warn("no departures found for route {}", routeId);
-                return false;
-            }
-            List<String> departuesToday = dt.departures.get(LocalDateTime.now().getDayOfWeek());
-            if (departuesToday.isEmpty()) {
-                // today there are no departures for this route
-                logger.warn("no departures on day {} for route {}", LocalDateTime.now().getDayOfWeek(), routeId);
-                result = false;
-            }
-            String firstDeparture = departuesToday.stream().min(Comparator.naturalOrder()).orElse("00:00");
-            String lastDeparture = departuesToday.stream().max(Comparator.naturalOrder()).orElse("23:59");
-            if (LocalDateTime.now().toLocalTime().isBefore(
-                    LocalTime.parse(firstDeparture, DateTimeFormatter.ofPattern("HH:mm")))) {
-                logger.warn("route {} - first departure is only at {}", routeId, firstDeparture);
-                result = true;  // though we could reduce frequency until time of first departure
-            }
-            // parsing last departure sometimes fails, because the hour is 24:15 or even 27:45
-            // TODO handle these cases correctly
-            if (LocalDateTime.now().toLocalTime().isAfter(
-                    LocalTime.parse(lastDeparture, DateTimeFormatter.ofPattern("HH:mm")))) {
-                logger.warn("route {} - No more departures today, last departure was at {}", routeId, lastDeparture);
-                result = false;
-            }
-            return result;
-        }
-        catch (Exception ex) {
-            logger.error("route {} - absorbing exception {}", routeId, ex.getMessage());
-            return true;
-        }
-    }
+
 
     public void write() {
         ObjectMapper mapper = new ObjectMapper();
@@ -273,7 +250,7 @@ public class ScheduleRetrieval {
 
                 ///////////////////////////////////////
                 // set the first value of nextExecution for each scheduled invocation
-                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime now = LocalDateTime.now(DEFAULT_CLOCK);
                 for (Command c : list) {
                     if (c.nextExecution == null) {
                         c.nextExecution = now.plus(counter, ChronoUnit.MILLIS);
@@ -297,12 +274,12 @@ public class ScheduleRetrieval {
 
 
     public void addScheduled(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
-        queue.put(new Command(stopCode, previewInterval, lineRef, maxStopVisits, LocalDateTime.now(), defaultTimeBetweenExecutionsOfSameCommandInMinutes * 60));
+        queue.put(new Command(stopCode, previewInterval, lineRef, maxStopVisits, LocalDateTime.now(DEFAULT_CLOCK), defaultTimeBetweenExecutionsOfSameCommandInMinutes * 60));
         write();
     }
 
     public void addScheduled(String stopCode, String previewInterval, String lineRef, int maxStopVisits, int plusSeconds) {
-        queue.put(new Command(stopCode, previewInterval, lineRef, maxStopVisits, LocalDateTime.now().plusSeconds(plusSeconds), defaultTimeBetweenExecutionsOfSameCommandInMinutes * 60));
+        queue.put(new Command(stopCode, previewInterval, lineRef, maxStopVisits, LocalDateTime.now(DEFAULT_CLOCK).plusSeconds(plusSeconds), defaultTimeBetweenExecutionsOfSameCommandInMinutes * 60));
         write();
     }
 
@@ -321,17 +298,17 @@ public class ScheduleRetrieval {
         return queue.showActive();
     }
 
-    @Scheduled(fixedRate=30000)    // every 5 minutes.
+    @Scheduled(fixedRate=300000)    // every 5 minutes.
     @Async
     public void updateSchedulingDataPeriodically() {
         try {
             // from validate we get list of all routeIds that will not depart any more TODAY.
-            //addDepartures(data);
             List<String> notNeededToday =
-                    validateScheduling(queue.getAllSchedules(), LocalDateTime.now())
+                    validateScheduling(queue.getAllSchedules(), LocalDateTime.now(DEFAULT_CLOCK))
                             .stream().map(c -> c.lineRef).collect(Collectors.toList());
             // so we change their nextExecute to about 23:45
             queue.stopQueryingToday(notNeededToday);
+            logger.warn("Current scheduler status: " + status());
         }
         catch (Exception ex) {
             logger.error("absorbing exception when updating Scheduling Data. You should initiate re-read of all schedules", ex);
@@ -340,9 +317,9 @@ public class ScheduleRetrieval {
 
 
     /**
-     * This method will execute every 100 ms.
+     * This method will execute every 50 ms.
      * It can execute in one of ${pool.http.retrieve.core.pool.size} threads.
-     * If execution does not complete after 100 ms, the next execution will
+     * If execution does not complete after 50 ms, the next execution will
      * happen in a different thread (if there is an available thread in the pool)
      *
      * Inside, the method takes the next task from the queue, and executes it
@@ -357,7 +334,7 @@ public class ScheduleRetrieval {
         //logger.trace("scheduled invocation started");
         Command head = queue.peek();
         try {
-            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime now = LocalDateTime.now(DEFAULT_CLOCK);
             if (head.nextExecution.isAfter(now)) {
                 //logger.trace("delaying {} until {} ...", head.lineRef, head.nextExecution);
                 return;
@@ -365,6 +342,7 @@ public class ScheduleRetrieval {
             Command c = queue.takeFromQueue();
             Command next = c.myClone();
             next.nextExecution = now.plusSeconds(next.executeEvery);
+            next.isActive = true;   // though it is already true because myClone does not copy it
             queue.put(next);
             logger.trace("retrieving {} ...", c.lineRef);
             GetStopMonitoringServiceResponse result = siriConsumeService.retrieveSiri(c);   // this part is synchronous
@@ -376,10 +354,17 @@ public class ScheduleRetrieval {
         }
     }
 
+    private String status() {
+        int activeRoutes = queue.showActive().size();
+        int totalRoutes = queue.size();
+        String status = "Queue contains " + totalRoutes + " routes. " + activeRoutes + " of them are active.";
+        return status;
+    }
 
     // removing all entries, read again everything from schedule files
     // expect 4-10 seconds delay
     public void reReadSchedulingAndReplace() {
+        logger.warn("Queue status before re-read: " + status());
         logger.info("reading all schedules again");
         List<Command> data = readSchedulingDataAllFiles(dataFileFullPath);
 
@@ -388,7 +373,7 @@ public class ScheduleRetrieval {
         addDepartures(data);
 
         // changes data by possibly setting nextExecution to a later time
-        validateScheduling(data, LocalDateTime.now());
+        validateScheduling(data, LocalDateTime.now(DEFAULT_CLOCK));
 
         // remove ALL current schedules
         logger.info("removing all schedules");
@@ -400,6 +385,7 @@ public class ScheduleRetrieval {
             queue.put(c);
         }
 
+        logger.warn("Queue status now: " + status());
     }
 
     public void addDepartures(List<Command> allScheduledCommands) {
@@ -421,7 +407,7 @@ public class ScheduleRetrieval {
     }
 
 
-    private List<LocalTime[]> calculateActiveRanges(Map<DayOfWeek, List<String>> departures, DayOfWeek dayOfWeek, Map<DayOfWeek, String> lastArrivals) {
+    public List<LocalTime[]> calculateActiveRanges(Map<DayOfWeek, List<String>> departures, DayOfWeek dayOfWeek, Map<DayOfWeek, String> lastArrivals) {
         if (departures == null || departures.isEmpty())  {
             return Collections.emptyList();
         }
