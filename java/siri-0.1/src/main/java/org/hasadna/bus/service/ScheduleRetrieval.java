@@ -87,13 +87,19 @@ public class ScheduleRetrieval {
                 !c.weeklyDepartureTimes.get(today).isEmpty()) {
             String firstDeparture = c.weeklyDepartureTimes.get(today).get(0);
             LocalDateTime timeOfFirstDeparture = toLocalTime(firstDeparture, currentTime);
-            //if (Duration.between(timeOfFirstDeparture, currentTime).toMinutes()
-            if (timeOfFirstDeparture.isAfter(currentTime.plusMinutes(30))) {    // timeOfFirstDeparture is more than 30 minutes from now
-                // set nextExecution to 30 minutes before firstDeparture
-                LocalDateTime nextExecution = timeOfFirstDeparture.minusMinutes(30);
-                logger.info("route {} - postpone next execution to {}, firstDeparture only at {}", c.lineRef, nextExecution, timeOfFirstDeparture);
-                return disabled; //notNeeded
+
+            // we postpone until first departure, but ONLY after 1AM !!
+            // (this is because until 1AM we still have services from yesterday that we want to track)
+            if (currentTime.getHour() > 1) {    // ugly, will be replaced soon
+                if (timeOfFirstDeparture.isAfter(currentTime.plusMinutes(30))) {    // timeOfFirstDeparture is more than 30 minutes from now
+                    // set nextExecution to 30 minutes before firstDeparture
+                    LocalDateTime nextExecution = timeOfFirstDeparture.minusMinutes(30);
+                    logger.info("route {} - postpone next execution to {}, firstDeparture only at {}", c.lineRef, nextExecution, timeOfFirstDeparture);
+                    return disabled; //notNeeded
+                }
             }
+
+            // if we passed last arrival, we postpone until end of the day
             String lastDeparture = c.weeklyDepartureTimes.get(today).get(c.weeklyDepartureTimes.get(today).size() - 1);
             LocalDateTime timeOfLastDeparture = toLocalTime(lastDeparture, currentTime);
             String lastArrivalStr = "23:59";
