@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 public class ReadMakatFileImpl implements ReadRoutesFile {
 
     @Value("${gtfs.dir.location:/home/evyatar/work/hasadna/open-bus/gtfs/GTFS-2018-06-20/}")
-    private String dirOfGtfsFiles ;
+    public String dirOfGtfsFiles ;
 
 
     private String makatFileName = "TripIdToDate.txt";

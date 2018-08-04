@@ -1,13 +1,16 @@
 package org.hasadna.bus.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Command {
     public String description = "";
     public String makat = "";
@@ -19,6 +22,7 @@ public class Command {
     @JsonIgnore
     public LocalDateTime nextExecution;
     public int executeEvery;
+    public List<LocalTime[]> activeRanges;
     public Map<DayOfWeek, List<String>> weeklyDepartureTimes;
     public Map<DayOfWeek, String> lastArrivalTimes;
 

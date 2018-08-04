@@ -51,7 +51,6 @@
     </logger>
     <logger name="org.hasadna" level="trace" additivity="false">
         <appender-ref ref="FILE-debug" />
-        <appender-ref ref="STDOUT" />
     </logger>
 
     <!--<logger name="console" level="info" additivity="false">-->

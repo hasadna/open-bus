@@ -99,7 +99,7 @@ public class SortedQueue {
             }
         }
         if (count > 0) {
-            logger.info("changed nextExecution for {} routes (postponed to 23:45)", count);
+            logger.info("changed nextExecution for {} routes (postponed to 23:45 or to 30 minutes after last arrival)", count);
         }
         logger.info("currently {} active routes in the queue", showActive().size());
     }
