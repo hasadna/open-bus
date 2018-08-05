@@ -77,9 +77,9 @@ public class ScheduleRetrieval {
         logger.info("scheduler initialized. status: " + status());
     }
 
-    // return false means - we should unschedule this command for the rest of the day
-    // return true means - keep it scheduled
-    private boolean checkNecessityOfThisSchedulingForRestOfToday(Command c, LocalDateTime currentTime, boolean disabled) {
+    // return true - means do NOT change nextExecution
+    //   false - means you should change nextExecution to 30 seconds before first departure
+    private boolean checkNecessityOfThisSchedulingUntilFirstDeparture(Command c, LocalDateTime currentTime, boolean disabled) {
         DayOfWeek today = currentTime.getDayOfWeek();
 
         if (!CollectionUtils.isEmpty(c.weeklyDepartureTimes) &&
@@ -98,6 +98,26 @@ public class ScheduleRetrieval {
                     return disabled; //notNeeded
                 }
             }
+
+            logger.info("route {} - not postponed! next execution {}, firstDeparture at {}", c.lineRef, c.nextExecution, timeOfFirstDeparture);
+        }
+        return true;
+    }
+
+    // return false means - we should unschedule this command for the rest of the day
+    // return true means - keep it scheduled
+    private boolean checkNecessityOfThisSchedulingForRestOfToday(Command c, LocalDateTime currentTime, boolean disabled) {
+        if (!c.isActive) {
+            return true;
+        }
+        DayOfWeek today = currentTime.getDayOfWeek();
+
+        if (!CollectionUtils.isEmpty(c.weeklyDepartureTimes) &&
+                c.weeklyDepartureTimes.containsKey(today) &&
+                !c.weeklyDepartureTimes.get(today).isEmpty()) {
+            String firstDeparture = c.weeklyDepartureTimes.get(today).get(0);
+            LocalDateTime timeOfFirstDeparture = toLocalTime(firstDeparture, currentTime);
+
 
             // if we passed last arrival, we postpone until end of the day
             String lastDeparture = c.weeklyDepartureTimes.get(today).get(c.weeklyDepartureTimes.get(today).size() - 1);
@@ -136,7 +156,7 @@ public class ScheduleRetrieval {
         return "[" + s + "]";
     }
 
-    public List<Command> validateScheduling(List<Command> data, LocalDateTime currentTime) {
+    public ValidationResults validateScheduling(List<Command> data, LocalDateTime currentTime) {
         logger.info("validating ...");
         data = data.stream()
                 .filter(c -> c.isActive)    // this will filter out those that their nextExecution was already changed
@@ -144,8 +164,13 @@ public class ScheduleRetrieval {
         // after filtering with NOT keepQuerying, what we have in data are
         // the Command objects that we do not need to query at all until the end of this day
         List<Command> notNeeded = new ArrayList<>();
+        List<Command> delayTillFirstDeparture = new ArrayList<>();
         for (Command c : data) {
-            if (false == checkNecessityOfThisSchedulingForRestOfToday(c, currentTime, !schedulerInactiveMechanismEnabled)) {
+            if (false == checkNecessityOfThisSchedulingUntilFirstDeparture(c, currentTime, !schedulerInactiveMechanismEnabled)) {
+                delayTillFirstDeparture.add(c);
+                c.isActive = false;
+            }
+            else if (false == checkNecessityOfThisSchedulingForRestOfToday(c, currentTime, !schedulerInactiveMechanismEnabled)) {
                 notNeeded.add(c);
                 // disabled = true means that this method will only log its result
             }
@@ -154,9 +179,21 @@ public class ScheduleRetrieval {
 
         // Note that there is only one place where this returned list is actually used
         // to reduce number of active schedulings (in updateSchedulingDataPeriodically)
-        return notNeeded;
+        return new ValidationResults(delayTillFirstDeparture, notNeeded);
     }
 
+    private class ValidationResults {
+        public List<Command> delayTillFirstDeparture;
+        public List<Command> notNeeded;
+
+        private ValidationResults() {
+        }
+
+        public ValidationResults(List<Command> delayTillFirstDeparture, List<Command> notNeeded) {
+            this.delayTillFirstDeparture = delayTillFirstDeparture;
+            this.notNeeded = notNeeded;
+        }
+    }
     private LocalDateTime toLocalTime(String departureTime, LocalDateTime currentTime) {
         try {
             String depTimeHourMinute = departureTime.substring(0, 5);
@@ -308,11 +345,20 @@ public class ScheduleRetrieval {
     @Async
     public void updateSchedulingDataPeriodically() {
         try {
-            // from validate we get list of all routeIds that will not depart any more TODAY.
-            List<String> notNeededToday =
-                    validateScheduling(queue.getAllSchedules(), LocalDateTime.now(DEFAULT_CLOCK))
+            // from validate we get :
+            //  1.list of all routeIds that will not depart any more TODAY.
+            //  2. list of routeIds that should be delayed until first departure
+            ValidationResults validationResults = validateScheduling(queue.getAllSchedules(), LocalDateTime.now(DEFAULT_CLOCK));
+
+            List<String> delayTillFirstDeparture =
+                    validationResults.delayTillFirstDeparture
                             .stream().map(c -> c.lineRef).collect(Collectors.toList());
-            // so we change their nextExecute to about 23:45
+            queue.delayNextExecution(delayTillFirstDeparture);  // change nextExecution to before first departure
+
+            List<String> notNeededToday =
+                    validationResults.notNeeded
+                            .stream().map(c -> c.lineRef).collect(Collectors.toList());
+            // so we change their nextExecution to about 23:45
             queue.stopQueryingToday(notNeededToday);
             logger.warn("Current scheduler status: " + status());
         }

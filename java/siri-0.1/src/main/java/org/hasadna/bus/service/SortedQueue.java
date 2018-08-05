@@ -7,9 +7,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import static org.hasadna.bus.util.DateTimeUtils.DEFAULT_CLOCK;
+import static org.hasadna.bus.util.DateTimeUtils.*;
 
 import javax.annotation.PostConstruct;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -66,6 +67,55 @@ public class SortedQueue {
         return data;
     }
 
+    public void delayNextExecution(final List<String> delayTillFirstDeparture) {
+        if (CollectionUtils.isEmpty(delayTillFirstDeparture)) {
+            return;
+        }
+        logger.info("delay querying {} routes: {}", delayTillFirstDeparture.size(), delayTillFirstDeparture);
+        List<Command> candidatesForUpdatingNextExecution = new ArrayList<>();
+        delayTillFirstDeparture.forEach(routeId ->
+                candidatesForUpdatingNextExecution.addAll(removeByLineRef(routeId))
+        );
+        // now we change nextExecution in all of them
+        List<Command> updatedNextExecution = new ArrayList<>();
+
+        LocalDateTime currentTime = LocalDateTime.now(DEFAULT_CLOCK);
+        DayOfWeek today = currentTime.getDayOfWeek();
+        for (Command c : candidatesForUpdatingNextExecution) {
+            String firstDeparture = c.weeklyDepartureTimes.get(today).get(0);
+            String evaluateAt = subtractMinutesStopAtMidnight(firstDeparture, 30);
+            c.nextExecution = toDateTime(evaluateAt);
+            c.isActive = false;
+            updatedNextExecution.add(c);
+        }
+
+        int count = addBackToQueue(updatedNextExecution);
+
+        if (count > 0) {
+            logger.info("changed nextExecution for {} routes (postponed to 30 minutes before first departure)", count);
+        }
+        logger.info("currently {} active routes in the queue", showActive().size());
+    }
+
+    private int addBackToQueue(List<Command> updatedNextExecution) {
+        int count = 0;
+        for (Command c : updatedNextExecution) {
+            try {
+                boolean result = queue.offer(c);
+                if (!result) {
+                    logger.error("could not re-add to queue route id {}. To add it back you should call /schedules/read/all", c.lineRef);
+                } else {
+                    count = count + 1;
+                }
+            }
+            catch (Exception ex) {
+                logger.trace("absorbing exception during queue offer of route id {}. Check if it is in the Queue. If not, initiate re-read", c.lineRef);
+                logger.trace("absorbing", ex);
+            }
+        }
+        return count;
+    }
+
     public void stopQueryingToday(final List<String> notNeededTillTomorrow) {
         if (CollectionUtils.isEmpty(notNeededTillTomorrow)) {
             return;
@@ -85,21 +135,8 @@ public class SortedQueue {
             updatedNextExecution.add(c);
         }
         // add the back to the queue
-        int count = 0;
-        for (Command c : updatedNextExecution) {
-            try {
-                boolean result = queue.offer(c);
-                if (!result) {
-                    logger.error("could not re-add to queue route id {}. To add it back you should call /schedules/read/all", c.lineRef);
-                } else {
-                    count = count + 1;
-                }
-            }
-            catch (Exception ex) {
-                logger.trace("absorbing exception during queue offer of route id {}. Check if it is in the Queue. If not, initiate re-read", c.lineRef);
-                logger.trace("absorbing", ex);
-            }
-        }
+        int count = addBackToQueue(updatedNextExecution);
+
         if (count > 0) {
             logger.info("changed nextExecution for {} routes (postponed to 23:45 or to 30 minutes after last arrival)", count);
         }
