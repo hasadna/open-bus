@@ -1,7 +1,7 @@
 # Open Bus
 [![CircleCI](https://circleci.com/gh/hasadna/open-bus/tree/master.svg?style=svg)](https://circleci.com/gh/hasadna/open-bus/tree/master)
 
-Open Bus is a project of [The Public Knowledge Workshop](http://www.hasadna.org.il). 
+Open Bus is a project of [The Public Knowledge Workshop](http://www.hasadna.org.il).
 
 We use public data to improve bus service - and public transport in general - in Israel.
 

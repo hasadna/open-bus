@@ -32,4 +32,9 @@ public final class ServiceId {
 		return true;
 	}
 
+	@Override
+	public String toString() {
+		return "ServiceId [serviceId=" + serviceId + "]";
+	}
+
 }

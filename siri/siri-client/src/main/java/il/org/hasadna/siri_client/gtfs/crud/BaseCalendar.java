@@ -78,4 +78,10 @@ public class BaseCalendar implements Calendar {
 		return endDate;
 	}
 
+	@Override
+	public String toString() {
+		return "BaseCalendar [serviceId=" + serviceId + ", validDays=" + validDays + ", startDate=" + startDate
+				+ ", endDate=" + endDate + "]";
+	}
+
 }

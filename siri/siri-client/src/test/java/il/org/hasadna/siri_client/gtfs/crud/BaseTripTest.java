@@ -43,7 +43,14 @@ public class BaseTripTest {
 	@Test
 	public void testEquals() {
 		EqualsVerifier.forClass(BaseTrip.class).verify();
-		;
+	}
+	
+	@Test
+	public void testToString() {
+		Trip baseTrip = BaseTrip.parse("1,59884326,27727657_210518,רכבת מזרח/שוק,0,94990");
+		String actual = baseTrip.toString();
+		String expected = "BaseTrip [routeId=1, serviceId=ServiceId [serviceId=59884326], tripId=27727657_210518, tripHeadsign=רכבת מזרח/שוק, directionId=0, shapeId=94990]";
+		assertEquals(expected, actual);
 	}
 
 }
