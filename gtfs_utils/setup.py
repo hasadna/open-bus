@@ -12,7 +12,7 @@ with io.open('gtfs_utils/__version__.py', 'r', encoding='utf-8') as f:
     exec(f.read(), about)
 
 requirements = [
-    'partridge>=0.10.0',
+    'partridge>=0.11.0',
     'gtfstk',
     'numpy',
     'pandas',

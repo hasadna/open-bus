@@ -808,7 +808,6 @@ if __name__ == '__main__':
 # 
 # TODO List
 # 
-# 1. add file_name column
 # 1. add a function for handling today's file only (download from ftp)
 # 1. remove zone and extra route details from trip_stats
 #   1. add them by merging to route_stats
@@ -818,10 +817,6 @@ if __name__ == '__main__':
 #   1. BUG: logger not logging retries
 #   1. log __name__ with decorator
 #   1. add ids to every record - process, file
-# 1. integrate with custom day cutoff
-# 1. add more fields for identifying routes and locations -
-#    details from stop_desc, geocode, ClusterToLine.zip
-# 1. use daily tariff file to get zones when available
 # 1. run older files with older tariff file
 # 1. write tests
 # 1. add split_directions
@@ -833,5 +828,4 @@ if __name__ == '__main__':
 #   1. bools to bools
 #   1. add day of week
 # 1. insert to sql
-# 1. Think about creating an archive of pruned GTFS (only 1 day each)
 # 1. mean_headway doesn't mean much when num_trips low (maybe num_trips cutoffs will be enough)
