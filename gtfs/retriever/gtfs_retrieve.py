@@ -182,7 +182,7 @@ def download_file_and_upload_to_s3_bucket(connection, remote_file_name, force=Fa
             last_md5 = connection.Object(filename).e_tag[1:-1]  # boto3 relives with ""
             if str(last_md5) == tmp_md5:
                 logger.debug("Checksum's are identical - removing tmp file...")
-    			# remove tmp file
+                # remove tmp file
                 os.unlink(file_path)
                 return None
         except Exception as e:
@@ -215,7 +215,7 @@ def upload_file_to_s3_bucket(connection, file_name, force=False):
 
 
 def save_and_dump_pickle_dict(filename, timestamp_datetime, md5, dl_files_dict):
-    """" Save a dictionary into a pickle file """
+    """ Save a dictionary into a pickle file """
     """{'name', [milliseconds, 'md5']}"""
     temp_list = [filename, timestamp_datetime]
     dl_files_dict[md5] = temp_list
@@ -288,7 +288,6 @@ def download_file(dest_dir, remote_file_name, force_download):
         # if dict is empty set timestamp to 1000000 which is equals to: 1970-01-12 15:46:40
         latest_local_timestamp = 1000000
 
-    # if get_uptodateness(latest_local_timestamp, MOT_FTP, remote_file_name) or args.force_download:
     if get_uptodateness(latest_local_timestamp, MOT_FTP, remote_file_name) or force_download:
         logger.debug("New file have been found on " + MOT_FTP + " or the '-f' flag is on")
         ftp_get_file(file_path, MOT_FTP, remote_file_name)
@@ -308,35 +307,52 @@ def download_file(dest_dir, remote_file_name, force_download):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--aws", type=str, dest='aws_config_file_name', help="upload current MOT FTP content to AWS S3 "
-                                                                             "See /conf/gtfs_download.config.example "
-                                                                             "for a template for the configuration file"
-                        )
-    parser.add_argument("-d", dest='destination_directory', metavar='DIRECTORY', help="download to local library")
+    # if the option string is present but not followed by a command-line argument the value from const will be produced
+    parser.add_argument("-d", dest='destination_directory', nargs='?', metavar='PATH',
+                        help="download to local library (default=cwd)", const=os.getcwd())
     parser.add_argument("-f", dest='force_download', action='store_true',
                         help="skip timestamp comparing and force download from ftp")
-    parser.add_argument("-p", "--print", dest='print_inventory', metavar='DIRECTORY',
+    parser.add_argument("--tempfile", dest='use_tempfile', action='store_true', default=False,
+                        help="download to a tempfile for easier cleaning")
+    parser.add_argument("-p", "--print", dest='print_inventory', metavar='PATH',
                         help="print saved details about files name, hash and epoch time")
     parser.add_argument("--print_ftp", action='store_true',
                         help="list all files on MOT's FTP")
+    parser.add_argument("--aws", type=str, metavar='AWS_CONFIG_FILE', dest='aws_dl_ul', help="""upload current MOT FTP content to AWS S3 
+    See /conf/gtfs_download.config.example for a template configuration file"""
+                        )
+    # nargs='*' - All command-line arguments present are gathered into a list
+    parser.add_argument("--aws_ul", metavar=('AWS_CONFIG_FILE', 'PATH'), type=str, dest='aws_ul', help="""upload a file to AWS S3 
+    See /conf/gtfs_download.config.example for a template configuration file"""
+                        , nargs=2
+                        )
 
     # parser.print_help()
     args = parser.parse_args()
 
-    ftp_filenames_array = [GTFS_FILE_NAME, CLUSTER_TO_LINE_FILE_NAME, TARIFF_FILE_NAME, TRAIN_OFFICE_FILE_NAME,
-                           TRIP_ID_FILE_NAME, ZONES_FILE_NAME]
+    # ftp_filenames_array = [GTFS_FILE_NAME, CLUSTER_TO_LINE_FILE_NAME, TARIFF_FILE_NAME, TRAIN_OFFICE_FILE_NAME,
+    #                        TRIP_ID_FILE_NAME, ZONES_FILE_NAME]
 
-    if args.aws_config_file_name:
+    if args.aws_dl_ul:
+        logger.debug("option 'aws_dl_ul' was selected")
         # remote_file_name = TRIP_ID_FILE_NAME
-        args = parse_config(args.aws_config_file_name)
-        # omerTODO - what if there is a new file in the ftp that is not in the list?
+        config_dict = parse_config(args.aws_config_file_name)
+        # omerTODO - what if there is a new file on the ftp server that is not in the list?
         filenames_on_ftp_array = get_ftp_filenames(MOT_FTP)
         for remote_file_name in filenames_on_ftp_array:
-            connection = connect_to_bucket(args)
+            connection = connect_to_bucket(config_dict)
             download_file_and_upload_to_s3_bucket(connection, remote_file_name)
 
+    if args.aws_ul:
+        logger.debug("option 'aws_ul' was selected")
+        config_filename = args.aws_ul[0]
+        remote_filename = args.aws_ul[1]
+        config_dict = parse_config(config_filename)
+        # omerTODO - what if there is a new file on the ftp server that is not in the list?
+        connection = connect_to_bucket(config_dict)
+        download_file_and_upload_to_s3_bucket(connection, remote_filename)
+
     if args.destination_directory:
-        # remote_file_name = TARIFF_FILE_NAME
         filenames_on_ftp_array = get_ftp_filenames(MOT_FTP)
         for remote_file_name in filenames_on_ftp_array:
             dest_dir = check_if_path_exists(args.destination_directory)
