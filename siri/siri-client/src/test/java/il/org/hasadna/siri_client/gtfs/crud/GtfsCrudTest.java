@@ -40,10 +40,15 @@ public class GtfsCrudTest {
 		StopTime stopTimesActual = gtfsCrud.getStopTimes()
 				.findAny()
 				.get();
+		
+		Stop stopsActual = gtfsCrud.getStops()
+				.findAny()
+				.get();
 
 		assertNotNull(tripsActual);
 		assertNotNull(calendarsActual);
 		assertNotNull(stopTimesActual);
+		assertNotNull(stopsActual);
 	}
 
 	@Test

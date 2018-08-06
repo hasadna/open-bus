@@ -9,3 +9,5 @@ gtfs_utils/tests/.pytest_cache/
 gtfs_utils/.eggs/
 gtfs_utils/gtfs_utils.egg-info/
 gtfs_utils/.pytest_cache/
+target/
+*.iml
