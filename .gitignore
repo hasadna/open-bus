@@ -4,5 +4,10 @@ __pycache__
 gtfs/data/connection_details.txt
 gtfs/sample/israel-public-transportation/
 venv
+gtfs_utils/tests/.pytest_cache/
+*.txt
+gtfs_utils/.eggs/
+gtfs_utils/gtfs_utils.egg-info/
+gtfs_utils/.pytest_cache/
 target/
 *.iml
