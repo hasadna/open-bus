@@ -1,4 +1,0 @@
-pytz
-jinja2
-psycopg2
-boto3

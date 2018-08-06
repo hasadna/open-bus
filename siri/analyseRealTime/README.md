@@ -1,2 +1,0 @@
-# File configuration
-# CLI parameters
