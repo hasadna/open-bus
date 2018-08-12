@@ -30,7 +30,7 @@ public class DefaultGtfsQueryBasedOnFtpTest {
 	public void testWithoutDownload() {
 
 		DefaultGtfsQueryBasedOnFtp x = new DefaultGtfsQueryBasedOnFtp();
-		x.configProperties.agencies = Arrays.asList("18");
+		x.configProperties.agencies = Arrays.asList("16");
 		x.run(false);
 	}
 }

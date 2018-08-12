@@ -123,6 +123,13 @@ public class GtfsDataManipulations {
 		return getTrips().values().stream().map(this::createGtfsRecord).collect(Collectors.toList());
 	}
 
+	public Collection<GtfsRecord> combineForSpecificRoute(LocalDate date, String routeId) throws IOException {
+		filterGtfs(date);
+		return getTrips().values().stream()
+				.filter(trip-> trip.getRouteId().equals(routeId))
+				.map(this::createGtfsRecord).collect(Collectors.toList());
+	}
+
 	private GtfsRecord createGtfsRecord(Trip currTrip) {
 		Calendar currCalendar = getCalendars().get(currTrip.getServiceId());
 

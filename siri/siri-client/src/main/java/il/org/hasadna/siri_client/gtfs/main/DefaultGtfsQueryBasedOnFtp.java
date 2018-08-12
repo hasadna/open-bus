@@ -63,7 +63,6 @@ public class DefaultGtfsQueryBasedOnFtp {
     }
 
     public static void main(String[] args) {
-        //new DefaultGtfsQueryBasedOnFtp().run();
         new DefaultGtfsQueryBasedOnFtp().scheduleGtfs();
     }
 
@@ -134,7 +133,7 @@ public class DefaultGtfsQueryBasedOnFtp {
 
 
     public void scheduleGtfs() {
-        logger.trace("Scheduler Started!");
+        logger.info("Scheduler Started!");
 
         while (true) {
             LocalTime now = LocalTime.now();

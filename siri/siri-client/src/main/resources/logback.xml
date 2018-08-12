@@ -8,7 +8,7 @@
             </Pattern>
         </layout>
     </appender>
-    <logger name="il.org.hasadna" level="trace" additivity="false">
+    <logger name="il.org.hasadna" level="debug" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
 

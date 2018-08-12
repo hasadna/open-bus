@@ -69,7 +69,7 @@ public class GtfsFtp {
 	    logger.trace("all files: [{}]", Arrays.stream(x).map(file -> file.getName()).collect(Collectors.joining(",")));
 	    List<File> allGtfsFiles =
             Arrays.asList(x).stream().
-                filter(file -> !file.isDirectory() && file.getName().startsWith("gtfs")).
+                filter(file -> !file.isDirectory() && file.getName().startsWith("gtfs") && file.getName().endsWith("zip")).
                 sorted(File::compareTo).
                 collect(Collectors.toList());
         Collections.reverse(allGtfsFiles);  // reverse so we get the newest file first
@@ -82,15 +82,48 @@ public class GtfsFtp {
     }
 
     Path createTempFile() throws IOException {
-
 		return Files.createTempFile(null, null);
 	}
 
-
     public Path downloadMakatZipFile() throws IOException {
-        final Path tempPath = Files.createTempFile( Paths.get("file://" + TEMP_DIR), null, null, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")));
-        Path path = downloadFile(tempPath);
-        return path;
+	    logger.trace("downloading makat file");
+        Path makatFile = downloadMakatZipFile(createTempFile());
+	    logger.trace("makat file downloaded as {}", makatFile);
+	    return makatFile;
+    }
+
+    private Path downloadMakatZipFile(final Path pathIn) throws IOException {
+        OutputStream out = null ;
+        try {
+            Path path = downloadFile(pathIn);
+
+            logger.info("renaming makat file...");
+            Path newPath = renameMakatFile(path);
+            logger.info("                  ...done");
+            return newPath;
+        }
+        finally {
+            if (out != null) {
+                out.close();
+            }
+        }
+    }
+
+    private Path downloadGtfsZipFile(final Path pathIn) throws IOException {
+        OutputStream out = null ;
+        try {
+            Path path = downloadFile(pathIn);
+
+            logger.info("renaming gtfs file...");
+            Path newPath = renameGtfsFile(path);
+            logger.info("                  ...done");
+            return newPath;
+        }
+        finally {
+            if (out != null) {
+                out.close();
+            }
+        }
     }
 
     private Path downloadFile(Path path) throws IOException {
@@ -131,33 +164,26 @@ public class GtfsFtp {
             }
         }
     }
-	private Path downloadGtfsZipFile(final Path pathIn) throws IOException {
-        OutputStream out = null ;
-	    try {
-	        Path path = downloadFile(pathIn);
 
-            logger.info("renaming gtfs file...");
-            Path newPath = renameGtfsFile(path);
-            logger.info("                  ...done");
-            return newPath;
-        }
-        finally {
-	        if (out != null) {
-                out.close();
-            }
-        }
-	}
+    private Path renameMakatFile(final Path path) {
+        return renameFile(path, "TripIdToDate");
+    }
 
     private Path renameGtfsFile(final Path path) {
-	    try {
-            String meaningfulName = TEMP_DIR + "gtfs" + LocalDate.now().toString() + ".zip";
+        return renameFile(path, "gtfs");
+    }
+
+    private Path renameFile(final Path path, final String prefix) {
+        try {
+            String meaningfulName = TEMP_DIR + prefix + LocalDate.now().toString() + ".zip";
             Path newName = Paths.get(meaningfulName);
             Path newPath = Files.move(path, newName, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            logger.trace("file renamed to {}", newPath);
             return newPath;
         }
         catch (IOException ex) {
-	        logger.error("failed to rename file, stay with original name", ex);
-	        return path;
+            logger.error("failed to rename file, stay with original name", ex);
+            return path;
         }
     }
 
