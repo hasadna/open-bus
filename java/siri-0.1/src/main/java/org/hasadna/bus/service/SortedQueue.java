@@ -36,7 +36,7 @@ public class SortedQueue {
         this.registry.gaugeCollectionSize("siri.scheduler.queue", Tags.empty(), this.queue);
     }
 
-    void put(Command command) {
+    public void put(Command command) {
         queue.offer(command);
     }
 
@@ -160,7 +160,7 @@ public class SortedQueue {
 
 
     List<Command> removeByLineRef(String lineRef) {
-        logger.debug("removing all schedules of lineRef {}", lineRef);
+        logger.debug("removing route {} from scheduler queue (will be added again at midnight or whenever schedule file is re-read)", lineRef);
         List<Command> candidatesToRemoval = new ArrayList<>();
         Iterator iter = queue.iterator();
         while (iter.hasNext()) {
@@ -179,8 +179,8 @@ public class SortedQueue {
                 logger.warn("removal of {} returned false", c);
             }
         }
-        logger.debug("return a list of {} schedules", removed.size());
-        logger.trace("return {}", removed);
+//        logger.debug("return a list of {} schedules", removed.size());
+//        logger.trace("return {}", removed);
         return removed;
     }
 
@@ -193,6 +193,6 @@ public class SortedQueue {
         queue.removeIf(c -> true);
     }
 
-    private Queue<Command> queue = new PriorityBlockingQueue<>(20, (c1, c2) -> c1.nextExecution.isBefore(c2.nextExecution)?-1:1);
+    private Queue<Command> queue = new PriorityBlockingQueue<>(1000, (c1, c2) -> c1.nextExecution.isBefore(c2.nextExecution)?-1:1);
 
 }

@@ -15,6 +15,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -54,7 +55,7 @@ public class ReadSchedulingDataTest {
     public void test2() {
         String file = this.getClass().getClassLoader().getResource("siri.schedule.18.Thursday.json").getFile();
         List<Command> list = scheduleRetrieval.readSchedulingData(file);
-        scheduleRetrieval.addDepartures(list);
+        scheduleRetrieval.addDepartures(list, LocalDate.now());
         logger.info("weeklyDepartureTimes {}", list.get(0).weeklyDepartureTimes );
         logger.info("departureTimes {}", list.get(0).departureTimes );
         logger.info("activeRanges {} to {}", list.get(0).activeRanges.get(0)[0], list.get(0).activeRanges.get(0)[1] );

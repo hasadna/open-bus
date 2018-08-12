@@ -18,6 +18,9 @@ public class DateTimeUtils {
 
     public static Clock DEFAULT_CLOCK = Clock.systemDefaultZone();
 
+    // for Debugging in dev env, you can use this to simulate a different date-time then the current time
+    //public static Clock DEFAULT_CLOCK = Clock.offset( Clock.systemDefaultZone(), Duration.ofDays(-2));
+
     public static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
     public static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     public static final String START_OF_DAY = "00:00";

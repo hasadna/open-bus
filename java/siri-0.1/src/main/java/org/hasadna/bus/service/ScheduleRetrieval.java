@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.hasadna.bus.entity.GetStopMonitoringServiceResponse;
 import org.hasadna.bus.service.gtfs.DepartureTimes;
+import org.hasadna.bus.service.gtfs.ReadMakatFileImpl;
 import org.hasadna.bus.service.gtfs.ReadRoutesFile;
 import org.hasadna.bus.util.DateTimeUtils;
 import org.slf4j.Logger;
@@ -65,16 +66,19 @@ public class ScheduleRetrieval {
 
     @PostConstruct
     public void init() {
+        logger.debug("init started");
         List<Command> data = readSchedulingDataAllFiles(dataFileFullPath);
-        addDepartures(data);
+        //addDepartures(data, LocalDate.now(DEFAULT_CLOCK));
         // we currently don't filter out entries - only log warnings
-        validateScheduling(data, LocalDateTime.now(DEFAULT_CLOCK));
+        //validateScheduling(data, LocalDateTime.now(DEFAULT_CLOCK));
 
         for (Command c : data) {
             queue.put(c);
         }
 
         logger.info("scheduler initialized. status: " + status());
+        logger.debug("init completed, queue size:" + queue.getAll().length);
+
     }
 
     // return true - means do NOT change nextExecution
@@ -90,16 +94,27 @@ public class ScheduleRetrieval {
 
             // we postpone until first departure, but ONLY after 1AM !!
             // (this is because until 1AM we still have services from yesterday that we want to track)
-            if (currentTime.getHour() > 1) {    // ugly, will be replaced soon
+            if (currentTime.getHour() > 0) {    // ugly, will be replaced soon
                 if (timeOfFirstDeparture.isAfter(currentTime.plusMinutes(30))) {    // timeOfFirstDeparture is more than 30 minutes from now
                     // set nextExecution to 30 minutes before firstDeparture
                     LocalDateTime nextExecution = timeOfFirstDeparture.minusMinutes(30);
+                    //c.nextExecution = nextExecution;
                     logger.info("route {} - postpone next execution to {}, firstDeparture only at {}", c.lineRef, nextExecution, timeOfFirstDeparture);
                     return disabled; //notNeeded
                 }
+                else {
+                    if (timeOfFirstDeparture.isBefore(currentTime)) {
+                        logger.debug("route {} - not postponed! next execution {}, firstDeparture was at {}", c.lineRef, c.nextExecution, timeOfFirstDeparture);
+                    }
+                    else {
+                        logger.debug("route {} - not postponed! next execution {}, firstDeparture is expected in less than 30 minutes at {}", c.lineRef, c.nextExecution, timeOfFirstDeparture);
+                    }
+                }
+            }
+            else {
+                logger.debug("route {} - not postponed! hoer is before 1:00 AM. next execution {}, firstDeparture at {}", c.lineRef, c.nextExecution, timeOfFirstDeparture);
             }
 
-            logger.info("route {} - not postponed! next execution {}, firstDeparture at {}", c.lineRef, c.nextExecution, timeOfFirstDeparture);
         }
         return true;
     }
@@ -132,17 +147,22 @@ public class ScheduleRetrieval {
                 if (currentTime.isAfter(lastArrival.plusMinutes(30))) {
                     //now is more than 30 minutes after planned last arrival - stopQuerying
                     LocalDateTime nextExecution = LocalTime.of(23, 45).atDate(currentTime.toLocalDate());
-                    logger.info("route {} - postpone next execution to {}, last Arrival will be at {}", c.lineRef, nextExecution, lastArrival);
+                    logger.info("route {} - postpone next execution to {}, last Arrival was at {}", c.lineRef, nextExecution, lastArrival);
                     return disabled; //notNeeded
                 }
+                else {
+                    logger.debug("route {} - not postponed! next execution {}, lastDeparture was at {}, expecting last arrival at {}", c.lineRef, c.nextExecution, timeOfLastDeparture, lastArrival);
+                }
             }
-            logger.info("route {} - not postponed! next execution {}, firstDeparture at {}", c.lineRef, c.nextExecution, timeOfFirstDeparture);
+            else {
+                logger.debug("route {} - not postponed! next execution {}, lastDeparture expected at {}", c.lineRef, c.nextExecution, timeOfLastDeparture);
+            }
 
             List<LocalTime[]> activeRanges = calculateActiveRanges(c.weeklyDepartureTimes, today, c.lastArrivalTimes);
-            logger.info("active range: {}", displayActiveRanges(activeRanges));
+            logger.info("route {}, active range (currently not usable): {}", c.lineRef, displayActiveRanges(activeRanges));
         }
         else {
-            logger.info("route {} - not postponed! next execution {}, weekly departure times unknown", c.lineRef, c.nextExecution);
+            logger.debug("route {} - not postponed! next execution {}, weekly departure times unknown", c.lineRef, c.nextExecution);
         }
         return true;    // keep scheduling
     }
@@ -157,7 +177,7 @@ public class ScheduleRetrieval {
     }
 
     public ValidationResults validateScheduling(List<Command> data, LocalDateTime currentTime) {
-        logger.info("validating ...");
+        logger.info("validating ..., currentTime={}", currentTime.toString());
         data = data.stream()
                 .filter(c -> c.isActive)    // this will filter out those that their nextExecution was already changed
                 .collect(Collectors.toList());
@@ -166,23 +186,28 @@ public class ScheduleRetrieval {
         List<Command> notNeeded = new ArrayList<>();
         List<Command> delayTillFirstDeparture = new ArrayList<>();
         for (Command c : data) {
+            // schedulerInactiveMechanismEnabled=false means that this method will only log its result
             if (false == checkNecessityOfThisSchedulingUntilFirstDeparture(c, currentTime, !schedulerInactiveMechanismEnabled)) {
                 delayTillFirstDeparture.add(c);
-                c.isActive = false;
+                //c.isActive = false;
             }
             else if (false == checkNecessityOfThisSchedulingForRestOfToday(c, currentTime, !schedulerInactiveMechanismEnabled)) {
                 notNeeded.add(c);
-                // disabled = true means that this method will only log its result
             }
         }
-        logger.debug("validateScheduling - return following routes that are not active any more today: {}", notNeeded.stream().map(c -> c.lineRef).collect(Collectors.toList()));
+        if (!delayTillFirstDeparture.isEmpty()) {
+            logger.debug("validateScheduling - return following routes that can be delayed until their first departure: {}", delayTillFirstDeparture.stream().map(c -> c.lineRef).collect(Collectors.toList()));
+        }
+        if (!notNeeded.isEmpty()) {
+            logger.debug("validateScheduling - return following routes that are not active any more today: {}", notNeeded.stream().map(c -> c.lineRef).collect(Collectors.toList()));
+        }
 
         // Note that there is only one place where this returned list is actually used
         // to reduce number of active schedulings (in updateSchedulingDataPeriodically)
         return new ValidationResults(delayTillFirstDeparture, notNeeded);
     }
 
-    private class ValidationResults {
+    public class ValidationResults {
         public List<Command> delayTillFirstDeparture;
         public List<Command> notNeeded;
 
@@ -344,6 +369,7 @@ public class ScheduleRetrieval {
     @Scheduled(fixedRate=300000)    // every 5 minutes.
     @Async
     public void updateSchedulingDataPeriodically() {
+        logger.debug("UPDATE SCHEDULING");
         try {
             // from validate we get :
             //  1.list of all routeIds that will not depart any more TODAY.
@@ -360,6 +386,7 @@ public class ScheduleRetrieval {
                             .stream().map(c -> c.lineRef).collect(Collectors.toList());
             // so we change their nextExecution to about 23:45
             queue.stopQueryingToday(notNeededToday);
+
             logger.warn("Current scheduler status: " + status());
         }
         catch (Exception ex) {
@@ -422,10 +449,10 @@ public class ScheduleRetrieval {
 
         logger.info("{} schedules were read", data.size());
 
-        addDepartures(data);
+        //addDepartures(data, LocalDate.now(DEFAULT_CLOCK));
 
         // changes data by possibly setting nextExecution to a later time
-        validateScheduling(data, LocalDateTime.now(DEFAULT_CLOCK));
+        //validateScheduling(data, LocalDateTime.now(DEFAULT_CLOCK));
 
         // remove ALL current schedules
         logger.info("removing all schedules");
@@ -440,22 +467,25 @@ public class ScheduleRetrieval {
         logger.warn("Queue status now: " + status());
     }
 
-    public void addDepartures(List<Command> allScheduledCommands) {
-        try {
-            if (makatFile != null && makatFile.getStatus()) {
-                for (Command c : allScheduledCommands) {
-                    DepartureTimes dt = makatFile.findDeparturesByRouteId(c.lineRef);
-                    if (dt != null) {
-                        c.weeklyDepartureTimes = dt.departures;
-                        c.activeRanges = calculateActiveRanges(dt.departures, DayOfWeek.THURSDAY, c.lastArrivalTimes);
-                    }
-                }
-                logger.info("departure times updated from makat file");
-            }
-        }
-        catch (Exception ex) {
-            logger.error("absorbing exception during readin from makatFile", ex);
-        }
+    public void addDepartures(List<Command> allScheduledCommands, LocalDate date) {
+//        try {
+//            if (makatFile != null && makatFile.getStatus()) {
+//                for (Command c : allScheduledCommands) {
+//                    DepartureTimes dt = ((ReadMakatFileImpl)makatFile).findDeparturesByRouteId(c.lineRef, date);
+//                    if (dt != null) {
+//                        c.weeklyDepartureTimes = dt.departures;
+//                        c.activeRanges = calculateActiveRanges(dt.departures, date.getDayOfWeek(), c.lastArrivalTimes);
+//                    }
+//                }
+//                logger.info("departure times updated from makat file");
+//            }
+//            else {
+//                logger.info("makat file data not available");
+//            }
+//        }
+//        catch (Exception ex) {
+//            logger.error("absorbing exception during readin from makatFile", ex);
+//        }
     }
 
 
