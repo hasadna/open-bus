@@ -82,11 +82,20 @@ public class SortedQueue {
         LocalDateTime currentTime = LocalDateTime.now(DEFAULT_CLOCK);
         DayOfWeek today = currentTime.getDayOfWeek();
         for (Command c : candidatesForUpdatingNextExecution) {
-            String firstDeparture = c.weeklyDepartureTimes.get(today).get(0);
-            String evaluateAt = subtractMinutesStopAtMidnight(firstDeparture, 30);
-            c.nextExecution = toDateTime(evaluateAt);
-            c.isActive = false;
-            updatedNextExecution.add(c);
+            try {
+                if ((c.weeklyDepartureTimes != null) &&
+                        c.weeklyDepartureTimes.containsKey(today) &&
+                        !c.weeklyDepartureTimes.get(today).isEmpty()) {
+                    String firstDeparture = c.weeklyDepartureTimes.get(today).get(0);
+                    String evaluateAt = subtractMinutesStopAtMidnight(firstDeparture, 30);
+                    c.nextExecution = toDateTime(evaluateAt);
+                    c.isActive = false;
+                    updatedNextExecution.add(c);
+                }
+            }
+            catch (Exception ex) {
+                logger.error("absorbing unhandled exception while calculating next execution of route " + c.lineRef, ex);
+            }
         }
 
         int count = addBackToQueue(updatedNextExecution);
