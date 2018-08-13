@@ -27,6 +27,7 @@ import tempfile
 """
 # omerTODO - use tempfile for EVERY download
 # omerTODO - only save md5 of the LAST downloaded file (by type)
+# omerTODO - there's a bug when running --aws
 
 """
 Based on http://docs.python.org/howto/logging.html#configuring-logging
@@ -165,7 +166,7 @@ def download_file_and_upload_to_s3_bucket(connection, remote_file_name, no_md5):
     if not no_md5:
         tmp_md5 = md5_for_file(file_path)
         try:
-            # check if identical file already exists - retrieve current md5 of zip with same name
+            # check if identical file already exists on AWS- retrieve current md5 of zip with same name
             last_md5 = connection.Object(filename).e_tag[1:-1]  # boto3 relives with ""
             if str(last_md5) == tmp_md5:
                 logger.debug("Checksum's are identical - removing tmp file...")
@@ -198,10 +199,10 @@ def upload_file_to_s3_bucket(connection, file_name):
     return
 
 
-def save_and_dump_pickle_dict(filename, timestamp_datetime, md5, dl_files_dict):
+def save_and_dump_pickle_dict(remote_filename, local_filename, timestamp_datetime, md5, dl_files_dict):
     """ Save a dictionary into a pickle file """
     """{'name', [milliseconds, 'md5']}"""
-    temp_list = [filename, timestamp_datetime]
+    temp_list = [remote_filename, local_filename, timestamp_datetime]
     dl_files_dict[md5] = temp_list
     dump_to_pickle_dict(dl_files_dict)
 
@@ -214,7 +215,7 @@ def dump_to_pickle_dict(dl_files_dict):
 def print_dl_files_dict(dl_files_dict):
     for keys, values in dl_files_dict.items():
         logger.debug("md5 hash: " + keys)
-        logger.debug("[filename, epoch in seconds]: %s", values)
+        logger.debug("[remote_filename, local_filename, epoch in seconds]: %s", values)
 
 
 def load_pickle_dict(path):
@@ -258,36 +259,35 @@ def subset_of_dict_by_filename_prefix(full_dict, filename):
 
 def download_file(dest_dir, remote_file_name, no_timestamp, no_md5):
     epoch_now = int(time.time())
-    filename = datetime.datetime.now().strftime('%Y-%m-%dT%H-%M-%S_') + remote_file_name
+    local_filename = datetime.datetime.now().strftime('%Y-%m-%dT%H-%M-%S_') + remote_file_name
 
     dl_files_dict = load_pickle_dict(dest_dir)
-    file_path = os.path.abspath(os.path.join(dest_dir, filename))
+    file_path = os.path.abspath(os.path.join(dest_dir, local_filename))
 
     # get the maximum value of epoch time in all dictionary
     try:
         subset_dict = subset_of_dict_by_filename_prefix(dl_files_dict, remote_file_name)
         # print(subset_dict)
-        latest_local_timestamp = max(subset_dict.items(), key=operator.itemgetter(1))[1][1]
-        # omerTODO - there's a bug here - the exception is always being raised - the subset return empty
+        latest_local_timestamp = max(subset_dict.items(), key=operator.itemgetter(1))[1][2]
     except ValueError:
         # if dict is empty set timestamp to '1000000' which equals to: 1970-01-12 15:46:40
         latest_local_timestamp = 1000000
-        logger.debug("latest_local_timestamp = %s", latest_local_timestamp)
+    logger.debug("latest_local_timestamp = %s", latest_local_timestamp)
 
     if get_uptodateness(latest_local_timestamp, MOT_FTP, remote_file_name) or no_timestamp:
-        logger.debug("New files have been found on '" + MOT_FTP + "' or the 'no_timestamp' flag is on")
+        logger.debug("New file have been found on '" + MOT_FTP + "' or the 'no_timestamp' flag is on")
         ftp_get_file(file_path, MOT_FTP, remote_file_name)
         file_md5 = md5_for_file(file_path)
         # check if md5 already exists and add it if not
         if not (file_md5 in dl_files_dict) or no_md5:
-            save_and_dump_pickle_dict(filename, epoch_now, file_md5, dl_files_dict)
+            save_and_dump_pickle_dict(remote_file_name, local_filename, epoch_now, file_md5, dl_files_dict)
             logger.debug("MD5 is different from previous downloads or the 'no_md5' flag is on")
         else:
             logger.debug(
                 "The downloaded file '" + remote_file_name + "' already exists (according to md5 check), removing")
             os.remove(file_path)
     else:
-        logger.debug("No newer (timestamp comparing) file have been found on FTP server")
+        logger.debug("No newer (timestamp comparing) file have been found on FTP server skipping downloading")
 
     return
 
@@ -328,7 +328,7 @@ def main():
     if args.aws_dl_ul:
         logger.debug("option 'aws_dl_ul' was selected")
         # remote_file_name = TRIP_ID_FILE_NAME
-        config_dict = parse_config(args.aws_config_file_name)
+        config_dict = parse_config(args.aws_dl_ul)
         filenames_on_ftp_array = get_ftp_filenames(MOT_FTP)
         for remote_file_name in filenames_on_ftp_array:
             connection = connect_to_bucket(config_dict)
