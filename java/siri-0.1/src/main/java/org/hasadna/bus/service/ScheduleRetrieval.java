@@ -27,6 +27,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static org.hasadna.bus.util.DateTimeUtils.*;
@@ -61,7 +62,8 @@ public class ScheduleRetrieval {
     @Autowired
     ReadRoutesFile makatFile ;
 
-
+    // a switch that enables other methods to signify that we need a reRead of schedule files
+    private AtomicBoolean requireReRead = new AtomicBoolean(false);
 
 
     @PostConstruct
@@ -391,6 +393,12 @@ public class ScheduleRetrieval {
         }
         catch (Exception ex) {
             logger.error("absorbing exception when updating Scheduling Data. You should initiate re-read of all schedules", ex);
+            requireReRead.set(true);
+        }
+        // if anyone wants to reRead all schedule files, do it now
+        if (requireReRead.get()) {
+            reReadSchedulingAndReplace();
+            requireReRead.set(false);
         }
     }
 
@@ -463,6 +471,7 @@ public class ScheduleRetrieval {
         for (Command c : data) {
             queue.put(c);
         }
+        requireReRead.set(false);
 
         logger.warn("Queue status now: " + status());
     }
