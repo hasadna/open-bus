@@ -8,12 +8,15 @@ Ready to contribute? Here's how to set up `gtfs_utils` for local development.
 
     $ git clone git@github.com:your_name_here/open-bus.git
 
-3. Install your local copy into a virtual env (with conda or virtualenv)::
-    $ mkvirtualenv open-bus OR conda create -n open-bus
+3. Install your local copy into a virtual env (assuming you have anaconda  with python 3 and conda installed)::
+
+    $ conda create -n open-bus
     $ conda activate open-bus
-    $ cd open-bus/
+    $ cd open-bus
     $ python setup.py develop
-    If you experience issues installing `Shapely` see https://pypi.org/project/Shapely/#downloads
+
+If you experience issues installing `Shapely` see https://pypi.org/project/Shapely/#downloads
+
 4. Create a branch for local development::
 
     $ git checkout -b name-of-your-bugfix-or-feature
