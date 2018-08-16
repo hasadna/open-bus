@@ -108,14 +108,6 @@ public class GtfsDataManipulations {
 				filter(r -> routesOfTrips.contains(r.getRouteId())).
 				collect(Collectors.toMap(Route::getRouteId, r -> r));
 		return routesByRouteId;
-//		Map<String, List<Trip>> tripsByRouteId = trips.values().stream().collect(Collectors.groupingBy(Trip::getRouteId));
-//		Map<String, Route> routesByTripId = new HashMap<>();
-//		for (String routeId : tripsByRouteId.keySet()) {
-//			tripsByRouteId.get(routeId).forEach( trip ->
-//					routesByTripId.put(trip.getTripId(), routesByRouteId.get(routeId))
-//			);
-//		}
-//		return routesByTripId;
 	}
 
 	public Collection<GtfsRecord> combine(LocalDate date) throws IOException {

@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import il.org.hasadna.siri_client.gtfs.analysis.SchedulingDataCreator;
 import il.org.hasadna.siri_client.gtfs.crud.Route;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.ResolverStyle;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,8 +57,10 @@ public class DefaultGtfsQueryBasedOnFtp {
     public DefaultGtfsQueryBasedOnFtp(LocalDate date) throws IOException {
         this.date = date;
         Path gtfsZip = new GtfsFtp().downloadGtfsZipFile();
-        GtfsZipFile gtfsZipFile = new GtfsZipFile(gtfsZip);
-        gtfsCrud = new GtfsCrud(gtfsZipFile);
+        if (gtfsZip != null) {
+            GtfsZipFile gtfsZipFile = new GtfsZipFile(gtfsZip);
+            gtfsCrud = new GtfsCrud(gtfsZipFile);
+        }
     }
 
     public Collection<GtfsRecord> exec() throws IOException {
@@ -66,29 +71,37 @@ public class DefaultGtfsQueryBasedOnFtp {
         new DefaultGtfsQueryBasedOnFtp().scheduleGtfs();
     }
 
-    public void run() {
-        run(true);
+    public boolean run() {
+        return run(true);
     }
 
-    public void run(boolean download) {
+    public boolean run(boolean download) {
+        boolean dlOk = true;
         try {
             logger.info("reading gtfs file");
             if (configProperties.disableDownload) {
                 logger.trace("download disabled, return without any change");
-                return;
+                return dlOk;
             }
-            Path olderGtfs = GtfsFtp.findOlderGtfsFile(LocalDate.now());
+            Path olderGtfs = GtfsFtp.findOlderGtfsFile(LocalDate.now());    // might be null if no files were found
             Path pathToGtfsFile = olderGtfs;    // default value, if we can't download a new GTFS
             if (download) {
-                pathToGtfsFile = new GtfsFtp().downloadGtfsZipFile();
+                if (!configProperties.skipGtfs) {
+                    pathToGtfsFile = new GtfsFtp().downloadGtfsZipFile();
+                }
                 try {
                     Path makatFile = new GtfsFtp().downloadMakatZipFile();
                     logger.info("makat file read done - {}", makatFile.toFile().getAbsolutePath());
                 } catch (Exception ex) {
+                    dlOk = false;
                     logger.error("absorbing exception during download of makat file", ex);
                 }
             }
 
+            if (pathToGtfsFile == null) {
+                dlOk = false;
+                throw new IllegalArgumentException("no GTFS files were found");
+            }
             GtfsZipFile gtfsZipFile = new GtfsZipFile(pathToGtfsFile);
             gtfsCrud = new GtfsCrud(gtfsZipFile);
 
@@ -112,9 +125,21 @@ public class DefaultGtfsQueryBasedOnFtp {
         catch (Exception e) {
             logger.error("unhandled exception in main", e);
         }
+        return dlOk;
     }
 
     private int informSiriJavaClientToReschedule() {
+        RetryPolicy retryPolicy = new RetryPolicy()
+                .retryOn(Exception.class)
+                .retryIf(result -> (Integer)result != 200)
+                .withBackoff(1, 20 * 60, TimeUnit.SECONDS)
+                .withMaxRetries(10);
+
+        Integer result = Failsafe.with(retryPolicy).get(() -> sendHttpRequest());
+        return result;
+    }
+
+    private int sendHttpRequest() {
         //call http GET localhost:8080/data/schedules/read/all
         try {
             logger.info("calling API to reschedule all...");
@@ -127,7 +152,8 @@ public class DefaultGtfsQueryBasedOnFtp {
         } catch (Exception e) {
             logger.error("calling API schedules/read/all failed", e);
             logger.trace("(this will cause another download of the GTFS in 15 minutes)");
-            return 0 ;
+            //return 0 ;
+            throw new RuntimeException(e);  // the exception will cause the Retry mechanism to work
         }
     }
 
@@ -145,11 +171,13 @@ public class DefaultGtfsQueryBasedOnFtp {
                     logger.trace("start retrieving GTFS of {}", dnow.toString());
 
                     // do download
-                    run();
+                    boolean downloadOk = run();
 
                     // signify that dl was done
-                    configProperties.dateOfLastDownload = dnow;
-                    logger.trace("updated dateOfLastDownload to {}", configProperties.dateOfLastDownload.toString());
+                    if (downloadOk) {
+                        configProperties.dateOfLastDownload = dnow;
+                        logger.info("updated dateOfLastDownload to {}", configProperties.dateOfLastDownload.toString());
+                    }
                 }
                 else if (dnow.isAfter(dateOfLastReschedule)) {
                     // do not download, but we must reschedule
@@ -182,6 +210,7 @@ public class DefaultGtfsQueryBasedOnFtp {
         String schedulesLocation = "/home/evyatar/logs/";
         String rescheduleUrl = "http://localhost:8080/data/schedules/read/all";
         List<String> agencies = Arrays.asList("5"); // , "16" , "3"
+        Boolean skipGtfs = false;
 
         public void initFromSystemProperties() {
             downloadTodaysFile = Boolean.parseBoolean( fromSystemProp("gtfs.downloadToday", downloadTodaysFile.toString()) );
@@ -192,6 +221,7 @@ public class DefaultGtfsQueryBasedOnFtp {
             schedulesLocation = fromSystemProp("gtfs.schedules.location", schedulesLocation);
             rescheduleUrl = fromSystemProp("gtfs.reschedule.url", rescheduleUrl);
             agencies = parseList(fromSystemProp("gtfs.agencies", agencies.toString()));
+            skipGtfs = Boolean.parseBoolean( fromSystemProp("gtfs.skip", skipGtfs.toString()) );
         }
 
         private List<String> parseList(String s) {

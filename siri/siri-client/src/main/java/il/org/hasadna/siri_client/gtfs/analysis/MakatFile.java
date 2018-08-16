@@ -17,8 +17,9 @@ public class MakatFile {
     public String dirOfMakatFiles = "/tmp/";
 
 
-    private String makatFileName = "TripIdToDate.txt";
-    private String makatFullPath = dirOfMakatFiles + makatFileName;
+    private String makatFileNamePrefix = "TripIdToDate";
+    private String makatFileNameSuffix = ".txt";
+    private String makatFullPath = null;    // initialized in init()
 
     protected final static Logger logger = LoggerFactory.getLogger("console");
 
@@ -28,12 +29,13 @@ public class MakatFile {
 
     boolean status = false;
 
-    public void init() {
+    public void init(LocalDate date) {
         status = false;
         logger.info("init in PostConstruct started");
         if (!dirOfMakatFiles.endsWith("/")) {
             dirOfMakatFiles = dirOfMakatFiles + "/";
         }
+        String makatFileName = makatFileNamePrefix + date.toString() + makatFileNameSuffix;
         makatFullPath = dirOfMakatFiles + makatFileName;
 
         try {
@@ -64,7 +66,6 @@ public class MakatFile {
         Map<String, MakatData> mapDepartureTimesOfRoute = new HashMap<>();
         // find all makats
         for (String routeId : mapByRoute.keySet()) {
-            //if (!("15531".equals(routeId) || "15532".equals(routeId))) continue;    // temporary!! TODO remove!!
             logger.trace("processing route {}", routeId);
             Map<LocalDate, List<String>> departureTimesForDate = new HashMap<>();
             for (int count = 0 ; count < 7 ; count++) {
