@@ -103,7 +103,9 @@ public class GtfsFtp {
         logger.info("unzipping makat file");
         GtfsZipFile makatZipFile = new GtfsZipFile(makatFile);
         Path unzippedMakatTempFile = makatZipFile.extractFile("TripIdToDate.txt", "makat" + LocalDate.now().toString());
+        logger.info("unzipped makat file to {}", unzippedMakatTempFile);
         Path unzippedMakatFile = renameFile(unzippedMakatTempFile, "TripIdToDate", ".txt");
+        logger.info("renamed unzipped makat file to {}", unzippedMakatFile);
 	    return unzippedMakatFile;
     }
 
