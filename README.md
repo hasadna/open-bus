@@ -1,5 +1,5 @@
 # Open Bus
-[![CircleCI](https://circleci.com/gh/hasadna/open-bus/tree/master.svg?style=svg)](https://circleci.com/gh/hasadna/open-bus/tree/master)
+[![Build Status](https://travis-ci.org/hasadna/open-bus.svg?branch=master)](https://travis-ci.org/hasadna/open-bus)
 
 Open Bus is a project of [The Public Knowledge Workshop](http://www.hasadna.org.il).
 
