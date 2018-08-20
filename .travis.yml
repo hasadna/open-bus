@@ -1,5 +1,6 @@
 language: python
-python:
-  - "3.7"
+python: 3.7
+dist: xenial
+sudo: true
 script: 
   - echo "Begining of CI"
