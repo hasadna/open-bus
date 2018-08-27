@@ -20,6 +20,7 @@ import logging
 from zipfile import BadZipFile
 import itertools
 from tqdm import tqdm
+from partridge import feed as ptg_feed
 from gtfs_stats_conf import *
 
 
@@ -500,7 +501,7 @@ Get list of dates without output files (currently just route_stats is considered
                             if g[1] == 'route_stats']]
 
 
-def get_forward_fill_dict(valid_files):
+def get_forward_fill_dict(valid_files, future_days=FUTURE_DAYS):
     """
 get a dictionary mapping gtfs file names to a list of dates for forward fill by scanning for missing dates for files
     :param valid_files: list of valid file keys
@@ -509,7 +510,7 @@ get a dictionary mapping gtfs file names to a list of dates for forward fill by 
     :rtype defaultdict of lists (defaults to empty list)
     """
     existing_dates = pd.DatetimeIndex([parse_date(file)[0] for file in valid_files])
-    expected_dates = pd.DatetimeIndex(start=existing_dates.min(), end=existing_dates.max(), freq='D')
+    expected_dates = pd.DatetimeIndex(start=existing_dates.min(), end=existing_dates.max()+datetime.timedelta(days=future_days), freq='D')
     date_df = pd.Series(pd.NaT, expected_dates)
     date_df[existing_dates] = existing_dates
     date_df = date_df.fillna(method='ffill', limit=59)
@@ -617,13 +618,22 @@ and route_stats).
     else:
         downloaded = get_gtfs_file(file, gtfs_folder, bucket, logger)
 
-        logger.info(f'creating daily partridge feed for file "{gtfs_folder+file}" with date "{date}"')
-        try:
-            feed = gu.get_partridge_feed_by_date(gtfs_folder + file, date)
-        except BadZipFile:
-            logger.error('Bad local zip file', exc_info=True)
-            downloaded = get_gtfs_file(file, gtfs_folder, bucket, logger, force=True)
-            feed = gu.get_partridge_feed_by_date(gtfs_folder + file, date)
+        if WRITE_FILTERED_FEED:
+            filtered_out_path = FILTERED_FEEDS_PATH + date_str + '.zip'
+            logger.info(f'writing filtered gtfs feed for file "{gtfs_folder+file}" with date "{date}" in path '
+                        f'{filtered_out_path}')
+            gu.write_filtered_feed_by_date(gtfs_folder + file, date, filtered_out_path)
+            logger.info(f'reading filtered feed for file from path {filtered_out_path}')
+            feed = ptg_feed(filtered_out_path)
+
+        else:
+            logger.info(f'creating daily partridge feed for file "{gtfs_folder+file}" with date "{date}"')
+            try:
+                feed = gu.get_partridge_feed_by_date(gtfs_folder + file, date)
+            except BadZipFile:
+                logger.error('Bad local zip file', exc_info=True)
+                downloaded = get_gtfs_file(file, gtfs_folder, bucket, logger, force=True)
+                feed = gu.get_partridge_feed_by_date(gtfs_folder + file, date)
 
         logger.debug(f'finished creating daily partridge feed for file "{gtfs_folder+file}" with date "{date}"')
 
