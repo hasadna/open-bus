@@ -1,4 +1,5 @@
 language: python
 python: 3.6
 script: 
-  - echo "Begining of CI"
+  - cd ./gtfs/gtfs_utils
+  - python setup.py test or py.test
