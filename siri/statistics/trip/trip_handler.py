@@ -61,20 +61,26 @@ def _aggregate_trip(trip_grouped):
     d['start_time'] = trip_grouped['start_time'].iat[0]
     d['end_time'] = trip_grouped['end_time'].iat[-1]
     end_location = trip_grouped['coordinates'].iat[-1]
-    start_location = trip_grouped['coordinates'].iat[0]
     is_active = False
-    is_start = False
     if float(end_location[0]) > 0 or float(end_location[1]):
         is_active = True
-    if float(start_location[0]) > 0 or float(start_location[1]):
-        is_start = True
     d['total_trip_time'] = str(
         (get_sec(d['end_time']) - get_sec(d['start_time'])) / 60) + ' min' if is_active else 'N/A'
-    d['late'] = str(
+    coord = (0, 0)
+    index_coord = 0
+    for i, coord in enumerate(trip_grouped['coordinates']):
+        if float(coord[0]) > 0 or float(coord[1]) > 0:
+            coord = (coord[0], coord[1])
+            index_coord = i
+            break
+    time_recorded = trip_grouped['time_recorded'].iat[index_coord].split(':')[:-1]
+    d['late_start'] = str(abs(get_sec(':'.join(time_recorded)) - get_sec(
+        trip_grouped['start_time'].iat[0])) / 60) + ' min' if is_active else 'N/A'
+    d['late_end'] = str(
         abs(get_sec(trip_grouped['end_time'].iat[-1]) - get_sec(
             trip_grouped['end_time'].iat[0])) / 60) + ' min' if is_active else 'N/A'
     d['done_trip'] = 'Yes' if is_active else 'No'
-    d['start_location'] = trip_grouped['coordinates'].iat[1] if is_active and not is_start else trip_grouped['coordinates'].iat[0]
+    d['start_location'] = coord
     d['end_location'] = trip_grouped['coordinates'].iat[-1]
 
     return pd.Series(d)
