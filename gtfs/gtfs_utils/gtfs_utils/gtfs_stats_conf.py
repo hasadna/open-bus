@@ -1,6 +1,6 @@
 import re
 
-BASE_FOLDER = '../../../'
+BASE_FOLDER = '../../../../'
 
 DATA_FOLDER = BASE_FOLDER + 'data/'
 
@@ -16,11 +16,13 @@ BUCKET_NAME = 's3.obus.hasadna.org.il'
 # BUCKET_VALID_FILES_RE = re.compile('2018-06-01\.zip')
 BUCKET_VALID_FILES_RE = re.compile('2018-\d\d-\d\d\.zip')
 FORWARD_FILL = False
+FUTURE_DAYS = 0  # will have an effect only if FORWARD_FILL is True
 
 DOWNLOAD_PBAR = False
 SIZE_FOR_DOWNLOAD_PBAR = False
+
 DELETE_DOWNLOADED_GTFS_ZIPS = False
-WRITE_FEED_DANGEROUSLY = False
+WRITE_FILTERED_FEED = False
 FILTERED_FEEDS_PATH = DATA_FOLDER + 'filtered_feeds/'
 
 STATS_TYPES = ['trip_stats', 'route_stats']

@@ -132,6 +132,17 @@ def get_partridge_feed_by_date(zip_path, date):
     return feed
 
 
+def write_filtered_feed_by_date(zip_path, date, output_path):
+    service_ids_by_date = ptg.read_service_ids_by_date(zip_path)  # , encoding='utf-8')
+    service_ids = service_ids_by_date[date]
+
+    ptg.writers.extract_feed(zip_path, output_path, {
+        'trips.txt': {
+            'service_id': service_ids,
+        },
+    })
+
+
 def get_tidy_feed_df(feed, extra_merges):
     # merge selected fields from selected GTFS files in a stated order
     # perform extra merges with a list of other dataframes `extra_merges`
