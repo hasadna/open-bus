@@ -5,7 +5,6 @@ Provide in command line args the path to config file
 """
 import ftplib
 from configparser import ConfigParser
-# from boto3.session import Session
 from ftplib import FTP
 import datetime
 import time
@@ -15,10 +14,7 @@ import argparse
 import re
 import pickle
 import operator
-# import pytz
-import logging
 import logging.config
-import pathlib
 import tempfile
 
 """
@@ -31,7 +27,6 @@ import tempfile
 """
 # omerTODO - use tempfile for EVERY download
 # omerTODO - only save md5 of the LAST downloaded file (by type)
-
 """
 Based on http://docs.python.org/howto/logging.html#configuring-logging
 """
@@ -68,12 +63,12 @@ def ftp_get_file(local_path, host, remote_file_name):
     """ get file remote_file_name from FTP host and copy it into local_path """
     logger.info("Starting to download '%s' from host '%s' => '%s'" % (remote_file_name, host, local_path))
     try:
-        f = FTP(host)
-        f.login()
+        ftp = FTP(host)
+        ftp.login()
         fh = open(local_path, 'wb')
-        f.retrbinary('RETR %s' % remote_file_name, fh.write)
+        ftp.retrbinary('RETR %s' % remote_file_name, fh.write)
         fh.close()
-        f.quit()
+        ftp.quit()
         logger.info("Finished downloading '%s' from host '%s' => '%s'" % (remote_file_name, host, local_path))
 
     except ftplib.all_errors as e:
@@ -116,14 +111,7 @@ def get_ftp_filenames(host):
     ftp.login()
     filenames = ftp.nlst()  # get filenames within the directory
 
-    # for filename in filenames:
-    #     local_filename = os.path.join('C:\\test\\', filename)
-    #     file = open(local_filename, 'wb')
-    #     ftp.retrbinary('RETR ' + filename, file.write)
-    #
-    #     file.close()
-    #
-    # ftp.quit()  # This is the “polite” way to close a connection
+    ftp.quit()  # This is the “polite” way to close a connection
     return filenames
 
 
@@ -161,63 +149,61 @@ def parse_config(config_file_name):
     return config_dict
 
 
-def download_file_and_upload_to_s3_bucket(connection, remote_file_name, force=False):
-    """ download remote file from mot, and upload to s3 Bucket """
-    # filename = os.path.splitext(remote_file_name)[0] + datetime.datetime.now().strftime(
-    #     '_%Y-%m-%dT%H-%M-%S') + pathlib.Path(remote_file_name).suffix
+def download_file_and_upload_to_s3_bucket(connection, remote_file_name, no_md5):
+    """ download remote file from mot ftp server, and upload to s3 Bucket """
     filename = datetime.datetime.now().strftime('%Y-%m-%dT%H-%M-%S_') + remote_file_name
 
     logger.info("Downloading '%s' to temp file..." % remote_file_name)
-    file_path_temp = tempfile.NamedTemporaryFile(prefix=datetime.datetime.now().strftime('%Y-%m-%dT%H-%M-%S_') + remote_file_name, delete=False)
+    file_path_temp = tempfile.NamedTemporaryFile(prefix=filename, delete=False)
     # closing file for now, will re-open when needed
     file_path_temp.close()
     file_path = file_path_temp.name
 
     ftp_get_file(file_path, MOT_FTP, remote_file_name)
 
-    if not force:
+    if not no_md5:
         tmp_md5 = md5_for_file(file_path)
         try:
-            # check if identical file already exists - retrieve current md5 of zip with same name
+            # check if identical file already exists on AWS- retrieve current md5 of zip with same name
             last_md5 = connection.Object(filename).e_tag[1:-1]  # boto3 relives with ""
             if str(last_md5) == tmp_md5:
                 logger.debug("Checksum's are identical - removing tmp file...")
-    			# remove tmp file
+                # remove tmp file
                 os.unlink(file_path)
                 return None
         except Exception as e:
             # file didn't exists
             pass
 
-    logger.debug('No file exists yet, checksum for latest is different or force enabled -> copying...')
+    logger.debug("The checksum for the latest file is different or the 'no_md5' flag is on -> uploading...")
 
     # upload to bucket
-    data = open(file_path, 'rb')
-    connection.put_object(Key=filename, Body=data)
-    data.close()
+    upload_file_to_s3_bucket(connection, file_path, filename)
+    # upload_file_to_s3_bucket(connection, remote_file_name)
 
     # remove tmp file
     os.unlink(file_path)
-    logger.info("'%s' retrieved to bucket" % remote_file_name)
-    # print("Downloading '%s' to tmp file..." % remote_file_name)
     return
 
 
-def upload_file_to_s3_bucket(connection, file_name, force=False):
-    """ download gtfs zip file from mot, and upload to s3 Bucket """
+def upload_file_to_s3_bucket(connection, file_path, filename_in_bucket):
+    """ upload 'file_name' to s3 Bucket """
 
     # upload to bucket
-    data = open(file_name, 'rb')
-    connection.put_object(Key=file_name, Body=data)
-    data.close()
-
+    try:
+        data = open(file_path, 'rb')
+        connection.put_object(Key=filename_in_bucket, Body=data)
+        data.close()
+        logger.info("'%s' uploaded to bucket successfully as '%s'" % (file_path, filename_in_bucket))
+    except IOError as e:
+        logger.error("Error uploading '%s' to bucket: %s" % (file_path, e))
     return
 
 
-def save_and_dump_pickle_dict(filename, timestamp_datetime, md5, dl_files_dict):
-    """" Save a dictionary into a pickle file """
+def save_and_dump_pickle_dict(remote_filename, local_filename, timestamp_datetime, md5, dl_files_dict):
+    """ Save a dictionary into a pickle file """
     """{'name', [milliseconds, 'md5']}"""
-    temp_list = [filename, timestamp_datetime]
+    temp_list = [remote_filename, local_filename, timestamp_datetime]
     dl_files_dict[md5] = temp_list
     dump_to_pickle_dict(dl_files_dict)
 
@@ -230,7 +216,7 @@ def dump_to_pickle_dict(dl_files_dict):
 def print_dl_files_dict(dl_files_dict):
     for keys, values in dl_files_dict.items():
         logger.debug("md5 hash: " + keys)
-        logger.debug("[filename, epoch in seconds]: ", values)
+        logger.debug("[remote_filename, local_filename, epoch in seconds]: %s", values)
 
 
 def load_pickle_dict(path):
@@ -241,6 +227,7 @@ def load_pickle_dict(path):
         dl_files_dict = pickle.load(open(os.path.abspath(os.path.join(path, PICKLE_FILE_NAME)), "br"))
     except FileNotFoundError:
         ''' if the pickle file doesn't exist, create and init one '''
+        logger.debug("No pickle file have been found, creating one")
         open(os.path.abspath(os.path.join(path, PICKLE_FILE_NAME)), "wb")
         pickle.dump(dl_files_dict, open(os.path.abspath(os.path.join(path, PICKLE_FILE_NAME)), "wb"))
 
@@ -271,76 +258,96 @@ def subset_of_dict_by_filename_prefix(full_dict, filename):
     return subset_dict
 
 
-def download_file(dest_dir, remote_file_name, force_download):
+def download_file(dest_dir, remote_file_name, no_timestamp, no_md5):
     epoch_now = int(time.time())
-    filename = os.path.splitext(remote_file_name)[0] + datetime.datetime.now().strftime(
-        '-%Y-%m-%dT%H-%M-%S') + '.zip'
+    local_filename = datetime.datetime.now().strftime('%Y-%m-%dT%H-%M-%S_') + remote_file_name
 
     dl_files_dict = load_pickle_dict(dest_dir)
-    file_path = os.path.abspath(os.path.join(dest_dir, filename))
+    file_path = os.path.abspath(os.path.join(dest_dir, local_filename))
 
     # get the maximum value of epoch time in all dictionary
     try:
         subset_dict = subset_of_dict_by_filename_prefix(dl_files_dict, remote_file_name)
         # print(subset_dict)
-        latest_local_timestamp = max(subset_dict.items(), key=operator.itemgetter(1))[1][1]
+        latest_local_timestamp = max(subset_dict.items(), key=operator.itemgetter(1))[1][2]
     except ValueError:
-        # if dict is empty set timestamp to 1000000 which is equals to: 1970-01-12 15:46:40
+        # if dict is empty set timestamp to '1000000' which equals to: 1970-01-12 15:46:40
         latest_local_timestamp = 1000000
+    logger.debug("latest_local_timestamp = %s", latest_local_timestamp)
 
-    # if get_uptodateness(latest_local_timestamp, MOT_FTP, remote_file_name) or args.force_download:
-    if get_uptodateness(latest_local_timestamp, MOT_FTP, remote_file_name) or force_download:
-        logger.debug("New file have been found on " + MOT_FTP + " or the '-f' flag is on")
+    if get_uptodateness(latest_local_timestamp, MOT_FTP, remote_file_name) or no_timestamp:
+        logger.debug("New file have been found on '" + MOT_FTP + "' or the 'no_timestamp' flag is on")
         ftp_get_file(file_path, MOT_FTP, remote_file_name)
         file_md5 = md5_for_file(file_path)
         # check if md5 already exists and add it if not
-        if not (file_md5 in dl_files_dict):
-            save_and_dump_pickle_dict(filename, epoch_now, file_md5, dl_files_dict)
+        if not (file_md5 in dl_files_dict) or no_md5:
+            save_and_dump_pickle_dict(remote_file_name, local_filename, epoch_now, file_md5, dl_files_dict)
+            logger.debug("MD5 is different from previous downloads or the 'no_md5' flag is on")
         else:
             logger.debug(
                 "The downloaded file '" + remote_file_name + "' already exists (according to md5 check), removing")
             os.remove(file_path)
     else:
-        logger.debug("No newer (timestamp comparing) file have been found on FTP server")
+        logger.debug("No newer (timestamp comparing) file have been found on FTP server skipping downloading")
 
     return
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--aws", type=str, dest='aws_config_file_name', help="upload current MOT FTP content to AWS S3 "
-                                                                             "See /conf/gtfs_download.config.example "
-                                                                             "for a template for the configuration file"
-                        )
-    parser.add_argument("-d", dest='destination_directory', metavar='DIRECTORY', help="download to local library")
-    parser.add_argument("-f", dest='force_download', action='store_true',
-                        help="skip timestamp comparing and force download from ftp")
-    parser.add_argument("-p", "--print", dest='print_inventory', metavar='DIRECTORY',
-                        help="print saved details about files name, hash and epoch time")
+    # parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog='MOT FTP server downloader and AWS S3 uploader')
+    # if the option string is present but not followed by a command-line argument the value from const will be produced
+    parser.add_argument("-d", dest='destination_directory', nargs='?', metavar='DIR_TO_DOWNLOAD',
+                        help="download to local library (default=cwd)", const=os.getcwd())
+    parser.add_argument("--no_timestamp", dest='no_timestamp', default=False, action='store_true',
+                        help="skip timestamp comparing when downloading from ftp")
+    parser.add_argument("--no_md5", dest='no_md5', default=False, action='store_true',
+                        help="skip md5 comparing when downloading from ftp")
+    parser.add_argument("--tempfile", dest='use_tempfile', action='store_true', default=False,
+                        help="download to a tempfile for easier cleaning")
+    parser.add_argument("-p", "--print", dest='print_inventory', nargs='?', metavar='DIR_OF_PICKLE_FILE',
+                        help="print saved details about files name, hash and epoch time", const=os.getcwd())
     parser.add_argument("--print_ftp", action='store_true',
                         help="list all files on MOT's FTP")
-
+    parser.add_argument("--aws", type=str, metavar='AWS_CONFIG_FILE', dest='aws_dl_ul', help="""upload current MOT FTP content to AWS S3 
+    See /conf/gtfs_download.config.example for a template configuration file"""
+                        )
+    # nargs='*' - All command-line arguments present are gathered into a list
+    parser.add_argument("--aws_ul", metavar=('AWS_CONFIG_FILE', 'PATH_OF_FILE_TO_UPLOAD'), type=str, dest='aws_ul', help="""upload a file to AWS S3 
+    See /conf/gtfs_download.config.example for a template configuration file"""
+                        , nargs=2
+                        )
+    parser.add_argument('--version', action='version', version='%(prog)s 3.1')
     # parser.print_help()
     args = parser.parse_args()
 
-    ftp_filenames_array = [GTFS_FILE_NAME, CLUSTER_TO_LINE_FILE_NAME, TARIFF_FILE_NAME, TRAIN_OFFICE_FILE_NAME,
-                           TRIP_ID_FILE_NAME, ZONES_FILE_NAME]
+    # ftp_filenames_array = [GTFS_FILE_NAME, CLUSTER_TO_LINE_FILE_NAME, TARIFF_FILE_NAME, TRAIN_OFFICE_FILE_NAME,
+    #                        TRIP_ID_FILE_NAME, ZONES_FILE_NAME]
+    logger.debug("no_timestamp flag is %s", args.no_timestamp)
+    logger.debug("no_md5 flag is %s", args.no_md5)
 
-    if args.aws_config_file_name:
+    if args.aws_dl_ul:
+        logger.debug("option 'aws_dl_ul' was selected")
         # remote_file_name = TRIP_ID_FILE_NAME
-        args = parse_config(args.aws_config_file_name)
-        # omerTODO - what if there is a new file in the ftp that is not in the list?
+        config_dict = parse_config(args.aws_dl_ul)
         filenames_on_ftp_array = get_ftp_filenames(MOT_FTP)
         for remote_file_name in filenames_on_ftp_array:
-            connection = connect_to_bucket(args)
-            download_file_and_upload_to_s3_bucket(connection, remote_file_name)
+            connection = connect_to_bucket(config_dict)
+            download_file_and_upload_to_s3_bucket(connection, remote_file_name, args.no_md5)
+
+    if args.aws_ul:
+        logger.debug("option 'aws_ul' was selected")
+        config_filename = args.aws_ul[0]
+        local_filename = args.aws_ul[1]
+        config_dict = parse_config(config_filename)
+        connection = connect_to_bucket(config_dict)
+        upload_file_to_s3_bucket(connection, local_filename, local_filename)
 
     if args.destination_directory:
-        # remote_file_name = TARIFF_FILE_NAME
         filenames_on_ftp_array = get_ftp_filenames(MOT_FTP)
         for remote_file_name in filenames_on_ftp_array:
             dest_dir = check_if_path_exists(args.destination_directory)
-            download_file(dest_dir, remote_file_name, args.force_download)
+            download_file(dest_dir, remote_file_name, args.no_timestamp, args.no_md5)
 
     if args.print_inventory:
         dest_dir = check_if_path_exists(args.print_inventory)
