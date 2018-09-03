@@ -27,8 +27,6 @@ import tempfile
 """
 # omerTODO - use tempfile for EVERY download
 # omerTODO - only save md5 of the LAST downloaded file (by type)
-# omerTODO - there's a bug when running --aws
-
 """
 Based on http://docs.python.org/howto/logging.html#configuring-logging
 """
@@ -177,25 +175,28 @@ def download_file_and_upload_to_s3_bucket(connection, remote_file_name, no_md5):
             # file didn't exists
             pass
 
-    logger.debug("The checksum for the latest file is different or the 'no_md5' flag is on -> copying...")
+    logger.debug("The checksum for the latest file is different or the 'no_md5' flag is on -> uploading...")
 
     # upload to bucket
-    upload_file_to_s3_bucket(connection, remote_file_name)
+    upload_file_to_s3_bucket(connection, file_path, filename)
+    # upload_file_to_s3_bucket(connection, remote_file_name)
 
     # remove tmp file
     os.unlink(file_path)
     return
 
 
-def upload_file_to_s3_bucket(connection, file_name):
+def upload_file_to_s3_bucket(connection, file_path, filename_in_bucket):
     """ upload 'file_name' to s3 Bucket """
 
     # upload to bucket
-    data = open(file_name, 'rb')
-    connection.put_object(Key=file_name, Body=data)
-    data.close()
-    logger.info("'%s' retrieved to bucket successfully" % file_name)
-
+    try:
+        data = open(file_path, 'rb')
+        connection.put_object(Key=filename_in_bucket, Body=data)
+        data.close()
+        logger.info("'%s' uploaded to bucket successfully as '%s'" % (file_path, filename_in_bucket))
+    except IOError as e:
+        logger.error("Error uploading '%s' to bucket: %s" % (file_path, e))
     return
 
 
@@ -340,7 +341,7 @@ def main():
         local_filename = args.aws_ul[1]
         config_dict = parse_config(config_filename)
         connection = connect_to_bucket(config_dict)
-        upload_file_to_s3_bucket(connection, local_filename)
+        upload_file_to_s3_bucket(connection, local_filename, local_filename)
 
     if args.destination_directory:
         filenames_on_ftp_array = get_ftp_filenames(MOT_FTP)
