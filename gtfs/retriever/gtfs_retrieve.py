@@ -106,13 +106,11 @@ def ftp_get_md5(host, remote_path):
     return m.hexdigest()
 
 
-def get_ftp_filenames(host):
-    ftp = FTP(host)
-    ftp.login()
-    filenames = ftp.nlst()  # get filenames within the directory
-
-    ftp.quit()  # This is the “polite” way to close a connection
-    return filenames
+def get_ftp_files(host):
+    with FTP(host) as ftp:
+        ftp.login()
+        files = ftp.nlst()  # get files name within the directory
+        return files
 
 
 def md5_for_file(path, block_size=4096):
@@ -332,23 +330,23 @@ def main():
 
     if args.aws_dl_ul:
         logger.debug("option 'aws_dl_ul' was selected")
-        config_dict = parse_s3_config_file( args.aws_dl_ul )
-        files_name_on_ftp_array = get_ftp_filenames(MOT_FTP)
-        for remote_file_name in files_name_on_ftp_array:
-            connection = connect_to_bucket(config_dict)
+        s3_configs = parse_s3_config_file( args.aws_dl_ul )
+        files_on_ftp = get_ftp_filenames(MOT_FTP)
+        for remote_file_name in files_on_ftp:
+            connection = connect_to_bucket(s3_configs)
             download_file_and_upload_to_s3_bucket(connection, remote_file_name, args.no_md5)
 
     if args.aws_ul:
         logger.debug("option 'aws_ul' was selected")
         s3_config_file = args.aws_ul[0]
         local_file_to_upload = args.aws_ul[1]
-        config_dict = parse_s3_config_file(s3_config_file)
-        connection = connect_to_bucket(config_dict)
+        s3_configs = parse_s3_config_file(s3_config_file)
+        connection = connect_to_bucket(s3_configs)
         upload_file_to_s3_bucket(connection, local_file_to_upload, local_file_to_upload)
 
     if args.destination_directory:
-        files_name_on_ftp_array = get_ftp_filenames(MOT_FTP)
-        for remote_file_name in files_name_on_ftp_array:
+        files_on_ftp = get_ftp_filenames(MOT_FTP)
+        for remote_file_name in files_on_ftp:
             dest_dir = check_if_path_exists(args.destination_directory)
             download_file(dest_dir, remote_file_name, args.no_timestamp, args.no_md5)
 
