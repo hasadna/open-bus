@@ -293,32 +293,30 @@ def download_file(dest_dir, remote_file_name, no_timestamp, no_md5):
 
 def parse_cli_arguments():
     # parser = argparse.ArgumentParser()
-    parser = argparse.ArgumentParser ( prog='MOT FTP server downloader and AWS S3 uploader' )
+    parser = argparse.ArgumentParser(prog='MOT FTP server downloader and AWS S3 uploader')
     # if the option string is present but not followed by a command-line argument the value from const will be produced
-    parser.add_argument ( "-d", dest='destination_directory', nargs='?', metavar='DIR_TO_DOWNLOAD',
-                          help="download to local library (default=cwd)", const=os.getcwd () )
-    parser.add_argument ( "--no_timestamp", dest='no_timestamp', default=False, action='store_true',
-                          help="skip timestamp comparing when downloading from ftp" )
-    parser.add_argument ( "--no_md5", dest='no_md5', default=False, action='store_true',
-                          help="skip md5 comparing when downloading from ftp" )
-    parser.add_argument ( "--tempfile", dest='use_tempfile', action='store_true', default=False,
-                          help="download to a tempfile for easier cleaning" )
-    parser.add_argument ( "-p", "--print", dest='print_inventory', nargs='?', metavar='DIR_OF_PICKLE_FILE',
-                          help="print saved details about files name, hash and epoch time", const=os.getcwd () )
-    parser.add_argument ( "--print_ftp", action='store_true',
-                          help="list all files on MOT's FTP" )
-    parser.add_argument ( "--aws", type=str, metavar='AWS_CONFIG_FILE', dest='aws_dl_ul', help="""upload current MOT FTP content to AWS S3 
-        See /conf/gtfs_download.config.example for a template configuration file"""
-                          )
+    parser.add_argument("-d", dest='destination_directory', nargs='?', metavar='DIR_TO_DOWNLOAD',
+                        help="download to local library (default=cwd)", const=os.getcwd())
+    parser.add_argument("--no_timestamp", dest='no_timestamp', default=False, action='store_true',
+                        help="skip timestamp comparing when downloading from ftp")
+    parser.add_argument("--no_md5", dest='no_md5', default=False, action='store_true',
+                        help="skip md5 comparing when downloading from ftp")
+    parser.add_argument("--tempfile", dest='use_tempfile', action='store_true', default=False,
+                        help="download to a tempfile for easier cleaning")
+    parser.add_argument("-p", "--print", dest='print_inventory', nargs='?', metavar='DIR_OF_PICKLE_FILE',
+                        help="print saved details about files name, hash and epoch time", const=os.getcwd())
+    parser.add_argument("--print_ftp", action='store_true',
+                        help="list all files on MOT's FTP")
+    parser.add_argument("--aws", type=str, metavar='AWS_CONFIG_FILE', dest='aws_dl_ul', help="""upload current MOT FTP content to AWS S3 
+        See /conf/gtfs_download.config.example for a template configuration file""")
     # nargs='*' - All command-line arguments present are gathered into a list
-    parser.add_argument ( "--aws_ul", metavar=('AWS_CONFIG_FILE', 'PATH_OF_FILE_TO_UPLOAD'), type=str, dest='aws_ul',
-                          help="""upload a file to AWS S3 
-        See /conf/gtfs_download.config.example for a template configuration file"""
-                          , nargs=2
-                          )
-    parser.add_argument ( '--version', action='version', version='%(prog)s 3.1' )
+    parser.add_argument("--aws_ul", metavar=('AWS_CONFIG_FILE', 'PATH_OF_FILE_TO_UPLOAD'), type=str, dest='aws_ul',
+                        help="""upload a file to AWS S3 
+                                See /conf/gtfs_download.config.example for a template configuration file""",
+                        nargs=2)
+    parser.add_argument('--version', action='version', version='%(prog)s 3.1')
     # parser.print_help()
-    return parser.parse_args ()
+    return parser.parse_args()
 
 
 def main():
@@ -330,8 +328,8 @@ def main():
 
     if args.aws_dl_ul:
         logger.debug("option 'aws_dl_ul' was selected")
-        s3_configs = parse_s3_config_file( args.aws_dl_ul )
-        files_on_ftp = get_ftp_filenames(MOT_FTP)
+        s3_configs = parse_s3_config_file(args.aws_dl_ul)
+        files_on_ftp = get_ftp_files(MOT_FTP)
         for remote_file_name in files_on_ftp:
             connection = connect_to_bucket(s3_configs)
             download_file_and_upload_to_s3_bucket(connection, remote_file_name, args.no_md5)
@@ -345,7 +343,7 @@ def main():
         upload_file_to_s3_bucket(connection, local_file_to_upload, local_file_to_upload)
 
     if args.destination_directory:
-        files_on_ftp = get_ftp_filenames(MOT_FTP)
+        files_on_ftp = get_ftp_files(MOT_FTP)
         for remote_file_name in files_on_ftp:
             dest_dir = check_if_path_exists(args.destination_directory)
             download_file(dest_dir, remote_file_name, args.no_timestamp, args.no_md5)
@@ -355,7 +353,7 @@ def main():
         print_dl_files_dict(load_pickle_dict(dest_dir))
 
     if args.print_ftp:
-        filenames_on_ftp = get_ftp_filenames(MOT_FTP)
+        filenames_on_ftp = get_ftp_files(MOT_FTP)
         print(filenames_on_ftp)
 
     return
