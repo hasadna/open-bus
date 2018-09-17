@@ -37,7 +37,7 @@ setup(
     author='Dan Bareket',
     author_email='dbareket@gmail.com',
     #    url='https://github.com/remix/partridge',
-    packages=find_packages(include=['gtfs_utils']),
+    packages=find_packages(include=['.']),
     include_package_data=True,
     install_requires=requirements,
     license='MIT license',
