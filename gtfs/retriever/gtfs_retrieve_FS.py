@@ -1,15 +1,17 @@
+import calendar
 import os
 import logging.config
 import pickle
 import operator
 import hashlib
+import time
 
 log_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf')
 logging.config.fileConfig(log_file_path)
 logger = logging.getLogger("default")
 
 PICKLE_FILE_NAME = 'ftp-downloads-pickle.p'
-
+MIN_EPOCH_TIME = 86400
 
 def save_and_dump_pickle_dict(remote_filename, local_filename, timestamp_datetime, md5, dl_files_dict):
     """ Save a dictionary into a pickle file """
@@ -47,7 +49,7 @@ def load_pickle_dict(path):
 def get_latest_local_timestamp(dl_files_dict, remote_file_name):
     # get the maximum value of epoch time in all dictionary
     # if dict is empty set timestamp to '0' which equals to: 1970-01-01 00:00:00
-    latest_local_timestamp = 0
+    latest_local_timestamp = MIN_EPOCH_TIME
     subset_dict = subset_of_dict_by_filename_prefix(dl_files_dict, remote_file_name)
     if subset_dict:
         latest_local_timestamp = max(subset_dict.items(), key=operator.itemgetter(1))[1][2]

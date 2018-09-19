@@ -21,6 +21,8 @@ import gtfs_retrieve_FS
  For example, if one day they add a line to a file, the next day delete it,
  and on the third day they put it back in, we will be missing that third day file with no possibility to know.
  Second, what happens if the pickle gets corrupted?
+    Aviv - We could add some of the file metadata such as date to the md5 calculation, similar to GIT:
+        https://gist.github.com/masak/2415865 
 """
 # omerTODO - use tempfile for EVERY download
 # omerTODO - only save md5 of the LAST downloaded file (by type)
@@ -147,6 +149,8 @@ def main():
     if args.destination_directory:
         files_on_ftp = gtfs_retrieve_MOT_FTP.get_ftp_files(MOT_FTP)
         for remote_file_name in files_on_ftp:
+            #if remote_file_name == 'israel-public-transportation.zip':
+             #   continue
             dest_dir = gtfs_retrieve_FS.check_if_path_exists(args.destination_directory)
             download_file(dest_dir, remote_file_name, args.no_timestamp, args.no_md5)
 

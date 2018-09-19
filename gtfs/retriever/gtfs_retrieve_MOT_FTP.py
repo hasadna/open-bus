@@ -10,17 +10,17 @@ log_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'loggin
 logging.config.fileConfig(log_file_path)
 logger = logging.getLogger("default")
 
+def get_FTP_connection(host):
+    return FTP(host,timeout=3600)
 
 def ftp_get_file(local_path, host, remote_file_name):
     """ get file remote_file_name from FTP host and copy it into local_path """
     logger.info("Starting to download '%s' from host '%s' => '%s'" % (remote_file_name, host, local_path))
     try:
-        ftp = FTP(host)
-        ftp.login()
-        fh = open(local_path, 'wb')
-        ftp.retrbinary('RETR %s' % remote_file_name, fh.write)
-        fh.close()
-        ftp.quit()
+        with get_FTP_connection(host) as ftp:
+            ftp.login()
+            with open(local_path, 'wb') as fh:
+                ftp.retrbinary('RETR %s' % remote_file_name, fh.write)
         logger.info("Finished downloading '%s' from host '%s' => '%s'" % (remote_file_name, host, local_path))
 
     except ftplib.all_errors as e:
@@ -31,7 +31,7 @@ def ftp_get_file(local_path, host, remote_file_name):
 
 def get_uptodateness(local_timestamp, host, remote_file_name):
     """" returns true if remote file timestamp is newer than local_timestamp """
-    conn = FTP(host)
+    conn = get_FTP_connection(host)
     conn.login()
     ftp_dir_array = []
     conn.retrlines('LIST', lambda x: ftp_dir_array.append(x))
@@ -51,7 +51,7 @@ def get_uptodateness(local_timestamp, host, remote_file_name):
 
 
 def ftp_get_md5(host, remote_path):
-    f = FTP(host)
+    f = get_FTP_connection(host)
     f.login()
     m = hashlib.md5()
     f.retrbinary('RETR %s' % remote_path, m.update)
@@ -59,7 +59,7 @@ def ftp_get_md5(host, remote_path):
 
 
 def get_ftp_files(host):
-    with FTP(host) as ftp:
+    with get_FTP_connection(host) as ftp:
         ftp.login()
         files = ftp.nlst()  # get files name within the directory
         return files
