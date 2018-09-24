@@ -77,8 +77,8 @@ def print_dl_files_dict(dl_files_dict):
 
 
 def download_file(dest_dir, remote_file_name, no_timestamp, no_md5):
-    dl_files_dict = gtfs_retrieve_FS.load_pickle_dict(dest_dir)
-    latest_local_timestamp = gtfs_retrieve_FS.get_latest_local_timestamp(dl_files_dict, remote_file_name)
+    gtfs_retrieve_FS.init(dest_dir)
+    latest_local_timestamp = gtfs_retrieve_FS.get_latest_local_timestamp(remote_file_name)
     local_filename = datetime.datetime.now().strftime('%Y-%m-%dT%H-%M-%S_') + remote_file_name
     file_path = os.path.abspath(os.path.join(dest_dir, local_filename))
     if gtfs_retrieve_MOT_FTP.get_uptodateness(latest_local_timestamp, MOT_FTP, remote_file_name) or no_timestamp:
@@ -86,12 +86,8 @@ def download_file(dest_dir, remote_file_name, no_timestamp, no_md5):
         gtfs_retrieve_MOT_FTP.ftp_get_file(file_path, MOT_FTP, remote_file_name)
         file_md5 = gtfs_retrieve_FS.md5_for_file(file_path)
         # check if md5 already exists and add it if not
-        if not (file_md5 in dl_files_dict) or no_md5:
-            gtfs_retrieve_FS.save_and_dump_pickle_dict(remote_file_name,
-                                                       local_filename,
-                                                       int(time.time()),
-                                                       file_md5,
-                                                       dl_files_dict)
+        if not (gtfs_retrieve_FS.get_file_metadata(file_md5)) or no_md5:
+            gtfs_retrieve_FS.add_file_metadata(remote_file_name, local_filename, int(time.time()), file_md5)
             logger.debug("MD5 is different from previous downloads or the 'no_md5' flag is on")
         else:
             logger.debug(
@@ -151,12 +147,11 @@ def main():
         for remote_file_name in files_on_ftp:
             #if remote_file_name == 'israel-public-transportation.zip':
              #   continue
-            dest_dir = gtfs_retrieve_FS.check_if_path_exists(args.destination_directory)
-            download_file(dest_dir, remote_file_name, args.no_timestamp, args.no_md5)
+            download_file(args.destination_directory, remote_file_name, args.no_timestamp, args.no_md5)
 
     if args.print_inventory:
-        dest_dir = gtfs_retrieve_FS.check_if_path_exists(args.print_inventory)
-        print_dl_files_dict(gtfs_retrieve_FS.load_pickle_dict(dest_dir))
+        gtfs_retrieve_FS.init(args.print_inventory)
+        gtfs_retrieve_FS.print_inventory()
 
     if args.print_ftp:
         filenames_on_ftp = gtfs_retrieve_MOT_FTP.get_ftp_files(MOT_FTP)

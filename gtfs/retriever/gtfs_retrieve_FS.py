@@ -1,80 +1,82 @@
-import calendar
 import os
-import logging.config
 import pickle
-import operator
 import hashlib
-import time
 
-log_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf')
-logging.config.fileConfig(log_file_path)
-logger = logging.getLogger("default")
-
-PICKLE_FILE_NAME = 'ftp-downloads-pickle.p'
 MIN_EPOCH_TIME = 86400
 
-def save_and_dump_pickle_dict(remote_filename, local_filename, timestamp_datetime, md5, dl_files_dict):
-    """ Save a dictionary into a pickle file """
-    """{'name', [milliseconds, 'md5']}"""
-    temp_list = [remote_filename, local_filename, timestamp_datetime]
-    dl_files_dict[md5] = temp_list
-    dump_to_pickle_dict(dl_files_dict)
+##################################
+######## Pickle Managment ########
+##################################
+
+PICKLE_REL_PATH = '.retriever/metadata.p'
+pickle_location = ''
+obj = {}
 
 
-def dump_to_pickle_dict(dl_files_dict):
-    # Save a dictionary into a pickle file
-    pickle.dump(dl_files_dict, open(PICKLE_FILE_NAME, "wb"))
+def init(path):
+    global obj, pickle_location
+    obj = {}
+    pickle_location = os.path.join(path, PICKLE_REL_PATH)
+
+    if os.path.exists(pickle_location):
+        _load_pickle()
+    else:
+        os.makedirs(os.path.join(path, '.retriever'), exist_ok=True)
+        _dump_pickle()
 
 
-def load_pickle_dict(path):
-    # Load the dictionary back from the pickle file.
-    dl_files_dict = {}
-
-    try:
-        dl_files_dict = pickle.load(open(os.path.abspath(os.path.join(path, PICKLE_FILE_NAME)), "br"))
-    except FileNotFoundError:
-        ''' if the pickle file doesn't exist, create and init one '''
-        logger.debug("No pickle file have been found, creating one")
-        open(os.path.abspath(os.path.join(path, PICKLE_FILE_NAME)), "wb")
-        pickle.dump(dl_files_dict, open(os.path.abspath(os.path.join(path, PICKLE_FILE_NAME)), "wb"))
-
-    # debug start
-    # dl_files_dict["18739asdcsdfasd48a2518546a69f19"] = ["2018-02-25-13-08-57.zip", 1519570537]
-    # dl_files_dict["djkca6b1a814e5b48a2518546a69f19"] = ["2018-02-22-13-08-57.zip", 1519470037]
-    # debug end
-
-    return dl_files_dict
+def _load_pickle():
+    global obj
+    with open(pickle_location, "rb") as f:
+        obj = pickle.load(f)
 
 
-def get_latest_local_timestamp(dl_files_dict, remote_file_name):
-    # get the maximum value of epoch time in all dictionary
-    # if dict is empty set timestamp to '0' which equals to: 1970-01-01 00:00:00
-    latest_local_timestamp = MIN_EPOCH_TIME
-    subset_dict = subset_of_dict_by_filename_prefix(dl_files_dict, remote_file_name)
-    if subset_dict:
-        latest_local_timestamp = max(subset_dict.items(), key=operator.itemgetter(1))[1][2]
-    logger.debug("latest_local_timestamp = %s", latest_local_timestamp)
-    return latest_local_timestamp
+def _dump_pickle():
+    with open(pickle_location, "wb") as f:
+        pickle.dump(obj, f)
 
 
-def subset_of_dict_by_filename_prefix(full_dict, filename):
-    # cropping file extension
-    subset_dict = {}
-
-    for key, value in full_dict.items():  # iter on both keys and values
-        if value[0].startswith(os.path.splitext(filename)[0]):
-            # print(key, value)
-            subset_dict[key] = value
-    return subset_dict
+def _add(key, value):
+    obj[key] = value
+    _dump_pickle()
 
 
-def check_if_path_exists(path):
-    """" check if path exists, if not, return cwd """
-    if not os.path.exists(path):
-        logger.error("ERROR: the path '" + path + "' does not exist, setting destination path to " + os.getcwd())
-        path = os.getcwd()
-    return path
+def _get(key):
+    return obj.get(key, None)
 
+
+##################################
+##### Metadata Manipulations #####
+##################################
+
+def add_file_metadata(remote_filename, local_filename, timestamp_datetime, md5):
+    _add(md5, {'remote_filename': remote_filename,
+               'local_filename': local_filename,
+               'timestamp_datetime': timestamp_datetime})
+
+
+def get_file_metadata(md5):
+    return _get(md5)
+
+
+def get_latest_local_timestamp(remote_file_name):
+    time_stamps = [i.get('timestamp_datetime', MIN_EPOCH_TIME)
+                   for i in obj.values()
+                   if i.get('remote_filename', '') == remote_file_name]
+
+    if time_stamps:
+        return max(time_stamps)
+    else:
+        return MIN_EPOCH_TIME
+
+
+def print_inventory():
+    print(str(obj))
+
+
+###################################
+###### Utils ######################
+###################################
 
 def md5_for_file(path, block_size=4096):
     """
@@ -82,7 +84,6 @@ def md5_for_file(path, block_size=4096):
     to avoid performances issues
     Here I have blocks of 4096 octets (Default NTFS)
     """
-
     md5 = hashlib.md5()
     with open(path, 'rb') as f:
         for chunk in iter(lambda: f.read(block_size), b''):
