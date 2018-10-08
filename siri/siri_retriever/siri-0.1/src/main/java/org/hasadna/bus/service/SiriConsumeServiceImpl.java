@@ -33,7 +33,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.stream.IntStream;
 
 @Component
-@Profile("production")
+@Profile({"production", "integrationTests"})
 public class SiriConsumeServiceImpl implements SiriConsumeService {
 
     @Value("${number.of.intervals:12}")
@@ -102,7 +102,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         GetStopMonitoringServiceResponse response = unmarshalXml(content);
 
         logger.debug("unmarshal to POJO completed");
-        logger.info("retrieving route {} ...Done ", lineRef);
+        logger.debug("retrieving route {} ...Done ", lineRef);
 
         return response;
     }
@@ -316,7 +316,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
 //        return content;
 //    }
 
-    private GetStopMonitoringServiceResponse unmarshalXml(String xml) {
+    public GetStopMonitoringServiceResponse unmarshalXml(String xml) {
         try {
             Unmarshaller jaxbUnmarshaller = localUnmarshaller.get();
             if (jaxbUnmarshaller == null) {

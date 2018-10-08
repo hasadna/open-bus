@@ -36,7 +36,7 @@ public class SortedQueue {
         this.registry.gaugeCollectionSize("siri.scheduler.queue", Tags.empty(), this.queue);
     }
 
-    void put(Command command) {
+    public void put(Command command) {
         queue.offer(command);
     }
 
@@ -82,11 +82,20 @@ public class SortedQueue {
         LocalDateTime currentTime = LocalDateTime.now(DEFAULT_CLOCK);
         DayOfWeek today = currentTime.getDayOfWeek();
         for (Command c : candidatesForUpdatingNextExecution) {
-            String firstDeparture = c.weeklyDepartureTimes.get(today).get(0);
-            String evaluateAt = subtractMinutesStopAtMidnight(firstDeparture, 30);
-            c.nextExecution = toDateTime(evaluateAt);
-            c.isActive = false;
-            updatedNextExecution.add(c);
+            try {
+                if ((c.weeklyDepartureTimes != null) &&
+                        c.weeklyDepartureTimes.containsKey(today) &&
+                        !c.weeklyDepartureTimes.get(today).isEmpty()) {
+                    String firstDeparture = c.weeklyDepartureTimes.get(today).get(0);
+                    String evaluateAt = subtractMinutesStopAtMidnight(firstDeparture, 30);
+                    c.nextExecution = toDateTime(evaluateAt);
+                    c.isActive = false;
+                    updatedNextExecution.add(c);
+                }
+            }
+            catch (Exception ex) {
+                logger.error("absorbing unhandled exception while calculating next execution of route " + c.lineRef, ex);
+            }
         }
 
         int count = addBackToQueue(updatedNextExecution);
@@ -160,7 +169,7 @@ public class SortedQueue {
 
 
     List<Command> removeByLineRef(String lineRef) {
-        logger.debug("removing all schedules of lineRef {}", lineRef);
+        logger.debug("removing route {} from scheduler queue (will be added again at midnight or whenever schedule file is re-read)", lineRef);
         List<Command> candidatesToRemoval = new ArrayList<>();
         Iterator iter = queue.iterator();
         while (iter.hasNext()) {
@@ -179,8 +188,8 @@ public class SortedQueue {
                 logger.warn("removal of {} returned false", c);
             }
         }
-        logger.debug("return a list of {} schedules", removed.size());
-        logger.trace("return {}", removed);
+//        logger.debug("return a list of {} schedules", removed.size());
+//        logger.trace("return {}", removed);
         return removed;
     }
 
@@ -193,6 +202,6 @@ public class SortedQueue {
         queue.removeIf(c -> true);
     }
 
-    private Queue<Command> queue = new PriorityBlockingQueue<>(20, (c1, c2) -> c1.nextExecution.isBefore(c2.nextExecution)?-1:1);
+    private Queue<Command> queue = new PriorityBlockingQueue<>(1000, (c1, c2) -> c1.nextExecution.isBefore(c2.nextExecution)?-1:1);
 
 }
