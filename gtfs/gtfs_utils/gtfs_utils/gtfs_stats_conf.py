@@ -15,7 +15,7 @@ OUTPUT_FILE_NAME_RE = re.compile('^(?P<date_str>[^_]+?)_(?P<type>\w+)\.pkl\.gz')
 BUCKET_NAME = 's3.obus.hasadna.org.il'
 # BUCKET_VALID_FILES_RE = re.compile('2018-06-01\.zip')
 BUCKET_VALID_FILES_RE = re.compile('2018-\d\d-\d\d\.zip')
-FORWARD_FILL = False
+FORWARD_FILL = True
 FUTURE_DAYS = 0  # will have an effect only if FORWARD_FILL is True
 
 DOWNLOAD_PBAR = False
