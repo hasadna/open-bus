@@ -1,4 +1,5 @@
 *.pyc
 *.egg*
 .pytest_cache
+gtfs/retriever/.idea/
 build
