@@ -62,3 +62,80 @@ class TestFoo(TestCase):
                         bucket_name='obus-do1')
         # Test
         self.assertEqual(actual, expected)
+
+    def test_cli_with_list_command(self):
+        # Prepare
+        arguments = "s3_wrapper.py list -aki aaa -sak bbb -pf pre -rf reg".split()
+        # Execute
+        actual = s3_wrapper.cli(arguments[1:]).__dict__
+        # Expected
+        expected = dict(access_key_id='aaa',
+                        command='list',
+                        secret_access_key='bbb',
+                        bucket_name='obus-do1',
+                        prefix_filter='pre',
+                        regex_filter='reg')
+        # Test
+        self.assertEqual(expected, actual)
+
+    def test_regex_filter(self):
+        # Prepare
+        strings = ['foo', 'bar', 'foobar']
+        regex_argument = '.*ob.*'
+        # Execute
+        actual = s3_wrapper.regex_filter(strings, regex_argument)
+        # Expected
+        expected = ['foobar']
+        # Test
+        self.assertEqual(expected, actual)
+
+    def test_cli_with_list_command_regex_all(self):
+        # Prepare
+        strings = ['foo', 'bar', 'foobar']
+        regex_argument = '.*'
+        # Execute
+        actual = s3_wrapper.regex_filter(strings, regex_argument)
+        # Expected
+        expected = strings
+        # Test
+        self.assertEqual(expected, actual)
+
+    def test_list_content(self):
+
+        expected_list = ['foo', 'bar']
+
+        class Mock(s3_wrapper.S3Crud):
+            def __init__(self):
+                pass
+            def list_bucket_files(self, prefix_filter=''):
+                return expected_list
+
+        actual = s3_wrapper.list_content(Mock())
+
+        self.assertEqual(expected_list, actual)
+
+    def test_list_content_with_regex(self):
+
+        expected_list = ['foo', 'bar']
+
+        class Mock(s3_wrapper.S3Crud):
+            def __init__(self):
+                pass
+            def list_bucket_files(self, prefix_filter=''):
+                return expected_list
+
+        actual = s3_wrapper.list_content(Mock(), regex_argument='[b].*')
+
+        self.assertEqual(['bar'], actual)
+
+    def test_is_exist(self):
+
+        class Mock(s3_wrapper.S3Crud):
+            def __init__(self):
+                pass
+            def is_key_exist(self, key_name):
+                return True
+
+        actual = s3_wrapper.is_exist(Mock(), "sdf")
+
+        self.assertEqual(True, actual)
