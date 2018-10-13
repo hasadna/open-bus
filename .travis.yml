@@ -1,8 +1,6 @@
 language: python
 python: 
   - "3.6"
-  # PyPy versions
-  - "pypy"
 install:
   - pip install boto3
 # commands to run tests
