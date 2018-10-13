@@ -3,5 +3,5 @@ python: 3.6
 script: 
   - cd ./gtfs/gtfs_utils
   - python setup.py test
-  - cd ./gtfs/retriever
+  - cd ../retriever
   - python -m unittest ./tests/test_s3_wrapper.py
