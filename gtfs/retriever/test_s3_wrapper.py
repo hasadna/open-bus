@@ -7,7 +7,7 @@ class TestFoo(TestCase):
         # Prepare
         arguments = "s3_wrapper.py upload -aki aaa -sak bbb -lf ccc -k ddd -bn bucket42".split()
         # Execute
-        actual = s3_wrapper.cli(arguments[1:]).__dict__
+        actual = s3_wrapper.parse_cli_arguments(arguments[1:]).__dict__
         # Expected
         expected = dict(access_key_id='aaa',
                         command='upload',
@@ -22,7 +22,7 @@ class TestFoo(TestCase):
         # Prepare
         arguments = "s3_wrapper.py download -aki aaa -sak bbb -lf ccc -k ddd -bn bucket42".split()
         # Execute
-        actual = s3_wrapper.cli(arguments[1:]).__dict__
+        actual = s3_wrapper.parse_cli_arguments(arguments[1:]).__dict__
         # Expected
         expected = dict(access_key_id='aaa',
                         command='download',
@@ -37,7 +37,7 @@ class TestFoo(TestCase):
         # Prepare
         arguments = "s3_wrapper.py upload -aki aaa -sak bbb -lf ccc -k ddd".split()
         # Execute
-        actual = s3_wrapper.cli(arguments[1:]).__dict__
+        actual = s3_wrapper.parse_cli_arguments(arguments[1:]).__dict__
         # Expected
         expected = dict(access_key_id='aaa',
                         command='upload',
@@ -52,7 +52,7 @@ class TestFoo(TestCase):
         # Prepare
         arguments = "s3_wrapper.py download -aki aaa -sak bbb -lf ccc -k ddd".split()
         # Execute
-        actual = s3_wrapper.cli(arguments[1:]).__dict__
+        actual = s3_wrapper.parse_cli_arguments(arguments[1:]).__dict__
         # Expected
         expected = dict(access_key_id='aaa',
                         command='download',
@@ -67,7 +67,7 @@ class TestFoo(TestCase):
         # Prepare
         arguments = "s3_wrapper.py list -aki aaa -sak bbb -pf pre -rf reg".split()
         # Execute
-        actual = s3_wrapper.cli(arguments[1:]).__dict__
+        actual = s3_wrapper.parse_cli_arguments(arguments[1:]).__dict__
         # Expected
         expected = dict(access_key_id='aaa',
                         command='list',
@@ -83,7 +83,7 @@ class TestFoo(TestCase):
         strings = ['foo', 'bar', 'foobar']
         regex_argument = '.*ob.*'
         # Execute
-        actual = s3_wrapper.regex_filter(strings, regex_argument)
+        actual = s3_wrapper._regex_filter(strings, regex_argument)
         # Expected
         expected = ['foobar']
         # Test
@@ -94,7 +94,7 @@ class TestFoo(TestCase):
         strings = ['foo', 'bar', 'foobar']
         regex_argument = '.*'
         # Execute
-        actual = s3_wrapper.regex_filter(strings, regex_argument)
+        actual = s3_wrapper._regex_filter(strings, regex_argument)
         # Expected
         expected = strings
         # Test
@@ -102,40 +102,31 @@ class TestFoo(TestCase):
 
     def test_list_content(self):
 
-        expected_list = ['foo', 'bar']
-
-        class Mock(s3_wrapper.S3Crud):
-            def __init__(self):
-                pass
-            def list_bucket_files(self, prefix_filter=''):
-                return expected_list
-
         actual = s3_wrapper.list_content(Mock())
 
         self.assertEqual(expected_list, actual)
 
     def test_list_content_with_regex(self):
 
-        expected_list = ['foo', 'bar']
-
-        class Mock(s3_wrapper.S3Crud):
-            def __init__(self):
-                pass
-            def list_bucket_files(self, prefix_filter=''):
-                return expected_list
-
         actual = s3_wrapper.list_content(Mock(), regex_argument='[b].*')
 
         self.assertEqual(['bar'], actual)
 
     def test_is_exist(self):
-
-        class Mock(s3_wrapper.S3Crud):
-            def __init__(self):
-                pass
-            def is_key_exist(self, key_name):
-                return True
-
-        actual = s3_wrapper.is_exist(Mock(), "sdf")
-
+        actual = s3_wrapper.is_exist(Mock(), "foo")
         self.assertEqual(True, actual)
+
+
+expected_list = ['foo', 'bar']
+
+
+class Mock(s3_wrapper.S3Crud):
+
+    def __init__(self):
+        super().__init__('', '', '')
+
+    def list_bucket_files(self, prefix_filter=''):
+        return expected_list
+
+    def is_key_exist(self, key_name):
+        return True

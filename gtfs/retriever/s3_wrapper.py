@@ -2,6 +2,7 @@ import re
 import sys
 import boto3
 import argparse
+from typing import Callable, List, Generator, Any
 
 
 class S3Crud:
@@ -12,50 +13,81 @@ class S3Crud:
                                      aws_secret_access_key=secret_access_key,
                                      endpoint_url=endpoint_url).Bucket(bucket_name)
 
-    def upload_one_file_to_cloud(self, local_file, cloud_key):
+    def upload_one_file(self, local_file: str, cloud_key: str) -> None:
         self.bucket.upload_file(local_file, cloud_key)
 
-    def download_one_file(self, local_file, cloud_key):
+    def download_one_file(self, local_file: str, cloud_key: str) -> None:
         self.bucket.download_file(cloud_key, local_file)
 
-    def list_bucket_files(self, prefix_filter):
+    def list_bucket_files(self, prefix_filter: str) -> Generator[str, None, None]:
         gen = self.bucket.objects.filter(Prefix=prefix_filter)
         return S3Crud._convert_s3_gen_into_key_name_gen(gen)
 
-    def is_key_exist(self, key_name):
+    def is_key_exist(self, key_name: str) -> bool:
         for curr_key_name in self.list_bucket_files(key_name):
             if curr_key_name == key_name:
                 return True
         return False
 
     @staticmethod
-    def _convert_s3_gen_into_key_name_gen(gen):
+    def _convert_s3_gen_into_key_name_gen(gen: Generator[Any, None, None]) \
+            -> Generator[str, None, None]:
         for s3_obj in gen:
             yield s3_obj.key
 
 
-def regex_filter(strings, regex_argument):
+def _regex_filter(strings: list, regex_argument: str) -> list:
+    """
+    Filter list of strings by the given regex argument
+    :param strings:
+    :param regex_argument:
+    :return: list of strings that pass the regex filter
+    """
     return list(filter(re.compile(regex_argument).search, strings))
 
 
-def list_content(crud, prefix_filter='', regex_argument=None, action=None):
+def list_content(crud: S3Crud, prefix_filter: str = '',
+                 regex_argument: str = None, action: Callable = None) -> list:
+    """
+    This method uses the given CRUD object to get list of objects on S3
+    :param crud:
+    :param prefix_filter: filter keys that starts with given string
+    :param regex_argument: filter keys by regex argument
+    :param action: a callable to perform an action on found keys func(listOfKeys)
+    :return: list of objects on S3
+    :rtype: list
+    """
     files = list(crud.list_bucket_files('' if not prefix_filter else prefix_filter))
     if regex_argument:
-        files = regex_filter(files, regex_argument)
+        files = _regex_filter(files, regex_argument)
     if action:
         action(files)
     return files
 
 
-def upload(crud, local_file, cloud_key):
-    crud.upload_one_file_to_cloud(local_file, cloud_key)
+def upload(crud: S3Crud, local_file: str, key_name: str) -> None:
+    """
+    This method uses the given CRUD object to upload one file to the S3
+    :rtype: None
+    :param crud:
+    :param local_file:
+    :param key_name:
+    """
+    crud.upload_one_file(local_file, key_name)
 
 
-def download(crud, local_file, cloud_key):
-    crud.download_one_file(local_file, cloud_key)
+def download(crud: S3Crud, local_file: str, key_name: str) -> None:
+    """
+    This method uses the given CRUD object to download one file from the S3
+    :rtype: None
+    :param crud:
+    :param local_file:
+    :param key_name:
+    """
+    crud.download_one_file(local_file, key_name)
 
 
-def is_exist(crud: object, key_name: str) -> bool:
+def is_exist(crud: S3Crud, key_name: str) -> bool:
     """
     Check whether the given key name is exist in bucket or not
     :param crud:
@@ -66,7 +98,12 @@ def is_exist(crud: object, key_name: str) -> bool:
     return crud.is_key_exist(key_name)
 
 
-def cli(args):
+def parse_cli_arguments(args: List[str]) -> argparse.Namespace:
+    """
+    Parse and Validate the given cli arguments
+    :param args: App arguments without the first argument with the execution path
+    :return: a dict like object with the given arguments values
+    """
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='sub-command help', dest="command")
     # create the parser for the "upload" command
@@ -111,7 +148,7 @@ def cli(args):
 
 
 def main(argv):
-    args = cli(argv)
+    args = parse_cli_arguments(argv)
     crud = S3Crud(args.access_key_id, args.secret_access_key, args.bucket_name)
     if args.command == 'upload':
         upload(crud, args.local_file, args.cloud_key)
