@@ -14,7 +14,8 @@ class TestFoo(TestCase):
                         cloud_key='ddd',
                         local_file='ccc',
                         secret_access_key='bbb',
-                        bucket_name='bucket42')
+                        bucket_name='bucket42',
+                        is_folder=False)
         # Test
         self.assertEqual(actual, expected)
 
@@ -44,7 +45,24 @@ class TestFoo(TestCase):
                         cloud_key='ddd',
                         local_file='ccc',
                         secret_access_key='bbb',
-                        bucket_name='obus-do1')
+                        bucket_name='obus-do1',
+                        is_folder=False)
+        # Test
+        self.assertEqual(actual, expected)
+
+    def test_cli_with_upload_command_with_folder_mode(self):
+        # Prepare
+        arguments = "s3_wrapper.py upload -aki aaa -sak bbb -lf ccc -k ddd -fd".split()
+        # Execute
+        actual = s3_wrapper.parse_cli_arguments(arguments[1:]).__dict__
+        # Expected
+        expected = dict(access_key_id='aaa',
+                        command='upload',
+                        cloud_key='ddd',
+                        local_file='ccc',
+                        secret_access_key='bbb',
+                        bucket_name='obus-do1',
+                        is_folder=True)
         # Test
         self.assertEqual(actual, expected)
 
@@ -115,6 +133,32 @@ class TestFoo(TestCase):
     def test_is_exist(self):
         actual = s3_wrapper.is_exist(Mock(), "foo")
         self.assertEqual(True, actual)
+
+    def test_create_items_from_local_folder_is_folder_False(self):
+        # prepare
+        file_path = 'foo'
+        key_name = 'bar'
+        # Execute
+        actual = s3_wrapper._create_items_from_local_folder(False, file_path, key_name)
+        # Expected
+        expected = [(file_path, key_name)]
+        # Test
+        self.assertEqual(expected, actual)
+
+    def test_create_items_from_local_folder_is_folder_True_NonExistPath(self):
+        with self.assertRaises(FileNotFoundError):
+            s3_wrapper._create_items_from_local_folder(True, 'NonExistPath', '')
+
+    def test_create_items_from_local_folder_is_folder_True_given_path_is_not_folder(self):
+        file_path = 'tests/resources/test_folder_hierarchy/foo.txt'
+
+        with self.assertRaises(NotADirectoryError):
+            s3_wrapper._create_items_from_local_folder(True, file_path, 'foo')
+
+    def test_create_items_from_local_folder_is_folder_True(self):
+        file_path = 'tests/resources/test_folder_hierarchy'
+
+        s3_wrapper._create_items_from_local_folder(True, file_path, 'dfgdfgdfg')
 
 
 expected_list = ['foo', 'bar']
