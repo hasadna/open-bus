@@ -4,4 +4,4 @@ script:
   - cd ./gtfs/gtfs_utils
   - python setup.py test
   - cd ../retriever
-  - python -m unittest ./tests/test_s3_wrapper.py
+  - python -m unittest tests/test_s3_wrapper.py
