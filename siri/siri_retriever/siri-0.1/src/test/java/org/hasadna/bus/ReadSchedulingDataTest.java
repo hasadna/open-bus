@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -46,6 +47,7 @@ public class ReadSchedulingDataTest {
         Assertions.assertThat(list.size()).isGreaterThan(0);
         Command c1 = list.get(0);
 
+        Long weeklyNotNull = list.stream().filter(c -> c.weeklyDepartureTimes != null).collect(Collectors.counting());
         Assertions.assertThat(c1.lastArrivalTimes).isNotEmpty();
         Assertions.assertThat(c1.weeklyDepartureTimes.keySet().size()).isEqualTo(1);
         Assertions.assertThat(c1.weeklyDepartureTimes.keySet().iterator().next()).isEqualByComparingTo(DayOfWeek.THURSDAY);
