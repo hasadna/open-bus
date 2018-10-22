@@ -3,9 +3,11 @@ from operator import itemgetter
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader
 import pdfkit as pdf
+from os import listdir
+from os.path import isfile, join
 
 
-def _report_trip(df):
+def _report_trip(df, path_folder):
     # env = Environment(loader=FileSystemLoader('.'))
     # template = env.get_template("trip_report.html")
     # template_vars = {"title": "Trips Report",
@@ -29,14 +31,21 @@ def _report_trip(df):
         f.write(html_string.format(table=df.to_html(classes='mystyle')))
 
     # OUTPUT AN CSV FILE
-    df.to_csv(open('report.csv', 'w'), index=False)
+    df.to_csv(open(path_folder + '\\trips.csv', 'w'), index=False)
 
+
+def load_trips(path_folder):
+    trips = []
+    files = [f for f in listdir(path_folder + "\\siri\\trips\\raw") if isfile(join(path_folder, f))]
+    for path in files:
+        trips.extend(parse_trips(path_folder + "\\" + path))
+    return trips
 
 def handle_trips(path):
-    trips = parse_trips(path)
-    sorted_trips = sorted(trips, key=itemgetter('time_recorded'))
-    df = _process_trips(sorted_trips)
-    _report_trip(df)
+    trips = load_trips(path)
+    #sorted_trips = sorted(trips, key=itemgetter('time_recorded'))
+    df = _process_trips(trips)
+    _report_trip(df, path)
 
 
 def _process_trips(trips):
@@ -52,6 +61,7 @@ def get_sec(time_str):
 
 
 def _aggregate_trip(trip_grouped):
+
     d = OrderedDict()
     d['agency'] = trip_grouped['agency'].iat[0]
     d['bus_id'] = trip_grouped['bus_id'].iat[0]
@@ -62,11 +72,11 @@ def _aggregate_trip(trip_grouped):
     d['end_time'] = trip_grouped['end_time'].iat[-1]
     end_location = trip_grouped['coordinates'].iat[-1]
     is_active = False
-    if float(end_location[0]) > 0 or float(end_location[1]):
+    if float(end_location[0]) > 0 or float(end_location[1]) > 0:
         is_active = True
     d['total_trip_time'] = str(
         (get_sec(d['end_time']) - get_sec(d['start_time'])) / 60) + ' min' if is_active else 'N/A'
-    coord = (0, 0)
+    coord = None
     index_coord = 0
     for i, coord in enumerate(trip_grouped['coordinates']):
         if float(coord[0]) > 0 or float(coord[1]) > 0:
@@ -79,6 +89,8 @@ def _aggregate_trip(trip_grouped):
     d['late_end'] = str(
         abs(get_sec(trip_grouped['end_time'].iat[-1]) - get_sec(
             trip_grouped['end_time'].iat[0])) / 60) + ' min' if is_active else 'N/A'
+    d['number_records'] = trip_grouped['service_id'].count()
+
     d['done_trip'] = 'Yes' if is_active else 'No'
     d['start_location'] = coord
     d['end_location'] = trip_grouped['coordinates'].iat[-1]
@@ -102,20 +114,6 @@ def parse_trips(path):
     return trip
 
 
-def prepare_trip_example():
-    trip = []
-    with open('trip_example.txt') as f:
-        data = f.readlines()
-    f.close()
-    for line in data:
-        trip_input = line.strip().split(',')
-        trip.append({"agency": trip_input[0], "route_id": trip_input[1], "line_num": trip_input[2]
-                        , "service_id": trip_input[3], "start_time": trip_input[4], "bus_id": trip_input[5],
-                     "end_time": trip_input[6], "time_recorded": trip_input[7],
-                     "coordinates": (trip_input[8], trip_input[9])})
-
-    return trip
-
 
 if __name__ == "__main__":
-    handle_trips('siri_rt_data.log')
+    handle_trips('C:\\obus-data')
