@@ -61,6 +61,7 @@
 
     <root level="info">
         <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE-debug" />
     </root>
 
 </configuration>
