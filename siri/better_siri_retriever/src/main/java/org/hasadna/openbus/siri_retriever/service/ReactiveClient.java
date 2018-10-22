@@ -46,6 +46,7 @@ public class ReactiveClient {
 
         Mono<ResponseEntity<String>> result = webClient.post().uri("/Siri/SiriServices").
                 accept(MediaType.APPLICATION_XML)
+                .body(Mono.just(requestXml), String.class)
                 .exchange()
                 .flatMap(response -> response.toEntity(String.class))
                 .flatMap(entity ->
@@ -55,7 +56,7 @@ public class ReactiveClient {
         result.subscribe(
                 resp -> {
                     logger.info("received response, status={}", resp.getStatusCode());
-                    logger.info("{}", resp.toString());
+                    logger.info("response as string: {}", resp.toString());
                 }
         );
     }
