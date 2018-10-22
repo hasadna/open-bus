@@ -58,7 +58,8 @@ public class ReactiveClient {
         result.subscribe(
                 resp -> {
                     logger.info("received response, status={}", resp.getStatusCode());
-                    tracer.trace("response as string: {}", resp.toString());
+                    String body = resp.getBody();
+                    tracer.trace("response body as string: {}", body);
                 }
         );
     }
