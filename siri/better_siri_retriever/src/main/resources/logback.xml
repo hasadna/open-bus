@@ -17,13 +17,13 @@
             <Pattern>[%level][%thread] [%logger][%d{yyyy-MM-dd HH:mm:ss.SSS}] %msg%n</Pattern>
         </encoder>
 
-        <!--<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">-->
-            <!---->
-            <!--<fileNamePattern>${DEV_HOME}/archived/debug.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>-->
-            <!--<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">-->
-                <!--<maxFileSize>100MB</maxFileSize>-->
-            <!--</timeBasedFileNamingAndTriggeringPolicy>-->
-        <!--</rollingPolicy>-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+
+            <fileNamePattern>${DEV_HOME}/debug.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
 
     </appender>
 
