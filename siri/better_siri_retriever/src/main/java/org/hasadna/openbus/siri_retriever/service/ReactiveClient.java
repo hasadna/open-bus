@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -16,6 +17,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 import static org.hasadna.openbus.siri_retriever.entity.Command.DEFAULT_CLOCK;
 
@@ -34,13 +36,36 @@ public class ReactiveClient {
 
 
     public void doRequest(String requestXml) {
+        display(requestXml);
         this.webClient = WebClient.create("http://siri.motrealtime.co.il:" + this.port);
-        Mono<ClientResponse> clientResponse;
-        clientResponse = webClient.post().uri("/Siri/SiriServices").
-                accept(MediaType.APPLICATION_XML).body(Mono.just(requestXml), String.class).exchange();
-        clientResponse.subscribe(
-                resp -> logger.info("received response, status={}", resp.statusCode())
+//        Mono<ClientResponse> clientResponse;
+//        clientResponse =
+//                webClient.post().uri("/Siri/SiriServices").
+//                accept(MediaType.APPLICATION_XML)
+//                    .body(Mono.just(requestXml), String.class).exchange();
+
+        Mono<ResponseEntity<String>> result = webClient.post().uri("/Siri/SiriServices").
+                accept(MediaType.APPLICATION_XML)
+                .exchange()
+                .flatMap(response -> response.toEntity(String.class))
+                .flatMap(entity ->
+                    Mono.just(entity)
+                );
+
+        result.subscribe(
+                resp -> {
+                    logger.info("received response, status={}", resp.getStatusCode());
+                    logger.info("{}", resp.toString());
+                }
         );
+    }
+
+    private Mono<ClientResponse> display(Mono<ClientResponse> response) {
+        return Mono.empty();
+    }
+
+    private void display(String requestXml) {
+        logger.trace(requestXml);
     }
 
     public String retrieveOneStop(String stopCode, String previewInterval, int maxStopVisits) {
