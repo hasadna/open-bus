@@ -58,7 +58,7 @@ public class ReactiveClient {
         result.subscribe(
                 resp -> {
                     logger.info("received response, status={}", resp.getStatusCode());
-                    logger.trace("response as string: {}", resp.toString());
+                    tracer.trace("response as string: {}", resp.toString());
                 }
         );
     }
@@ -68,7 +68,7 @@ public class ReactiveClient {
     }
 
     private void display(String requestXml) {
-        logger.trace(requestXml);
+        tracer.trace(requestXml);
     }
 
     public String retrieveOneStop(String stopCode, String previewInterval, int maxStopVisits) {
