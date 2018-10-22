@@ -1,0 +1,5 @@
+language: python
+python: 3.6
+script: 
+  - cd ./gtfs/gtfs_utils
+  - python setup.py test
