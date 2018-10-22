@@ -44,14 +44,14 @@ public class ReactiveClient {
 //                accept(MediaType.APPLICATION_XML)
 //                    .body(Mono.just(requestXml), String.class).exchange();
 
-        Mono<ResponseEntity<String>> result = webClient.post().uri("/Siri/SiriServices").
-                accept(MediaType.APPLICATION_XML)
+        Mono<ResponseEntity<String>> result = webClient.post().uri("/Siri/SiriServices")
+                .accept(MediaType.APPLICATION_XML)
+                .contentType(MediaType.TEXT_XML)
                 .body(Mono.just(requestXml), String.class)
                 .exchange()
                 .flatMap(response -> response.toEntity(String.class))
-                .flatMap(entity ->
-                    Mono.just(entity)
-                );
+                .flatMap(entity -> Mono.just(entity))
+                ;
 
         result.subscribe(
                 resp -> {
