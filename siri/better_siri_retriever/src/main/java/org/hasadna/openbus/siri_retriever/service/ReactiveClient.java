@@ -46,7 +46,7 @@ public class ReactiveClient {
 
         Mono<ResponseEntity<String>> result = webClient.post().uri("/Siri/SiriServices")
                 .accept(MediaType.APPLICATION_XML)
-                .contentType(MediaType.TEXT_XML)
+                .contentType(MediaType.TEXT_XML)    // MediaType.APPLICATION_XML does not work! returns status 415
                 .body(Mono.just(requestXml), String.class)
                 .exchange()
                 .flatMap(response -> response.toEntity(String.class))
@@ -56,7 +56,7 @@ public class ReactiveClient {
         result.subscribe(
                 resp -> {
                     logger.info("received response, status={}", resp.getStatusCode());
-                    logger.info("response as string: {}", resp.toString());
+                    logger.trace("response as string: {}", resp.toString());
                 }
         );
     }
