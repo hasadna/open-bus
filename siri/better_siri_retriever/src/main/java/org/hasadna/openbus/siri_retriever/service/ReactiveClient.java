@@ -25,6 +25,8 @@ import static org.hasadna.openbus.siri_retriever.entity.Command.DEFAULT_CLOCK;
 public class ReactiveClient {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected final Logger tracer = LoggerFactory.getLogger("tracer");
+
     final String SIRI_SERVICES_URL = "http://siri.motrealtime.co.il:8081/Siri/SiriServices";
 
     private static final int port = 8081;
