@@ -52,7 +52,7 @@
     <logger name="org.hasadna" level="debug" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
-    <logger name="org.hasadna.openbus.siri_retriever.service" level="trace" additivity="true">
+    <logger name="org.hasadna.openbus.siri_retriever.service" level="trace" additivity="false">
         <appender-ref ref="FILE-debug" />
     </logger>
 
