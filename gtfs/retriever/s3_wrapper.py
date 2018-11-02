@@ -3,6 +3,7 @@ import sys
 import boto3
 import argparse
 import os
+import fnmatch
 from typing import Callable, List, Generator, Any, Tuple
 
 
@@ -66,16 +67,19 @@ def list_content(crud: S3Crud, prefix_filter: str = '',
     return files
 
 
-def _create_items_from_local_folder(is_folder: bool, local_path: str, key_name: str) -> List[Tuple[str, str]]:
+def _create_items_from_local_folder(is_folder: bool, local_path: str, key_name: str, filter_arg: str = '*') \
+        -> List[Tuple[str, str]]:
+
     if not is_folder:
         return [(local_path, key_name)]
 
-    return[(os.path.join(local_path, fname), os.path.join(key_name, fname))
+    return[(os.path.join(local_path, fname), '/'.join([key_name, fname]))
            for fname
-           in os.listdir(local_path)]
+           in os.listdir(local_path)
+           if fnmatch.fnmatch(fname, filter_arg) and os.path.isfile(os.path.join(local_path, fname))]
 
 
-def upload(crud: S3Crud, local_file: str, key_name: str, is_folder: bool) -> None:
+def upload(crud: S3Crud, local_file: str, key_name: str, is_folder: bool, filter_arg: str) -> None:
     """
     This method uses the given CRUD object to upload one file to the S3
     :rtype: None
@@ -83,9 +87,9 @@ def upload(crud: S3Crud, local_file: str, key_name: str, is_folder: bool) -> Non
     :param local_file:
     :param key_name:
     :param is_folder:
+    :param filter_arg:
     """
-    items = _create_items_from_local_folder(is_folder, local_file, key_name)
-
+    items = _create_items_from_local_folder(is_folder, local_file, key_name, filter_arg if filter_arg else "*")
     for local_file, key_name in items:
         crud.upload_one_file(local_file, key_name)
 
@@ -134,6 +138,8 @@ def parse_cli_arguments(args: List[str]) -> argparse.Namespace:
                                help='bucket name in s3. (default: obus-do1)', metavar='<String>', default='obus-do1')
     parser_upload.add_argument('-fd', '--folder', action='store_true', dest='is_folder',
                                help='Add all files in a folder')
+    parser_upload.add_argument('--path-filter', '-pf', dest='path_filter',
+                               help='filter files path', metavar='<String>')
     # create the parser for the "download" command
     parser_download = subparsers.add_parser('download', help='Download a file from cloud to local machine ')
     parser_download.add_argument('--access-key-id', '-aki', dest='access_key_id', required=True,
@@ -167,7 +173,7 @@ def main(argv):
     args = parse_cli_arguments(argv)
     crud = S3Crud(args.access_key_id, args.secret_access_key, args.bucket_name)
     if args.command == 'upload':
-        upload(crud, args.local_file, args.cloud_key, args.is_folder)
+        upload(crud, args.local_file, args.cloud_key, args.is_folder, args.path_filter)
     elif args.command == 'download':
         download(crud, args.local_file, args.cloud_key)
     elif args.command == 'list':
