@@ -76,7 +76,7 @@ def _create_items_from_local_folder(is_folder: bool, local_path: str, key_name: 
     return[(os.path.join(local_path, fname), '/'.join([key_name, fname]))
            for fname
            in os.listdir(local_path)
-           if fnmatch.fnmatch(fname, filter_arg)]
+           if fnmatch.fnmatch(fname, filter_arg) and os.path.isfile(os.path.join(local_path, fname))]
 
 
 def upload(crud: S3Crud, local_file: str, key_name: str, is_folder: bool, filter_arg: str) -> None:
@@ -87,9 +87,9 @@ def upload(crud: S3Crud, local_file: str, key_name: str, is_folder: bool, filter
     :param local_file:
     :param key_name:
     :param is_folder:
+    :param filter_arg:
     """
-    items = _create_items_from_local_folder(is_folder, local_file, key_name, filter_arg)
-
+    items = _create_items_from_local_folder(is_folder, local_file, key_name, filter_arg if filter_arg else "*")
     for local_file, key_name in items:
         crud.upload_one_file(local_file, key_name)
 
