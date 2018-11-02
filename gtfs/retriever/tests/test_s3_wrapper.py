@@ -1,3 +1,4 @@
+
 import s3_wrapper
 from unittest import TestCase
 
@@ -15,7 +16,8 @@ class TestFoo(TestCase):
                         local_file='ccc',
                         secret_access_key='bbb',
                         bucket_name='bucket42',
-                        is_folder=False)
+                        is_folder=False,
+                        path_filter=None)
         # Test
         self.assertEqual(actual, expected)
 
@@ -46,7 +48,8 @@ class TestFoo(TestCase):
                         local_file='ccc',
                         secret_access_key='bbb',
                         bucket_name='obus-do1',
-                        is_folder=False)
+                        is_folder=False,
+                        path_filter=None)
         # Test
         self.assertEqual(actual, expected)
 
@@ -62,7 +65,8 @@ class TestFoo(TestCase):
                         local_file='ccc',
                         secret_access_key='bbb',
                         bucket_name='obus-do1',
-                        is_folder=True)
+                        is_folder=True,
+                        path_filter=None)
         # Test
         self.assertEqual(actual, expected)
 
@@ -157,8 +161,29 @@ class TestFoo(TestCase):
 
     def test_create_items_from_local_folder_is_folder_True(self):
         file_path = 'tests/resources/test_folder_hierarchy'
+        key_prefix = 'dfgdfgdfg'
+        actual = s3_wrapper._create_items_from_local_folder(True, file_path, key_prefix)
+        print(actual)
+        expected = [(file_path+'/bar.txt', key_prefix + '/bar.txt'),
+                    (file_path+'/foo.txt', key_prefix + '/foo.txt')]
+        self.assertEqual(expected, actual)
 
-        s3_wrapper._create_items_from_local_folder(True, file_path, 'dfgdfgdfg')
+    def test_create_items_from_local_folder_is_folder_True_with_filtert1(self):
+        file_path = 'tests/resources/test_folder_hierarchy'
+        key_prefix = 'dfgdfgdfg'
+        actual = s3_wrapper._create_items_from_local_folder(True, file_path, key_prefix, "*.txt")
+        print(actual)
+        expected = [(file_path+'/bar.txt', key_prefix + '/bar.txt'),
+                    (file_path+'/foo.txt', key_prefix + '/foo.txt')]
+        self.assertEqual(expected, actual)
+
+    def test_create_items_from_local_folder_is_folder_True_with_filtert2(self):
+        file_path = 'tests/resources/test_folder_hierarchy'
+        key_prefix = 'dfgdfgdfg'
+        actual = s3_wrapper._create_items_from_local_folder(True, file_path, key_prefix, "bar*")
+        print(actual)
+        expected = [(file_path+'/bar.txt', key_prefix + '/bar.txt')]
+        self.assertEqual(expected, actual)
 
 
 expected_list = ['foo', 'bar']
