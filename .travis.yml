@@ -7,5 +7,5 @@ install:
 script: 
   - cd ./gtfs/gtfs_utils
   - python setup.py test
-  - cd ../retriever/tests/
+  - cd ../retriever/
   - python -m unittest
