@@ -1,10 +1,9 @@
-
+import unittest
 import s3_wrapper
 from types import MappingProxyType
-from unittest import TestCase
 
 
-class TestFoo(TestCase):
+class TestFoo(unittest.TestCase):
     def test_cli_with_upload_command(self):
         # Prepare
         arguments = "s3_wrapper.py upload -aki aaa -sak bbb -lf ccc -k ddd -bn bucket42".split()
@@ -162,13 +161,13 @@ class TestFoo(TestCase):
             s3_wrapper._create_items_from_local_folder(True, 'NonExistPath', '')
 
     def test_create_items_from_local_folder_is_folder_True_given_path_is_not_folder(self):
-        file_path = 'tests/resources/test_folder_hierarchy/foo.txt'
+        file_path = 'resources/test_folder_hierarchy/foo.txt'
 
         with self.assertRaises(NotADirectoryError):
             s3_wrapper._create_items_from_local_folder(True, file_path, 'foo')
 
     def test_create_items_from_local_folder_is_folder_True(self):
-        file_path = 'tests/resources/test_folder_hierarchy'
+        file_path = 'resources/test_folder_hierarchy'
         key_prefix = 'dfgdfgdfg'
         actual = s3_wrapper._create_items_from_local_folder(True, file_path, key_prefix)
         print(actual)
@@ -177,7 +176,7 @@ class TestFoo(TestCase):
         self.assertEqual(expected, actual)
 
     def test_create_items_from_local_folder_is_folder_True_with_filtert1(self):
-        file_path = 'tests/resources/test_folder_hierarchy'
+        file_path = 'resources/test_folder_hierarchy'
         key_prefix = 'dfgdfgdfg'
         actual = s3_wrapper._create_items_from_local_folder(True, file_path, key_prefix, "*.txt")
         print(actual)
@@ -186,7 +185,7 @@ class TestFoo(TestCase):
         self.assertEqual(expected, actual)
 
     def test_create_items_from_local_folder_is_folder_True_with_filtert2(self):
-        file_path = 'tests/resources/test_folder_hierarchy'
+        file_path = 'resources/test_folder_hierarchy'
         key_prefix = 'dfgdfgdfg'
         actual = s3_wrapper._create_items_from_local_folder(True, file_path, key_prefix, "bar*")
         print(actual)
@@ -234,3 +233,7 @@ class Mock(s3_wrapper.S3Crud):
 
     def is_key_exist(self, key_name):
         return True
+
+
+if __name__ == '__main__':
+    unittest.main()
