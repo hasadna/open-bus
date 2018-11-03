@@ -1,5 +1,6 @@
 
 import s3_wrapper
+from types import MappingProxyType
 from unittest import TestCase
 
 
@@ -17,9 +18,10 @@ class TestFoo(TestCase):
                         secret_access_key='bbb',
                         bucket_name='bucket42',
                         is_folder=False,
-                        path_filter=None)
+                        path_filter=None,
+                        aws=False)
         # Test
-        self.assertEqual(actual, expected)
+        self.assertEqual(expected, actual)
 
     def test_cli_with_download_command(self):
         # Prepare
@@ -32,9 +34,10 @@ class TestFoo(TestCase):
                         cloud_key='ddd',
                         local_file='ccc',
                         secret_access_key='bbb',
-                        bucket_name='bucket42')
+                        bucket_name='bucket42',
+                        aws=False)
         # Test
-        self.assertEqual(actual, expected)
+        self.assertEqual(expected, actual)
 
     def test_cli_with_upload_command_with_default_bucket_name(self):
         # Prepare
@@ -47,11 +50,12 @@ class TestFoo(TestCase):
                         cloud_key='ddd',
                         local_file='ccc',
                         secret_access_key='bbb',
-                        bucket_name='obus-do1',
+                        bucket_name=None,
                         is_folder=False,
-                        path_filter=None)
+                        path_filter=None,
+                        aws=False)
         # Test
-        self.assertEqual(actual, expected)
+        self.assertEqual(expected, actual)
 
     def test_cli_with_upload_command_with_folder_mode(self):
         # Prepare
@@ -64,11 +68,13 @@ class TestFoo(TestCase):
                         cloud_key='ddd',
                         local_file='ccc',
                         secret_access_key='bbb',
-                        bucket_name='obus-do1',
+                        bucket_name=None,
                         is_folder=True,
-                        path_filter=None)
+                        path_filter=None,
+                        aws=False)
+
         # Test
-        self.assertEqual(actual, expected)
+        self.assertEqual(expected, actual)
 
     def test_cli_with_download_command_with_default_bucket_name(self):
         # Prepare
@@ -81,9 +87,10 @@ class TestFoo(TestCase):
                         cloud_key='ddd',
                         local_file='ccc',
                         secret_access_key='bbb',
-                        bucket_name='obus-do1')
+                        bucket_name=None,
+                        aws=False)
         # Test
-        self.assertEqual(actual, expected)
+        self.assertEqual(expected, actual)
 
     def test_cli_with_list_command(self):
         # Prepare
@@ -94,9 +101,10 @@ class TestFoo(TestCase):
         expected = dict(access_key_id='aaa',
                         command='list',
                         secret_access_key='bbb',
-                        bucket_name='obus-do1',
+                        bucket_name=None,
                         prefix_filter='pre',
-                        regex_filter='reg')
+                        regex_filter='reg',
+                        aws=False)
         # Test
         self.assertEqual(expected, actual)
 
@@ -183,6 +191,33 @@ class TestFoo(TestCase):
         actual = s3_wrapper._create_items_from_local_folder(True, file_path, key_prefix, "bar*")
         print(actual)
         expected = [(file_path+'/bar.txt', key_prefix + '/bar.txt')]
+        self.assertEqual(expected, actual)
+
+    def test_make_crud_args_use_default_values(self):
+        cli_arguments = "s3_wrapper.py download -aki aaa -sak bbb -lf ccc -k ddd".split()
+        # Execute
+        parsed_args = s3_wrapper.parse_cli_arguments(cli_arguments[1:])
+        defr = MappingProxyType({s3_wrapper._DIGITALOCEAN: {'bucket_name': '_DIGITALOCEAN_bucket_name',
+                                                            'endpoint_url': '_DIGITALOCEAN_endpoint_url'}})
+
+        actual = s3_wrapper.make_crud_args(parsed_args, defr)
+        expected = {'access_key_id': 'aaa',
+                    'bucket_name': '_DIGITALOCEAN_bucket_name',
+                    'endpoint_url': '_DIGITALOCEAN_endpoint_url',
+                    'secret_access_key': 'bbb'}
+
+        self.assertEqual(expected, actual)
+
+    def test_make_crud_args_without_default_values(self):
+        cli_arguments = "s3_wrapper.py download -aki aaa -sak bbb -lf ccc -k ddd -bn mybucket".split()
+        # Execute
+        parsed_args = s3_wrapper.parse_cli_arguments(cli_arguments[1:])
+
+        actual = s3_wrapper.make_crud_args(parsed_args)
+        expected = {'access_key_id': 'aaa',
+                    'bucket_name': 'mybucket',
+                    'secret_access_key': 'bbb'}
+
         self.assertEqual(expected, actual)
 
 

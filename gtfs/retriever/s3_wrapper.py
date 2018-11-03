@@ -4,16 +4,24 @@ import boto3
 import argparse
 import os
 import fnmatch
+from types import MappingProxyType
 from typing import Callable, List, Generator, Any, Tuple
+
+_AWS = True
+_DIGITALOCEAN = False
+
+_DEFAULTS = MappingProxyType({_AWS: {'bucket_name': 's3.obus.hasadna.org.il'},
+                              _DIGITALOCEAN: {'bucket_name': 'obus-do1',
+                                              'endpoint_url': 'https://ams3.digitaloceanspaces.com'}})
 
 
 class S3Crud:
     def __init__(self, access_key_id, secret_access_key, bucket_name,
-                 endpoint_url='https://ams3.digitaloceanspaces.com'):
-        self.bucket = boto3.resource('s3',
-                                     aws_access_key_id=access_key_id,
-                                     aws_secret_access_key=secret_access_key,
-                                     endpoint_url=endpoint_url).Bucket(bucket_name)
+                 endpoint_url=None):
+        args = dict(service_name='s3', aws_access_key_id=access_key_id, aws_secret_access_key=secret_access_key)
+        if endpoint_url:
+            args['endpoint_url'] = endpoint_url
+        self.bucket = boto3.resource(**args).Bucket(bucket_name)
 
     def upload_one_file(self, local_file: str, cloud_key: str) -> None:
         self.bucket.upload_file(local_file, cloud_key)
@@ -135,11 +143,13 @@ def parse_cli_arguments(args: List[str]) -> argparse.Namespace:
     parser_upload.add_argument('--key', '-k', dest='cloud_key', required=True, metavar='<Path>',
                                help='key of a file in S3')
     parser_upload.add_argument('--bucket-name', '-bn', dest='bucket_name',
-                               help='bucket name in s3. (default: obus-do1)', metavar='<String>', default='obus-do1')
+                               help='bucket name in s3. (default: obus-do1)', metavar='<String>')
     parser_upload.add_argument('-fd', '--folder', action='store_true', dest='is_folder',
                                help='Add all files in a folder')
     parser_upload.add_argument('--path-filter', '-pf', dest='path_filter',
                                help='filter files path', metavar='<String>')
+    parser_upload.add_argument('--aws', '-aws', dest='aws', action='store_true',
+                               help='Use AWS s3 services (default: DigitalOcean spaces)')
     # create the parser for the "download" command
     parser_download = subparsers.add_parser('download', help='Download a file from cloud to local machine ')
     parser_download.add_argument('--access-key-id', '-aki', dest='access_key_id', required=True,
@@ -152,7 +162,9 @@ def parse_cli_arguments(args: List[str]) -> argparse.Namespace:
     parser_download.add_argument('--key', '-k', dest='cloud_key', required=True, help='key of a file in S3',
                                  metavar='<Path>')
     parser_download.add_argument('--bucket-name', '-bn', dest='bucket_name',
-                                 help='bucket name in s3. (default: obus-do1)', metavar='<String>', default='obus-do1')
+                                 help='bucket name in s3. (default: obus-do1)', metavar='<String>')
+    parser_download.add_argument('--aws', '-aws', dest='aws', action='store_true',
+                                 help='Use AWS s3 services (default: DigitalOcean spaces)')
     # create the parser for the "list" command
     parser_list = subparsers.add_parser('list', help='list files on cloud ')
     parser_list.add_argument('--access-key-id', '-aki', dest='access_key_id',
@@ -160,18 +172,36 @@ def parse_cli_arguments(args: List[str]) -> argparse.Namespace:
     parser_list.add_argument('--secret-access-key', '-sak', dest='secret_access_key',
                              help='secret access key from S3 provider', metavar='<String>', required=True)
     parser_list.add_argument('--bucket-name', '-bn', dest='bucket_name',
-                             help='bucket name in s3. (default: obus-do1)', metavar='<String>', default='obus-do1')
+                             help='bucket name in s3. (default: obus-do1)', metavar='<String>')
     parser_list.add_argument('--prefix-filter', '-pf', dest='prefix_filter',
                              help='filter files that thier path starts with the given string', metavar='<String>')
     parser_list.add_argument('--regex-filter', '-rf', dest='regex_filter',
                              help='filter files path by regex', metavar='<String>')
+    parser_list.add_argument('--aws', '-aws', dest='aws', action='store_true',
+                             help='Use AWS s3 services (default: DigitalOcean spaces)')
 
     return parser.parse_args(args)
 
 
+def make_crud_args(args: argparse.Namespace,
+                   defaults: MappingProxyType = MappingProxyType({_AWS: {}, _DIGITALOCEAN: {}})):
+
+    res = defaults.get(args.aws)
+
+    relevant_cli_arguments = {k: v for k, v in vars(args).items()
+                              if k in ('access_key_id', 'bucket_name', 'endpoint_url', 'secret_access_key') and v}
+
+    res.update(relevant_cli_arguments)
+
+    return res
+
+
 def main(argv):
     args = parse_cli_arguments(argv)
-    crud = S3Crud(args.access_key_id, args.secret_access_key, args.bucket_name)
+    crud_args = make_crud_args(args, _DEFAULTS)
+
+    crud = S3Crud(**crud_args)
+
     if args.command == 'upload':
         upload(crud, args.local_file, args.cloud_key, args.is_folder, args.path_filter)
     elif args.command == 'download':
