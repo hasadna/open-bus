@@ -4,8 +4,9 @@ import boto3
 import argparse
 import os
 import fnmatch
+import botocore.exceptions
 from types import MappingProxyType
-from typing import Callable, List, Generator, Any, Tuple
+from typing import Callable, List, Tuple
 
 _AWS = True
 _DIGITALOCEAN = False
@@ -16,44 +17,49 @@ _DEFAULTS = MappingProxyType({_AWS: {'bucket_name': 's3.obus.hasadna.org.il'},
 
 
 class S3Crud:
-    def __init__(self, access_key_id, secret_access_key, bucket_name,
+    def __init__(self, bucket_name, access_key_id, secret_access_key,
                  endpoint_url=None):
-        args = dict(service_name='s3', aws_access_key_id=access_key_id, aws_secret_access_key=secret_access_key)
+
+        self.bucket_name = bucket_name
+
+        conn_args = dict(aws_access_key_id=access_key_id, aws_secret_access_key=secret_access_key)
         if endpoint_url:
-            args['endpoint_url'] = endpoint_url
-        self.bucket = boto3.resource(**args).Bucket(bucket_name)
+            conn_args['endpoint_url'] = endpoint_url
+        self.client = boto3.session.Session().client('s3', **conn_args)
 
     def upload_one_file(self, local_file: str, cloud_key: str) -> None:
-        self.bucket.upload_file(local_file, cloud_key)
+        self.client.upload_file(Filename=local_file, Key=cloud_key, Bucket=self.bucket_name)
 
     def download_one_file(self, local_file: str, cloud_key: str) -> None:
-        self.bucket.download_file(cloud_key, local_file)
+        self.client.download_file(Filename=local_file, Key=cloud_key, Bucket=self.bucket_name)
 
-    def list_bucket_files(self, prefix_filter: str) -> Generator[str, None, None]:
-        gen = self.bucket.objects.filter(Prefix=prefix_filter)
-        return S3Crud._convert_s3_gen_into_key_name_gen(gen)
+    def list_bucket_files(self, prefix_filter: str) -> List:
+        return self.client.list_objects_v2(Bucket=self.bucket_name, Prefix=prefix_filter).get('Contents', [])
 
     def is_key_exist(self, key_name: str) -> bool:
-        for curr_key_name in self.list_bucket_files(key_name):
-            if curr_key_name == key_name:
-                return True
-        return False
+        try:
+            self.client.head_object(Bucket=self.bucket_name, Key=key_name)
 
-    @staticmethod
-    def _convert_s3_gen_into_key_name_gen(gen: Generator[Any, None, None]) \
-            -> Generator[str, None, None]:
-        for s3_obj in gen:
-            yield s3_obj.key
+        except botocore.exceptions.ClientError as e:
+            response_code = int(e.response['Error']['Code'])
+            if response_code == 404:
+                return False
+            raise e
+        return True
+
+    def get_md5(self, key_name: str)-> str:
+        return self.client.head_object(Bucket=self.bucket_name, Key=key_name)['ETag'].strip('"')
 
 
-def _regex_filter(strings: list, regex_argument: str) -> list:
+def _regex_filter(keys_metadata_items: List, regex_argument: str) -> list:
     """
     Filter list of strings by the given regex argument
-    :param strings:
+    :param keys_metadata_items:
     :param regex_argument:
     :return: list of strings that pass the regex filter
     """
-    return list(filter(re.compile(regex_argument).search, strings))
+    regex = re.compile(regex_argument)
+    return [itm for itm in keys_metadata_items if regex.search(itm['Key'])]
 
 
 def list_content(crud: S3Crud, prefix_filter: str = '',
@@ -196,6 +202,20 @@ def make_crud_args(args: argparse.Namespace,
     return res
 
 
+def _sizeof_fmt(num):
+    for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+        if num < 1024.0:
+            return "%3.1f%s" % (num, x)
+        num /= 1024.0
+
+
+def _print_long_files_metadata(s3_objs: List):
+    s3_objs.sort(key=lambda x: x['Key'], reverse=True)
+    for itm in s3_objs:
+        s = "{}\t{}\t{}".format(itm['LastModified'], _sizeof_fmt(itm['Size']), itm['Key'])
+        print(s)
+
+
 def main(argv):
     args = parse_cli_arguments(argv)
     crud_args = make_crud_args(args, _DEFAULTS)
@@ -207,7 +227,7 @@ def main(argv):
     elif args.command == 'download':
         download(crud, args.local_file, args.cloud_key)
     elif args.command == 'list':
-        list_content(crud, args.prefix_filter, args.regex_filter, print)
+        list_content(crud, args.prefix_filter, args.regex_filter, _print_long_files_metadata)
 
 
 if __name__ == "__main__":

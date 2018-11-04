@@ -1,5 +1,7 @@
 import unittest
 import s3_wrapper
+import datetime
+from dateutil.tz import tzutc
 from types import MappingProxyType
 
 
@@ -109,23 +111,52 @@ class TestFoo(unittest.TestCase):
 
     def test_regex_filter(self):
         # Prepare
-        strings = ['foo', 'bar', 'foobar']
+        items = [{'Key': 'tmp/ob.jpg',
+                  'LastModified': datetime.datetime(2018, 9, 1, 15, 30, 15, 983000, tzinfo=tzutc()),
+                  'ETag': '"4c27e684add7202da1f99db6712a425b"',
+                  'Size': 1381893,
+                  'StorageClass': 'STANDARD',
+                  'Owner': {'DisplayName': '1629867', 'ID': '1629867'}},
+                 {'Key': 'tmp/image_of_a_bus2.jpg',
+                  'LastModified': datetime.datetime(2018, 9, 1, 15, 30, 15, 983000, tzinfo=tzutc()),
+                  'ETag': '"4c27e684add7202da1f99db6712a425b"',
+                  'Size': 1381893,
+                  'StorageClass': 'STANDARD',
+                  'Owner': {'DisplayName': '1629867', 'ID': '1629867'}}
+                 ]
         regex_argument = '.*ob.*'
         # Execute
-        actual = s3_wrapper._regex_filter(strings, regex_argument)
+        actual = s3_wrapper._regex_filter(items, regex_argument)
         # Expected
-        expected = ['foobar']
+        expected = [{'Key': 'tmp/ob.jpg',
+                     'LastModified': datetime.datetime(2018, 9, 1, 15, 30, 15, 983000, tzinfo=tzutc()),
+                     'ETag': '"4c27e684add7202da1f99db6712a425b"',
+                     'Size': 1381893,
+                     'StorageClass': 'STANDARD',
+                     'Owner': {'DisplayName': '1629867', 'ID': '1629867'}}]
         # Test
         self.assertEqual(expected, actual)
 
     def test_cli_with_list_command_regex_all(self):
         # Prepare
-        strings = ['foo', 'bar', 'foobar']
+        items = [{'Key': 'tmp/ob.jpg',
+                  'LastModified': datetime.datetime(2018, 9, 1, 15, 30, 15, 983000, tzinfo=tzutc()),
+                  'ETag': '"4c27e684add7202da1f99db6712a425b"',
+                  'Size': 1381893,
+                  'StorageClass': 'STANDARD',
+                  'Owner': {'DisplayName': '1629867', 'ID': '1629867'}},
+                 {'Key': 'tmp/image_of_a_bus2.jpg',
+                  'LastModified': datetime.datetime(2018, 9, 1, 15, 30, 15, 983000, tzinfo=tzutc()),
+                  'ETag': '"4c27e684add7202da1f99db6712a425b"',
+                  'Size': 1381893,
+                  'StorageClass': 'STANDARD',
+                  'Owner': {'DisplayName': '1629867', 'ID': '1629867'}}
+                 ]
         regex_argument = '.*'
         # Execute
-        actual = s3_wrapper._regex_filter(strings, regex_argument)
+        actual = s3_wrapper._regex_filter(items, regex_argument)
         # Expected
-        expected = strings
+        expected = items
         # Test
         self.assertEqual(expected, actual)
 
@@ -139,7 +170,7 @@ class TestFoo(unittest.TestCase):
 
         actual = s3_wrapper.list_content(Mock(), regex_argument='[b].*')
 
-        self.assertEqual(['bar'], actual)
+        self.assertEqual(expected_list, actual)
 
     def test_is_exist(self):
         actual = s3_wrapper.is_exist(Mock(), "foo")
@@ -220,7 +251,19 @@ class TestFoo(unittest.TestCase):
         self.assertEqual(expected, actual)
 
 
-expected_list = ['foo', 'bar']
+expected_list = [{'Key': 'tmp/ob.jpg',
+                  'LastModified': datetime.datetime(2018, 9, 1, 15, 30, 15, 983000, tzinfo=tzutc()),
+                  'ETag': '"4c27e684add7202da1f99db6712a425b"',
+                  'Size': 1381893,
+                  'StorageClass': 'STANDARD',
+                  'Owner': {'DisplayName': '1629867', 'ID': '1629867'}},
+                 {'Key': 'tmp/image_of_a_bus2.jpg',
+                  'LastModified': datetime.datetime(2018, 9, 1, 15, 30, 15, 983000, tzinfo=tzutc()),
+                  'ETag': '"4c27e684add7202da1f99db6712a425b"',
+                  'Size': 1381893,
+                  'StorageClass': 'STANDARD',
+                  'Owner': {'DisplayName': '1629867', 'ID': '1629867'}}
+                 ]
 
 
 class Mock(s3_wrapper.S3Crud):
