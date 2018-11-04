@@ -17,14 +17,18 @@ _DEFAULTS = MappingProxyType({_AWS: {'bucket_name': 's3.obus.hasadna.org.il'},
 
 
 class S3Crud:
-    def __init__(self, bucket_name, access_key_id, secret_access_key,
+    def __init__(self, bucket_name, access_key_id=None, secret_access_key=None,
                  endpoint_url=None):
 
         self.bucket_name = bucket_name
 
-        conn_args = dict(aws_access_key_id=access_key_id, aws_secret_access_key=secret_access_key)
+        conn_args = dict()
         if endpoint_url:
             conn_args['endpoint_url'] = endpoint_url
+        if access_key_id:
+            conn_args['aws_access_key_id'] = access_key_id
+        if secret_access_key:
+            conn_args['aws_secret_access_key'] = secret_access_key
         self.client = boto3.session.Session().client('s3', **conn_args)
 
     def upload_one_file(self, local_file: str, cloud_key: str) -> None:
@@ -141,9 +145,9 @@ def parse_cli_arguments(args: List[str]) -> argparse.Namespace:
     # create the parser for the "upload" command
     parser_upload = subparsers.add_parser('upload', help='Upload a file from local machine to cloud', )
     parser_upload.add_argument('--access-key-id', '-aki', dest='access_key_id',
-                               help='access key id from S3 provider', metavar='<String>', required=True)
+                               help='access key id from S3 provider', metavar='<String>')
     parser_upload.add_argument('--secret-access-key', '-sak', dest='secret_access_key',
-                               help='secret access key from S3 provider', metavar='<String>', required=True)
+                               help='secret access key from S3 provider', metavar='<String>')
     parser_upload.add_argument('--local-file', '-lf', dest='local_file', metavar='<Path>', required=True,
                                help='reference for local file you wish to upload to path to download to')
     parser_upload.add_argument('--key', '-k', dest='cloud_key', required=True, metavar='<Path>',
@@ -158,9 +162,9 @@ def parse_cli_arguments(args: List[str]) -> argparse.Namespace:
                                help='Use AWS s3 services (default: DigitalOcean spaces)')
     # create the parser for the "download" command
     parser_download = subparsers.add_parser('download', help='Download a file from cloud to local machine ')
-    parser_download.add_argument('--access-key-id', '-aki', dest='access_key_id', required=True,
+    parser_download.add_argument('--access-key-id', '-aki', dest='access_key_id',
                                  help='access key id from S3 provider', metavar='<String>')
-    parser_download.add_argument('--secret-access-key', '-sak', dest='secret_access_key', required=True,
+    parser_download.add_argument('--secret-access-key', '-sak', dest='secret_access_key',
                                  help='secret access key from S3 provider', metavar='<String>')
     parser_download.add_argument('--local-file', '-lf', dest='local_file',
                                  help='reference for local file you wish to upload to path to download to',
@@ -174,9 +178,9 @@ def parse_cli_arguments(args: List[str]) -> argparse.Namespace:
     # create the parser for the "list" command
     parser_list = subparsers.add_parser('list', help='list files on cloud ')
     parser_list.add_argument('--access-key-id', '-aki', dest='access_key_id',
-                             help='access key id from S3 provider', metavar='<String>', required=True)
+                             help='access key id from S3 provider', metavar='<String>')
     parser_list.add_argument('--secret-access-key', '-sak', dest='secret_access_key',
-                             help='secret access key from S3 provider', metavar='<String>', required=True)
+                             help='secret access key from S3 provider', metavar='<String>')
     parser_list.add_argument('--bucket-name', '-bn', dest='bucket_name',
                              help='bucket name in s3. (default: obus-do1)', metavar='<String>')
     parser_list.add_argument('--prefix-filter', '-pf', dest='prefix_filter',
