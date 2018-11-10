@@ -2,10 +2,11 @@ language: python
 python: 
   - "3.6"
 install:
-  - pip install boto3
+  - pip install boto3 codecov
 # commands to run tests
 script: 
   - cd ./gtfs/gtfs_utils
   - python setup.py test
   - cd ../retriever/
   - python s3_wrapper_setup.py pytest
+  - codecov
