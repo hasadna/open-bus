@@ -12,15 +12,16 @@ class TestFoo(unittest.TestCase):
         # Execute
         actual = s3_wrapper.parse_cli_arguments(arguments[1:]).__dict__
         # Expected
-        expected = dict(access_key_id='aaa',
+        expected = dict(aws_access_key_id='aaa',
                         command='upload',
                         cloud_key='ddd',
                         local_file='ccc',
-                        secret_access_key='bbb',
+                        aws_secret_access_key='bbb',
                         bucket_name='bucket42',
                         is_folder=False,
                         path_filter=None,
-                        aws=False)
+                        endpoint_url=None,
+                        access_preset= None)
         # Test
         self.assertEqual(expected, actual)
 
@@ -30,13 +31,14 @@ class TestFoo(unittest.TestCase):
         # Execute
         actual = s3_wrapper.parse_cli_arguments(arguments[1:]).__dict__
         # Expected
-        expected = dict(access_key_id='aaa',
+        expected = dict(aws_access_key_id='aaa',
                         command='download',
                         cloud_key='ddd',
                         local_file='ccc',
-                        secret_access_key='bbb',
+                        aws_secret_access_key='bbb',
                         bucket_name='bucket42',
-                        aws=False)
+                        endpoint_url=  None,
+                        access_preset=None)
         # Test
         self.assertEqual(expected, actual)
 
@@ -46,15 +48,16 @@ class TestFoo(unittest.TestCase):
         # Execute
         actual = s3_wrapper.parse_cli_arguments(arguments[1:]).__dict__
         # Expected
-        expected = dict(access_key_id='aaa',
+        expected = dict(aws_access_key_id='aaa',
                         command='upload',
                         cloud_key='ddd',
                         local_file='ccc',
-                        secret_access_key='bbb',
+                        aws_secret_access_key='bbb',
                         bucket_name=None,
                         is_folder=False,
                         path_filter=None,
-                        aws=False)
+                        endpoint_url=None,
+                        access_preset=None)
         # Test
         self.assertEqual(expected, actual)
 
@@ -64,15 +67,16 @@ class TestFoo(unittest.TestCase):
         # Execute
         actual = s3_wrapper.parse_cli_arguments(arguments[1:]).__dict__
         # Expected
-        expected = dict(access_key_id='aaa',
+        expected = dict(aws_access_key_id='aaa',
                         command='upload',
                         cloud_key='ddd',
                         local_file='ccc',
-                        secret_access_key='bbb',
+                        aws_secret_access_key='bbb',
                         bucket_name=None,
                         is_folder=True,
                         path_filter=None,
-                        aws=False)
+                        endpoint_url=None,
+                        access_preset=None)
 
         # Test
         self.assertEqual(expected, actual)
@@ -83,13 +87,14 @@ class TestFoo(unittest.TestCase):
         # Execute
         actual = s3_wrapper.parse_cli_arguments(arguments[1:]).__dict__
         # Expected
-        expected = dict(access_key_id='aaa',
+        expected = dict(aws_access_key_id='aaa',
                         command='download',
                         cloud_key='ddd',
                         local_file='ccc',
-                        secret_access_key='bbb',
+                        aws_secret_access_key='bbb',
                         bucket_name=None,
-                        aws=False)
+                        endpoint_url=None,
+                        access_preset=None)
         # Test
         self.assertEqual(expected, actual)
 
@@ -99,13 +104,14 @@ class TestFoo(unittest.TestCase):
         # Execute
         actual = s3_wrapper.parse_cli_arguments(arguments[1:]).__dict__
         # Expected
-        expected = dict(access_key_id='aaa',
+        expected = dict(aws_access_key_id='aaa',
                         command='list',
-                        secret_access_key='bbb',
+                        aws_secret_access_key='bbb',
                         bucket_name=None,
                         prefix_filter='pre',
                         regex_filter='reg',
-                        aws=False)
+                        endpoint_url=None,
+                        access_preset=None)
         # Test
         self.assertEqual(expected, actual)
 
@@ -224,17 +230,18 @@ class TestFoo(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_make_crud_args_use_default_values(self):
-        cli_arguments = "s3_wrapper.py download -aki aaa -sak bbb -lf ccc -k ddd".split()
+        cli_arguments = ("s3_wrapper.py download -aki aaa -sak bbb -lf ccc -k ddd --access-preset " +
+                         s3_wrapper._DIGITALOCEAN_PRIVATE).split()
         # Execute
         parsed_args = s3_wrapper.parse_cli_arguments(cli_arguments[1:])
-        defr = MappingProxyType({s3_wrapper._DIGITALOCEAN: {'bucket_name': '_DIGITALOCEAN_bucket_name',
+        defr = MappingProxyType({s3_wrapper._DIGITALOCEAN_PRIVATE: {'bucket_name': '_DIGITALOCEAN_bucket_name',
                                                             'endpoint_url': '_DIGITALOCEAN_endpoint_url'}})
 
         actual = s3_wrapper.make_crud_args(parsed_args, defr)
-        expected = {'access_key_id': 'aaa',
+        expected = {'aws_access_key_id': 'aaa',
                     'bucket_name': '_DIGITALOCEAN_bucket_name',
                     'endpoint_url': '_DIGITALOCEAN_endpoint_url',
-                    'secret_access_key': 'bbb'}
+                    'aws_secret_access_key': 'bbb'}
 
         self.assertEqual(expected, actual)
 
@@ -244,11 +251,45 @@ class TestFoo(unittest.TestCase):
         parsed_args = s3_wrapper.parse_cli_arguments(cli_arguments[1:])
 
         actual = s3_wrapper.make_crud_args(parsed_args)
-        expected = {'access_key_id': 'aaa',
+        expected = {'aws_access_key_id': 'aaa',
                     'bucket_name': 'mybucket',
-                    'secret_access_key': 'bbb'}
+                    'aws_secret_access_key': 'bbb'}
 
         self.assertEqual(expected, actual)
+
+    def test_download(self):
+
+        local_key = 'local_key'
+        remote_key = 'remote_key'
+
+        s3_crud_mock = Mock()
+        # Execute
+        s3_wrapper.download(s3_crud_mock, local_key,remote_key)
+        self.assertEqual(local_key, s3_crud_mock.local_file)
+        self.assertEqual(remote_key, s3_crud_mock.cloud_key)
+
+    def test_upload(self):
+
+        local_key = 'local_key'
+        remote_key = 'remote_key'
+
+        s3_crud_mock = Mock()
+        # Execute
+        s3_wrapper.upload(s3_crud_mock, local_key,remote_key,False,None)
+        self.assertEqual(local_key, s3_crud_mock.local_file)
+        self.assertEqual(remote_key, s3_crud_mock.cloud_key)
+
+
+    def test_upload_bytes(self):
+
+        # Execute
+
+        self.assertEqual('500.0bytes', s3_wrapper._sizeof_fmt(500))
+        self.assertEqual('14.6KB', s3_wrapper._sizeof_fmt(15000))
+        self.assertEqual('1.4MB', s3_wrapper._sizeof_fmt(1500000))
+        self.assertEqual('1.4GB', s3_wrapper._sizeof_fmt(1500000000))
+
+
 
 
 expected_list = [{'Key': 'tmp/ob.jpg',
@@ -269,7 +310,7 @@ expected_list = [{'Key': 'tmp/ob.jpg',
 class Mock(s3_wrapper.S3Crud):
 
     def __init__(self):
-        super().__init__('', '', '')
+        super().__init__(**{'bucket_name':'b_name'})
 
     def list_bucket_files(self, prefix_filter=''):
         return expected_list
@@ -277,6 +318,12 @@ class Mock(s3_wrapper.S3Crud):
     def is_key_exist(self, key_name):
         return True
 
+    def download_one_file(self, local_file: str, cloud_key: str):
+        self.local_file = local_file
+        self.cloud_key = cloud_key
+    def upload_one_file(self, local_file: str, cloud_key: str):
+        self.local_file = local_file
+        self.cloud_key = cloud_key
 
 if __name__ == '__main__':
     unittest.main()

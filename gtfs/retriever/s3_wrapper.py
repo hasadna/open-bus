@@ -1,34 +1,36 @@
+#!/usr/bin/python3
+
+import argparse
+import fnmatch
+import os
 import re
 import sys
-import boto3
-import argparse
-import os
-import fnmatch
-import botocore.exceptions
 from types import MappingProxyType
 from typing import Callable, List, Tuple
 
-_AWS = True
-_DIGITALOCEAN = False
+import boto3
+import botocore.exceptions
+
+_AWS = 'aws'
+_DIGITALOCEAN_PUBLIC = 'dig-public'
+_DIGITALOCEAN_PRIVATE = 'dig-private'
+
+_DIGITALOCEAN_ENDPOINT = 'https://ams3.digitaloceanspaces.com'
 
 _DEFAULTS = MappingProxyType({_AWS: {'bucket_name': 's3.obus.hasadna.org.il'},
-                              _DIGITALOCEAN: {'bucket_name': 'obus-do1',
-                                              'endpoint_url': 'https://ams3.digitaloceanspaces.com'}})
+                              _DIGITALOCEAN_PRIVATE: {'bucket_name': 'obus-do1',
+                                                      'endpoint_url': _DIGITALOCEAN_ENDPOINT},
+                              _DIGITALOCEAN_PUBLIC: {'bucket_name': 'obus-do2',
+                                                     'endpoint_url': _DIGITALOCEAN_ENDPOINT}})
 
 
 class S3Crud:
-    def __init__(self, bucket_name, access_key_id=None, secret_access_key=None,
-                 endpoint_url=None):
+    def __init__(self, **conn_args):
+        self.bucket_name = conn_args.get('bucket_name')
+        assert self.bucket_name is not None
 
-        self.bucket_name = bucket_name
+        conn_args.pop('bucket_name')
 
-        conn_args = dict()
-        if endpoint_url:
-            conn_args['endpoint_url'] = endpoint_url
-        if access_key_id:
-            conn_args['aws_access_key_id'] = access_key_id
-        if secret_access_key:
-            conn_args['aws_secret_access_key'] = secret_access_key
         self.client = boto3.session.Session().client('s3', **conn_args)
 
     def upload_one_file(self, local_file: str, cloud_key: str) -> None:
@@ -91,10 +93,10 @@ def _create_items_from_local_folder(is_folder: bool, local_path: str, key_name: 
     if not is_folder:
         return [(local_path, key_name)]
 
-    return[(os.path.join(local_path, fname), '/'.join([key_name, fname]))
-           for fname
+    return[(os.path.join(local_path, file_name), '/'.join([key_name, file_name]))
+           for file_name
            in os.listdir(local_path)
-           if fnmatch.fnmatch(fname, filter_arg) and os.path.isfile(os.path.join(local_path, fname))]
+           if fnmatch.fnmatch(file_name, filter_arg) and os.path.isfile(os.path.join(local_path, file_name))]
 
 
 def upload(crud: S3Crud, local_file: str, key_name: str, is_folder: bool, filter_arg: str) -> None:
@@ -140,84 +142,62 @@ def parse_cli_arguments(args: List[str]) -> argparse.Namespace:
     :param args: App arguments without the first argument with the execution path
     :return: a dict like object with the given arguments values
     """
+    s3_access_parser = argparse.ArgumentParser(add_help=False)
+    s3_access_parser.add_argument('--access-key-id', '-aki', dest='aws_access_key_id',
+                                  help='access key id from S3 provider', metavar='<String>')
+    s3_access_parser.add_argument('--secret-access-key', '-sak', dest='aws_secret_access_key',
+                                  help='secret access key from S3 provider', metavar='<String>')
+    s3_access_parser.add_argument('--bucket-name', '-bn', dest='bucket_name',
+                                  help='bucket name in s3. (default: obus-do1)', metavar='<String>')
+    s3_access_parser.add_argument('--endpoint-url', '-eu', dest='endpoint_url',
+                                  help='End point url of s3 service (in case of Amazon there is no need to provide)',
+                                  metavar='<String>')
+    s3_access_parser.add_argument('--access-preset', '-ap', dest='access_preset',
+                                  help='use access preset default values: [{} / {} / {}]'
+                                       .format(_AWS, _DIGITALOCEAN_PRIVATE, _DIGITALOCEAN_PUBLIC))
+
+    local_remote_keys_parser = argparse.ArgumentParser(add_help=False)
+    local_remote_keys_parser.add_argument('--key', '-k', dest='cloud_key', required=True, metavar='<Path>',
+                                          help='key of a file in S3')
+    local_remote_keys_parser.add_argument('--local-file', '-lf', dest='local_file', metavar='<Path>', required=True,
+                                          help='reference for local file you wish to upload to path to download to')
+
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='sub-command help', dest="command")
     # create the parser for the "upload" command
-    parser_upload = subparsers.add_parser('upload', help='Upload a file from local machine to cloud', )
-    parser_upload.add_argument('--access-key-id', '-aki', dest='access_key_id',
-                               help='access key id from S3 provider', metavar='<String>')
-    parser_upload.add_argument('--secret-access-key', '-sak', dest='secret_access_key',
-                               help='secret access key from S3 provider', metavar='<String>')
-    parser_upload.add_argument('--local-file', '-lf', dest='local_file', metavar='<Path>', required=True,
-                               help='reference for local file you wish to upload to path to download to')
-    parser_upload.add_argument('--key', '-k', dest='cloud_key', required=True, metavar='<Path>',
-                               help='key of a file in S3')
-    parser_upload.add_argument('--bucket-name', '-bn', dest='bucket_name',
-                               help='bucket name in s3. (default: obus-do1)', metavar='<String>')
+    parser_upload = subparsers.add_parser('upload', help='Upload a file from local machine to cloud',
+                                          parents=[s3_access_parser, local_remote_keys_parser])
     parser_upload.add_argument('-fd', '--folder', action='store_true', dest='is_folder',
                                help='Add all files in a folder')
     parser_upload.add_argument('--path-filter', '-pf', dest='path_filter',
                                help='filter files path', metavar='<String>')
-    parser_upload.add_argument('--aws', '-aws', dest='aws', action='store_true',
-                               help='Use AWS s3 services (default: DigitalOcean spaces)')
     # create the parser for the "download" command
-    parser_download = subparsers.add_parser('download', help='Download a file from cloud to local machine ')
-    parser_download.add_argument('--access-key-id', '-aki', dest='access_key_id',
-                                 help='access key id from S3 provider', metavar='<String>')
-    parser_download.add_argument('--secret-access-key', '-sak', dest='secret_access_key',
-                                 help='secret access key from S3 provider', metavar='<String>')
-    parser_download.add_argument('--local-file', '-lf', dest='local_file',
-                                 help='reference for local file you wish to upload to path to download to',
-                                 metavar='<Path>', required=True)
-    parser_download.add_argument('--key', '-k', dest='cloud_key', required=True, help='key of a file in S3',
-                                 metavar='<Path>')
-    parser_download.add_argument('--bucket-name', '-bn', dest='bucket_name',
-                                 help='bucket name in s3. (default: obus-do1)', metavar='<String>')
-    parser_download.add_argument('--aws', '-aws', dest='aws', action='store_true',
-                                 help='Use AWS s3 services (default: DigitalOcean spaces)')
+    subparsers.add_parser('download', help='Download a file from cloud to local machine ',
+                          parents=[s3_access_parser, local_remote_keys_parser])
     # create the parser for the "list" command
-    parser_list = subparsers.add_parser('list', help='list files on cloud ')
-    parser_list.add_argument('--access-key-id', '-aki', dest='access_key_id',
-                             help='access key id from S3 provider', metavar='<String>')
-    parser_list.add_argument('--secret-access-key', '-sak', dest='secret_access_key',
-                             help='secret access key from S3 provider', metavar='<String>')
-    parser_list.add_argument('--bucket-name', '-bn', dest='bucket_name',
-                             help='bucket name in s3. (default: obus-do1)', metavar='<String>')
+    parser_list = subparsers.add_parser('list', help='list files on cloud ', parents=[s3_access_parser])
     parser_list.add_argument('--prefix-filter', '-pf', dest='prefix_filter',
-                             help='filter files that thier path starts with the given string', metavar='<String>')
+                             help='filter files that their path starts with the given string', metavar='<String>')
     parser_list.add_argument('--regex-filter', '-rf', dest='regex_filter',
                              help='filter files path by regex', metavar='<String>')
-    parser_list.add_argument('--aws', '-aws', dest='aws', action='store_true',
-                             help='Use AWS s3 services (default: DigitalOcean spaces)')
 
     return parser.parse_args(args)
 
 
 def make_crud_args(args: argparse.Namespace,
-                   defaults: MappingProxyType = MappingProxyType({_AWS: {}, _DIGITALOCEAN: {}})):
+                   presets: MappingProxyType = MappingProxyType({})):
 
-    res = defaults.get(args.aws)
+    res = presets.get(args.access_preset, {})
 
     relevant_cli_arguments = {k: v for k, v in vars(args).items()
-                              if k in ('access_key_id', 'bucket_name', 'endpoint_url', 'secret_access_key') and v}
+                              if k in ('aws_access_key_id',
+                                       'bucket_name',
+                                       'endpoint_url',
+                                       'aws_secret_access_key') and v is not None}
 
     res.update(relevant_cli_arguments)
 
     return res
-
-
-def _sizeof_fmt(num):
-    for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
-        if num < 1024.0:
-            return "%3.1f%s" % (num, x)
-        num /= 1024.0
-
-
-def _print_long_files_metadata(s3_objs: List):
-    s3_objs.sort(key=lambda x: x['Key'], reverse=True)
-    for itm in s3_objs:
-        s = "{}\t{}\t{}".format(itm['LastModified'], _sizeof_fmt(itm['Size']), itm['Key'])
-        print(s)
 
 
 def main(argv):
@@ -232,6 +212,20 @@ def main(argv):
         download(crud, args.local_file, args.cloud_key)
     elif args.command == 'list':
         list_content(crud, args.prefix_filter, args.regex_filter, _print_long_files_metadata)
+
+
+def _sizeof_fmt(num):
+    for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+        if num < 1024.0:
+            return "%3.1f%s" % (num, x)
+        num /= 1024.0
+
+
+def _print_long_files_metadata(s3_objs: List):
+    s3_objs.sort(key=lambda x: x['Key'], reverse=True)
+    for itm in s3_objs:
+        s = "{}\t{}\t{}".format(itm['LastModified'], _sizeof_fmt(itm['Size']), itm['Key'])
+        print(s)
 
 
 if __name__ == "__main__":

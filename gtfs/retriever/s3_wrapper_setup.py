@@ -6,15 +6,6 @@ import io
 
 from setuptools import setup, find_packages
 
-requirements = ['boto3']
-
-setup_requirements = [
-    'pytest-runner',
-]
-
-test_requirements = [
-]
-
 setup(
     name='S3Wrapper',
     version='0.0.1',
@@ -23,7 +14,7 @@ setup(
     author_email='',
     packages=find_packages(include=['.']),
     include_package_data=True,
-    install_requires=requirements,
+    install_requires=['boto3'],
     license='MIT license',
     zip_safe=False,
     keywords='gtfs_utils',
@@ -37,6 +28,6 @@ setup(
     ],
     python_requires='>=3.5, <4',
     test_suite='tests',
-    tests_require=test_requirements,
-    setup_requires=setup_requirements,
+    tests_require=['pytest'],
+    setup_requires=['pytest-runner'],
 )

@@ -8,4 +8,4 @@ script:
   - cd ./gtfs/gtfs_utils
   - python setup.py test
   - cd ../retriever/
-  - python -m unittest
+  - python s3_wrapper_setup.py pytest
