@@ -69,8 +69,15 @@ public class ReactiveClient {
                     logger.info("received response, status={}", resp.getStatusCode());
                     String body = resp.getBody();
                     tracer.trace("response body as string: {}", body);
+                    tracer.trace("response body as xml: {}", prettyXml(body));
                 }
         );
+
+        result.subscribe(resp -> logger.info("received response, status={}", resp.getStatusCode())).
+    }
+
+    private String prettyXml(String body) {
+        return body;
     }
 
     private Mono<ClientResponse> display(Mono<ClientResponse> response) {
