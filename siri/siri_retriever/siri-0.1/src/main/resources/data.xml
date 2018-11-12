@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/util
+       http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+    <util:map id="longLines" value-type="java.lang.Integer">
+        <!-- key - routeId        value - number of intervals -->
+        <!-- Dan 1 PT BY -->
+        <entry key="13428" value="24" />
+        <entry key="13429" value="24" />
+        <!-- Egged 966  Jer Golan -->
+        <entry key="19742" value="24" />
+        <entry key="19743" value="24" />
+        <entry key="19267" value="24" />
+        <!-- Egged 967  Jer B.Shean -->
+        <entry key="22110" value="24" />
+        <entry key="22111" value="24" />
+    </util:map>
+</beans>

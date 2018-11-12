@@ -19,6 +19,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import static org.hasadna.bus.util.DateTimeUtils.DEFAULT_CLOCK;
 
+import javax.annotation.Resource;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -30,6 +31,7 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 @Component
@@ -42,6 +44,8 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
     @Value("${duration.of.interval.in.minutes:5}")
     int durationOfIntervalInMinutes ;
 
+    @Resource(name="longLines")
+    Map<String, Integer> longLines;
 
     @Autowired
     private DatadogMeterRegistry registry;
@@ -82,6 +86,16 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         } catch (InterruptedException e) {
             // absorb on purpose
         }
+    }
+
+    private int decideNumberOfIntervals(String lineRef) {
+        // for some lines (like Dan 1 from PT to BY) it is not enough to query for 12 intervals
+        // each interval is defined as 5 minutes, the query will cover only one hour.
+        // for these lines we want 24 intervals (2 hours).
+        // TODO the math should be general
+        // (but currently we assume an interval is always 5 minutes, and act accordingly)
+        int result = longLines.getOrDefault(lineRef, numberOfIntervals);
+        return result;
     }
 
     @Override
@@ -278,7 +292,8 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
 //line 420 from BS to Jer - route_id 15531 (15532?), last stop: stopId=11734, stopCode=6109
     // localhost:8080/data/soap/oneStop/6109/15531/PT2D
     private String buildServiceRequest(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
-        final String oneStopServiceRequestXml = generateStopMonitoringServiceRequestTemplate(numberOfIntervals);    // 12 intervals of 5 minutes
+        int numberOfIntervalsForThisRoute = decideNumberOfIntervals(lineRef);   // might increase number of intervals according to config
+        final String oneStopServiceRequestXml = generateStopMonitoringServiceRequestTemplate(numberOfIntervalsForThisRoute);    // 12 intervals of 5 minutes
         String requestXmlString = oneStopServiceRequestXml.replaceAll("__TIMESTAMP__", generateTimestamp())
                 .replaceAll("__MAX_STOP_VISITS__", Integer.toString(maxStopVisits))
                 .replaceAll("__PREVIEW_INTERVAL__", previewInterval)
