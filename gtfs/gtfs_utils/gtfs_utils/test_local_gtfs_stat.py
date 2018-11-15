@@ -4,13 +4,15 @@ import datetime
 
 
 class MyTestCase(unittest.TestCase):
-    def test_main(self):
 
-        path = '/home/aviv/Downloads/israel-public-transportation_1.zip'
-        path_to_tariff = '/home/aviv/Downloads/Tariff.zip'
-        date = datetime.date.today()
+    def test_get_output_path(self):
+        output_folder = 'my\\local\\folder'
+        file_name = 'foo'
+        actual = local_gtfs_stat.get_output_path(datetime.date.today(), output_folder, file_name)
 
-        local_gtfs_stat.main(path,path_to_tariff,date)
+        expected = 'my\\local\\folder'.replace('\\', '/') + '/' + datetime.date.today().strftime('%Y-%m-%d') + '_' + \
+                   file_name
+        self.assertEqual(expected, actual)
 
 
 if __name__ == '__main__':
