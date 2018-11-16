@@ -18,15 +18,12 @@ def get_output_path(date_date: date, output_folder: str, file_name: str) -> str:
     return folder_part + date_part + '_' + file_name
 
 
-def save_as_pickele(obj: object, folder_path: str, query_date: date, file_name: str) -> None:
+def save_as_pickele(obj: object, path: str) -> None:
     """
-    save the given obj as a pickle in a path that calculated by the folder, date, and file name
+    save the given obj as a pickle in given path
     :param obj:
-    :param folder_path:
-    :param query_date:
-    :param file_name:
+    :param path:
     """
-    path = get_output_path(query_date, folder_path, file_name)
     pd.to_pickle(obj, path, compression='gzip')
 
 
@@ -58,10 +55,12 @@ def main(path_of_gtfs_zip_file: str, path_of_tariff_zip_file: str, date_to_query
     zones = gtfs_utils.get_zones_df(path_of_tariff_zip_file)
 
     ts = get_trip_stat(date_to_query, feed, zones)
-    save_as_pickele(ts, output_folder, date_to_query, TRIP_FILENAME)
+    pickle_path = get_output_path(date_to_query, output_folder, TRIP_FILENAME)
+    save_as_pickele(ts, pickle_path)
 
     rs = get_route_stat(date_to_query, ts)
-    save_as_pickele(rs, output_folder, date_to_query, ROUTE_FILENAME)
+    pickle_path = get_output_path(date_to_query, output_folder, ROUTE_FILENAME)
+    save_as_pickele(rs, pickle_path)
 
 
 # TODO: Add argparse for using it as CLI
