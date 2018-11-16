@@ -6,18 +6,37 @@ ROUTE_FILENAME = 'route_stats.pkl.gz'
 TRIP_FILENAME = 'trip_stats.pkl.gz'
 
 
-def get_output_path(date_date: date, output_folder: str, file_name: str):
+def get_output_path(date_date: date, output_folder: str, file_name: str) -> str:
+    """
+    Create a path based on the givven folder, date, and file name
+    :param date_date:
+    :param output_folder:
+    :param file_name:
+    """
     date_part = date_date.strftime('%Y-%m-%d')
     folder_part = output_folder.replace('\\', '/') + '/'
     return folder_part + date_part + '_' + file_name
 
 
-def save_as_pickele(obj: object, folder_path: str, query_date: date, file_name: str):
+def save_as_pickele(obj: object, folder_path: str, query_date: date, file_name: str) -> None:
+    """
+    save the given obj as a pickle in a path that calculated by the folder, date, and file name
+    :param obj:
+    :param folder_path:
+    :param query_date:
+    :param file_name:
+    """
     path = get_output_path(query_date, folder_path, file_name)
     pd.to_pickle(obj, path, compression='gzip')
 
 
 def add_date_column(df: pd.DataFrame, date_to_query: date) -> pd.DataFrame:
+    """
+    Add Categorical date column to dataframe
+    :param df: DataFrame
+    :param date_to_query:
+    :return:
+    """
     df['date'] = date_to_query.strftime('%Y-%m-%d')
     df['date'] = pd.Categorical(df.date)
     return df
@@ -43,3 +62,8 @@ def main(path_of_gtfs_zip_file: str, path_of_tariff_zip_file: str, date_to_query
 
     rs = get_route_stat(date_to_query, ts)
     save_as_pickele(rs, output_folder, date_to_query, ROUTE_FILENAME)
+
+
+# TODO: Add argparse for using it as CLI
+if __name__ == '__main__':
+    pass

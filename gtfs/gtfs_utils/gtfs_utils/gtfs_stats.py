@@ -21,7 +21,7 @@ from zipfile import BadZipFile
 import itertools
 from tqdm import tqdm
 from partridge import feed as ptg_feed
-from gtfs_stats_conf import *
+from gtfs_utils.gtfs_stats_conf import *
 
 
 def compute_trip_stats_partridge(feed, zones):
