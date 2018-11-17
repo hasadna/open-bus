@@ -1,5 +1,11 @@
 language: python
-python: 3.6
+python: 
+  - "3.6"
+install:
+  - pip install boto3
+# commands to run tests
 script: 
   - cd ./gtfs/gtfs_utils
   - python setup.py test
+  - cd ../retriever
+  - python -m unittest tests/test_s3_wrapper.py
