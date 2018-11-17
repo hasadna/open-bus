@@ -50,7 +50,7 @@ import java.util.concurrent.TimeUnit;
 import static org.hasadna.bus.util.Util.removeSoapEnvelope;
 
 @Component
-@Profile("!production")
+@Profile("test")
 public class SiriMockServiceImpl implements SiriConsumeService {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());

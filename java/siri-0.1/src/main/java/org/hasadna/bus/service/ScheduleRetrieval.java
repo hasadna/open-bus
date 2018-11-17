@@ -414,7 +414,7 @@ public class ScheduleRetrieval {
      * Before executing, it adds the same task again to the queue (with an updated
      * date for next execution)
      */
-    @Scheduled(fixedRate=10)    // every 20 ms. ==> max throughput 3000 per minute
+    @Scheduled(fixedRate=10)    // every 10 ms. ==> max throughput 3000 per minute
     @Async("http-retrieve")
     public void retrieveCommandPeriodically() {
         if (!schedulerEnable) return;
