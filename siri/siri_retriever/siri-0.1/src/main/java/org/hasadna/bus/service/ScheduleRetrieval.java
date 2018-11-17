@@ -189,11 +189,10 @@ public class ScheduleRetrieval {
         for (Command c : data) {
             if (false == checkNecessityOfThisSchedulingUntilFirstDeparture(c, currentTime, !schedulerInactiveMechanismEnabled)) {
                 delayTillFirstDeparture.add(c);
-                c.isActive = false;
+                //c.isActive = false;
             }
             else if (false == checkNecessityOfThisSchedulingForRestOfToday(c, currentTime, !schedulerInactiveMechanismEnabled)) {
                 notNeeded.add(c);
-                // disabled = true means that this method will only log its result
             }
         }
         if (!delayTillFirstDeparture.isEmpty()) {
