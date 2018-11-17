@@ -100,7 +100,6 @@ public class ScheduleRetrieval {
                 if (timeOfFirstDeparture.isAfter(currentTime.plusMinutes(30))) {    // timeOfFirstDeparture is more than 30 minutes from now
                     // set nextExecution to 30 minutes before firstDeparture
                     LocalDateTime nextExecution = timeOfFirstDeparture.minusMinutes(30);
-                    //c.nextExecution = nextExecution;
                     logger.info("route {} - postpone next execution to {}, firstDeparture only at {}", c.lineRef, nextExecution, timeOfFirstDeparture);
                     return disabled; //notNeeded
                 }
@@ -188,13 +187,13 @@ public class ScheduleRetrieval {
         List<Command> notNeeded = new ArrayList<>();
         List<Command> delayTillFirstDeparture = new ArrayList<>();
         for (Command c : data) {
-            // schedulerInactiveMechanismEnabled=false means that this method will only log its result
             if (false == checkNecessityOfThisSchedulingUntilFirstDeparture(c, currentTime, !schedulerInactiveMechanismEnabled)) {
                 delayTillFirstDeparture.add(c);
-                //c.isActive = false;
+                c.isActive = false;
             }
             else if (false == checkNecessityOfThisSchedulingForRestOfToday(c, currentTime, !schedulerInactiveMechanismEnabled)) {
                 notNeeded.add(c);
+                // disabled = true means that this method will only log its result
             }
         }
         if (!delayTillFirstDeparture.isEmpty()) {
