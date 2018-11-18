@@ -1,38 +1,30 @@
-package org.hasadna.bus.service;
+package org.hasadna.openbus.siri_retriever.service;
 
-import io.micrometer.core.annotation.Timed;
-import io.micrometer.core.instrument.Timer;
-import io.micrometer.datadog.DatadogMeterRegistry;
-import org.hasadna.bus.entity.GetStopMonitoringServiceResponse;
-import org.hasadna.bus.util.Util;
+import org.hasadna.openbus.siri_retriever.entity.Command;
+import org.hasadna.openbus.siri_retriever.entity.GetStopMonitoringServiceResponse;
+import org.hasadna.openbus.siri_retriever.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StopWatch;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import static org.hasadna.bus.util.DateTimeUtils.DEFAULT_CLOCK;
 
-import javax.annotation.Resource;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.stream.StreamSource;
 import java.io.StringReader;
-import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
-import java.util.stream.IntStream;
+
+//import static org.hasadna.bus.util.DateTimeUtils.DEFAULT_CLOCK;
+import static org.hasadna.openbus.siri_retriever.entity.Command.DEFAULT_CLOCK;
 
 @Component
 @Profile({"production", "integrationTests"})
@@ -44,11 +36,9 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
     @Value("${duration.of.interval.in.minutes:5}")
     int durationOfIntervalInMinutes ;
 
-    @Resource(name="longLines")
-    Map<String, Integer> longLines;
 
-    @Autowired
-    private DatadogMeterRegistry registry;
+//    @Autowired
+//    private DatadogMeterRegistry registry;
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -86,16 +76,6 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         } catch (InterruptedException e) {
             // absorb on purpose
         }
-    }
-
-    private int decideNumberOfIntervals(String lineRef) {
-        // for some lines (like Dan 1 from PT to BY) it is not enough to query for 12 intervals
-        // each interval is defined as 5 minutes, the query will cover only one hour.
-        // for these lines we want 24 intervals (2 hours).
-        // TODO the math should be general
-        // (but currently we assume an interval is always 5 minutes, and act accordingly)
-        int result = longLines.getOrDefault(lineRef, numberOfIntervals);
-        return result;
     }
 
     @Override
@@ -149,6 +129,9 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         }
     });
 
+    /*
+
+
     @Autowired
     HttpPost httpPostRequest;
 
@@ -169,6 +152,20 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         logger.trace(r.getBody());
         return r.getBody();
     }
+
+
+*/
+    @Override
+    public String retrieveSpecificLineAndStop(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
+        return null;
+    }
+
+
+
+
+
+
+
 
 
     final String sampleRequestXml = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"\n" +
@@ -244,6 +241,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         return r.getBody();
     }
 
+
     private String generateStopMonitoringRequestTemplate(int minutesFromNow) {
         String template =
                 "                <siri:StopMonitoringRequest version=\"IL2.7\" xsi:type=\"siri:StopMonitoringRequestStructure\">\n" +
@@ -292,8 +290,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
 //line 420 from BS to Jer - route_id 15531 (15532?), last stop: stopId=11734, stopCode=6109
     // localhost:8080/data/soap/oneStop/6109/15531/PT2D
     private String buildServiceRequest(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
-        int numberOfIntervalsForThisRoute = decideNumberOfIntervals(lineRef);   // might increase number of intervals according to config
-        final String oneStopServiceRequestXml = generateStopMonitoringServiceRequestTemplate(numberOfIntervalsForThisRoute);    // 12 intervals of 5 minutes
+        final String oneStopServiceRequestXml = generateStopMonitoringServiceRequestTemplate(numberOfIntervals);    // 12 intervals of 5 minutes
         String requestXmlString = oneStopServiceRequestXml.replaceAll("__TIMESTAMP__", generateTimestamp())
                 .replaceAll("__MAX_STOP_VISITS__", Integer.toString(maxStopVisits))
                 .replaceAll("__PREVIEW_INTERVAL__", previewInterval)

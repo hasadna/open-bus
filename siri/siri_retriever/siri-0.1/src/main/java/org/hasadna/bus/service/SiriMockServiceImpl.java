@@ -16,6 +16,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import uk.org.siri.siri.LineRefStructure;
+import uk.org.siri.siri.MonitoredVehicleJourneyStructure;
+import uk.org.siri.siri.NaturalLanguageStringStructure;
+
 import static org.hasadna.bus.util.DateTimeUtils.DEFAULT_CLOCK;
 
 import javax.annotation.PostConstruct;
@@ -46,7 +50,7 @@ import java.util.concurrent.TimeUnit;
 import static org.hasadna.bus.util.Util.removeSoapEnvelope;
 
 @Component
-@Profile("!production")
+@Profile("test")
 public class SiriMockServiceImpl implements SiriConsumeService {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -153,6 +157,16 @@ public class SiriMockServiceImpl implements SiriConsumeService {
 
             GetStopMonitoringServiceResponse response = (GetStopMonitoringServiceResponse)je.getValue();
             logger.trace("converting done");
+            MonitoredVehicleJourneyStructure x =
+            response.getAnswer().getStopMonitoringDelivery().
+                    get(0).getMonitoredStopVisit().
+                    get(0).getMonitoredVehicleJourney();
+            NaturalLanguageStringStructure a = new NaturalLanguageStringStructure();
+            a.setValue("420");
+            x.setPublishedLineName(a);
+            LineRefStructure b = new LineRefStructure();
+            b.setValue("15531");
+            x.setLineRef(b);
             return response;
 
         } catch (Exception e) {

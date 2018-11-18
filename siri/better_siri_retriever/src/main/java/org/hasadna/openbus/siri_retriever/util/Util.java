@@ -1,4 +1,4 @@
-package org.hasadna.bus.util;
+package org.hasadna.openbus.siri_retriever.util;
 
 public class Util {
 

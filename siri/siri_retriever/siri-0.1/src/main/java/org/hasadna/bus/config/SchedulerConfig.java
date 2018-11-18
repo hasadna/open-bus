@@ -19,7 +19,7 @@ import java.time.Duration;
 
 @Configuration
 @EnableScheduling
-@Profile({"production", "dev"})
+@Profile({"production", "dev", "test"})
 public class SchedulerConfig implements SchedulingConfigurer {
 
     protected final Logger logger = LoggerFactory.getLogger(SchedulerConfig.class);
