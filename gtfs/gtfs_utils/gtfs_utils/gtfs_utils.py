@@ -103,7 +103,7 @@ def get_cluster_to_line_df(path):
     cols = ['agency_name', 'route_id', 'route_short_name',
             'cluster_name', 'from_date', 'to_date', 'cluster_id',
             'route_type', 'route_type_desc', 'cluster_sub_desc', 'EXTRA']
-    ctl = (pd.read_csv(path, encoding='windows-1255',
+    ctl = (pd.read_csv(path, encoding='utf-8',
                        skiprows=[0], header=None, names=cols)
            .drop(columns=['EXTRA']))
     return ctl
