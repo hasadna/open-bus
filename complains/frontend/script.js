@@ -11,4 +11,11 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=p
     id: 'mapbox.streets'
 }).addTo(mymap);
 
-L.marker([32.073539, 34.789106]).addTo(mymap);
+var busStationIcon = L.icon({
+    iconUrl: 'bus_station_icon.svg',
+
+    iconSize:     [38, 38], // size of the icon
+    // popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor TODO: check this value after adding `onClick` fun
+});
+
+L.marker([32.073539, 34.789106], {icon: busStationIcon}).addTo(mymap);
