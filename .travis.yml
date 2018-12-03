@@ -17,4 +17,7 @@ matrix:
       script:
         - cd ./siri/siri_retriever/siri-0.1
         - ./mvnw install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
-        - docker build -t hasadna/siri-collector:latest .
+        - docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD}
+        - docker build -t hasadna/siri-collector:${TRAVIS_BRANCH} .
+        - docker push -t hasadna/siri-collector:${TRAVIS_BRANCH}
+

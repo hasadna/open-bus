@@ -1,4 +1,4 @@
-FROM java:openjdk-8-jre
+FROM java:openjdk-8-jre-alpine
 
 LABEL vendor="hasadna"
 LABEL type="siri-collector"
