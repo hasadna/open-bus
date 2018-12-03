@@ -1,4 +1,4 @@
-matric:
+matrix:
   include:
     - language: python
       python:
