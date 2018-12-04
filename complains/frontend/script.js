@@ -13,15 +13,32 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=p
 
 var busStationIcon = L.icon({
     iconUrl: 'bus_station_icon.svg',
-    iconSize:     [38, 38], // size of the icon
+    iconSize: [30, 30], // size of the icon
 });
 
 var customPopup = "Test";
 // specify popup options
 var customOptions = {
     'maxWidth': '1000',
-    'className' : 'custom'
+    'className': 'custom'
 }
 
+L.marker([32.073539, 34.789106], {
+    icon: busStationIcon
+}).bindPopup(customPopup, customOptions).addTo(map);
 
-L.marker([32.073539, 34.789106], {icon: busStationIcon}).bindPopup(customPopup,customOptions).addTo(map);
+function onLocationFound(e) {
+    var radius = e.accuracy / 2;
+    L.marker(e.latlng).addTo(map) // Optional - mustly added for debugging
+    L.circle(e.latlng, radius).addTo(map);
+}
+function onLocationError(e) {
+    alert(e.message);
+}
+
+map.on('locationfound', onLocationFound);
+map.on('locationerror', onLocationError);
+
+map.locate({
+    maxZoom: 16
+});
