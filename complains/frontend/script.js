@@ -1,4 +1,4 @@
-var map = L.map('mapid').setView([32.073608, 34.790128], 17);
+var map = L.map('mapid');
 
 map.scrollWheelZoom.disable();
 
@@ -40,5 +40,6 @@ map.on('locationfound', onLocationFound);
 map.on('locationerror', onLocationError);
 
 map.locate({
+    setView: true,
     maxZoom: 16
 });
