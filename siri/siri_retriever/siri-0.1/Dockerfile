@@ -5,6 +5,7 @@ LABEL type="siri-collector"
 
 RUN mkdir -p /opt/hasadna/schedule_data
 RUN mkdir -p /opt/hasadna/gtfs_schedules
+RUN mkdir -p /opt/hasadna/siri_output
 
 ADD target/bus-0.0.1-SNAPSHOT.jar /opt/hasadna/bus.jar
 

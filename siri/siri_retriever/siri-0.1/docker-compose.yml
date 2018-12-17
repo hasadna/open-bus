@@ -12,6 +12,6 @@ services:
       - scheduler.data.file=/opt/hasadna/schedule_data
       - gtfs.schedules.location=/opt/hasadna/gtfs_schedules
       - gtfs.dir.location=/opt/hasadna
-      - DEV_HOME=/opt/hasadna
+      - SIRI_OUTPUT_PATH=/opt/hasadna/siri_output
     volumes:
-      - /opt/schedule_data/:/opt/hasadna/schedule_data
+      - /home/eldadru/side-projects/open-bus-project/required-files/:/opt/hasadna/schedule_data
