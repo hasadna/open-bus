@@ -3,10 +3,9 @@ version: "3"
 services:
   siri-collector:
     container_name: siri-collector
-    network_mode: "host"
     image: openbus1/siri-collector:containerize-siri-collector
-    extra_hosts:
-      "siri.motrealtime.co.il": 127.0.0.1
+    ports:
+      - "8080:8080"
     environment:
       - spring.profiles.active=production
       - scheduler.data.file=/opt/hasadna/schedule_data
@@ -14,4 +13,4 @@ services:
       - gtfs.dir.location=/opt/hasadna
       - SIRI_OUTPUT_PATH=/opt/hasadna/siri_output
     volumes:
-      - /home/eldadru/side-projects/open-bus-project/required-files/:/opt/hasadna/schedule_data
+      - ${SCHEDULE_DATA_HOST_PATH}:/opt/hasadna/schedule_data
