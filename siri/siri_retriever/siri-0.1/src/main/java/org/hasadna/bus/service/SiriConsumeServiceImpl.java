@@ -1,38 +1,30 @@
 package org.hasadna.bus.service;
 
-import io.micrometer.core.annotation.Timed;
-import io.micrometer.core.instrument.Timer;
-import io.micrometer.datadog.DatadogMeterRegistry;
-import org.hasadna.bus.entity.GetStopMonitoringServiceResponse;
-import org.hasadna.bus.util.Util;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
-import org.springframework.http.*;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StopWatch;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 import static org.hasadna.bus.util.DateTimeUtils.DEFAULT_CLOCK;
 
+import io.micrometer.datadog.DatadogMeterRegistry;
+import java.io.StringReader;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import javax.annotation.Resource;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.stream.StreamSource;
-import java.io.StringReader;
-import java.time.Clock;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Map;
-import java.util.stream.IntStream;
+import org.hasadna.bus.entity.GetStopMonitoringServiceResponse;
+import org.hasadna.bus.util.SoapUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 @Component
 @Profile({"production", "integrationTests"})
@@ -94,8 +86,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         // for these lines we want 24 intervals (2 hours).
         // TODO the math should be general
         // (but currently we assume an interval is always 5 minutes, and act accordingly)
-        int result = longLines.getOrDefault(lineRef, numberOfIntervals);
-        return result;
+        return longLines.getOrDefault(lineRef, numberOfIntervals);
     }
 
     @Override
@@ -109,7 +100,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         logger.debug("lineRef={}, stopCode={}, previewInterval={}", lineRef, stopCode, previewInterval);
         logger.trace(" response={}", content);
 
-        content = Util.removeSoapEnvelope(content);
+        content = SoapUtils.removeSoapEnvelope(content);
         logger.trace(content);
 
         //unmarshall XML to object
@@ -156,7 +147,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
     public String retrieveSpecificLineAndStop(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
         String url = SIRI_SERVICES_URL;
         String requestXmlString = buildServiceRequest(stopCode, previewInterval, lineRef, maxStopVisits);
-        HttpEntity<String> entity = new HttpEntity<String>(requestXmlString, createHeaders());
+        HttpEntity<String> entity = new HttpEntity<>(requestXmlString, createHeaders());
 
         logger.trace(requestXmlString);
 
@@ -318,19 +309,6 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         return r.getBody();
     }
 
-//    private String removeSoapEnvelope(String content) {
-//        // remove soap envelope (ugly)
-//        final String prefix = "<?xml version='1.0' encoding='UTF-8'?><S:Envelope xmlns:S=\"http://schemas.xmlsoap.org/soap/envelope/\"><S:Body>";
-//        final String suffix = "</S:Body></S:Envelope>";
-//        if (content.startsWith(prefix)) {
-//            content = content.substring(prefix.length());
-//        }
-//        if (content.endsWith(suffix)) {
-//            content = content.substring(0,content.length()-suffix.length());
-//        }
-//        return content;
-//    }
-
     public GetStopMonitoringServiceResponse unmarshalXml(String xml) {
         try {
             Unmarshaller jaxbUnmarshaller = localUnmarshaller.get();
@@ -342,7 +320,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
             StreamSource streamSource = new StreamSource(new StringReader(xml));
             JAXBElement<GetStopMonitoringServiceResponse> je = jaxbUnmarshaller.unmarshal(streamSource, GetStopMonitoringServiceResponse.class);
 
-            GetStopMonitoringServiceResponse response = (GetStopMonitoringServiceResponse) je.getValue();
+            GetStopMonitoringServiceResponse response = je.getValue();
             response.setXmlContent(xml);
             return response;
         }

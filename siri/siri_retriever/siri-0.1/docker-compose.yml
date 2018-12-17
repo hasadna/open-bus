@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  siri-collector:
+    container_name: siri-collector
+    network_mode: "host"
+    image: openbus1/siri-collector:containerize-siri-collector
+    extra_hosts:
+      "siri.motrealtime.co.il": 127.0.0.1
+    environment:
+      - spring.profiles.active=production
+      - scheduler.data.file=/opt/hasadna/schedule_data
+      - gtfs.schedules.location=/opt/hasadna/gtfs_schedules
+      - gtfs.dir.location=/opt/hasadna
+      - DEV_HOME=/opt/hasadna
+    volumes:
+      - /opt/schedule_data/:/opt/hasadna/schedule_data
