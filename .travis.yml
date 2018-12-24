@@ -24,6 +24,7 @@ matrix:
     - language: java
       jdk: oraclejdk8
       script:
+        - docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD}
         - cd ./siri/gtfs_reader
         - mvn install -DskipTests=true
         - docker build -t gtfs-collector .
