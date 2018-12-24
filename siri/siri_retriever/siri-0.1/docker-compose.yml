@@ -14,3 +14,4 @@ services:
       - SIRI_OUTPUT_PATH=/opt/hasadna/siri_output
     volumes:
       - ${SCHEDULE_DATA_HOST_PATH}:/opt/hasadna/schedule_data
+    restart: always
