@@ -21,7 +21,10 @@ matrix:
         - docker build -t siri-collector .
         - docker tag siri-collector openbus1/siri-collector:${TRAVIS_BRANCH}
         - docker push openbus1/siri-collector:${TRAVIS_BRANCH}
-        - cd ../../siri/gtfs_reader
+    - language: java
+      jdk: oraclejdk8
+      script:
+        - cd ./siri/gtfs_reader
         - mvn install -DskipTests=true
         - docker build -t gtfs-collector .
         - docker tag gtfs-collector openbus1/gtfs-collector:${TRAVIS_BRANCH}
