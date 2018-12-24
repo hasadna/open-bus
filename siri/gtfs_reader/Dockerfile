@@ -10,4 +10,4 @@ RUN mkdir -p /opt/hasadna/siri_output
 
 ADD target/siri-client-0.0.1-SNAPSHOT-jar-with-dependencies.jar /opt/hasadna/siri-client.jar
 
-CMD ["java", "-Xmx2g", ""-jar", "/opt/hasadna/siri-client.jar"]
+CMD ["java", "-Xmx2g", "-jar", "/opt/hasadna/siri-client.jar"]
