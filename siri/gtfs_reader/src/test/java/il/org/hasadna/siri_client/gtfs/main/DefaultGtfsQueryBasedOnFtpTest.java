@@ -18,19 +18,19 @@ public class DefaultGtfsQueryBasedOnFtpTest {
 	public void setUp() throws Exception {
 	}
 
-	@Test
+	/*@Test
 	public void testExec() throws IOException {
 		DefaultGtfsQueryBasedOnFtp defaultGtfsQueryBasedOnFtp = new DefaultGtfsQueryBasedOnFtp(LocalDate.now());
 		Collection<GtfsRecord> res = defaultGtfsQueryBasedOnFtp.exec();
 		
 		res.forEach(System.out::println);
-	}
+	}*/
 
-	@Test
+/*	@Test
 	public void testWithoutDownload() {
 
 		DefaultGtfsQueryBasedOnFtp x = new DefaultGtfsQueryBasedOnFtp();
 		x.configProperties.agencies = Arrays.asList("18");
 		x.run(false);
-	}
+	}*/
 }

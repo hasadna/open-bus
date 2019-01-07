@@ -1,23 +1,31 @@
 package il.org.hasadna.siri_client.gtfs.crud;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
-import java.nio.file.*;
-import java.nio.file.attribute.FileAttribute;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
+@Service
 public class GtfsFtp {
 
 	private static final String HOST = "gtfs.mot.gov.il";
@@ -48,19 +56,10 @@ public class GtfsFtp {
 	}
 
 	public Path downloadGtfsZipFile() throws IOException {
-	    try {
-            return downloadGtfsZipFile(createTempFile());
-        }
-        catch (DownloadFailedException ex) {
-	        // use an older file
-            logger.info("handling DownloadFailedException, search older gtfs files...");
-	        Path olderGtfs = findOlderGtfsFile(LocalDate.now());
-	        logger.info("using newest older gtfs file {}", olderGtfs.getFileName());
-	        return olderGtfs;
-        }
+    return downloadGtfsZipFile(createTempFile());
 	}
 
-    public static Path findOlderGtfsFile(LocalDate now) throws IOException {
+    public static Optional<Path> findOlderGtfsFile(LocalDate now) throws IOException {
 	    File dir = new File(TEMP_DIR);
 	    if (!dir.isDirectory()) {
 	        throw new DownloadFailedException("can't find directory " + TEMP_DIR);
@@ -74,11 +73,17 @@ public class GtfsFtp {
                 collect(Collectors.toList());
         Collections.reverse(allGtfsFiles);  // reverse so we get the newest file first
         logger.info("all gtfs files: [{}]", allGtfsFiles.stream().map(file -> file.getName()).collect(Collectors.joining(",")));
-        File newestGtfs = allGtfsFiles.stream().
-                findFirst().
-                orElseThrow(() -> new DownloadFailedException("can't find older gtfs files in " + TEMP_DIR));
+
+        if (allGtfsFiles.isEmpty()) {
+          logger.info("couldn't find any older gtfs file in: {}", TEMP_DIR);
+          return Optional.empty();
+        }
+
+        File newestGtfs = allGtfsFiles.get(0);
+
         logger.info("newest gtfs file: {}", newestGtfs.getName());
-        return Paths.get(newestGtfs.getAbsolutePath());
+
+        return Optional.of(Paths.get(newestGtfs.getAbsolutePath()));
     }
 
     Path createTempFile() throws IOException {
@@ -88,9 +93,9 @@ public class GtfsFtp {
 
 
     public Path downloadMakatZipFile() throws IOException {
-        final Path tempPath = Files.createTempFile( Paths.get("file://" + TEMP_DIR), null, null, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")));
-        Path path = downloadFile(tempPath);
-        return path;
+      final Path tempPath = Files.createTempFile("makat-", ".zip", PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")));
+      Path path = downloadFile(tempPath);
+      return path;
     }
 
     private Path downloadFile(Path path) throws IOException {
@@ -131,21 +136,15 @@ public class GtfsFtp {
             }
         }
     }
-	private Path downloadGtfsZipFile(final Path pathIn) throws IOException {
-        OutputStream out = null ;
-	    try {
-	        Path path = downloadFile(pathIn);
 
-            logger.info("renaming gtfs file...");
-            Path newPath = renameGtfsFile(path);
-            logger.info("                  ...done");
-            return newPath;
-        }
-        finally {
-	        if (out != null) {
-                out.close();
-            }
-        }
+	private Path downloadGtfsZipFile(final Path pathIn) throws IOException {
+    Path path = downloadFile(pathIn);
+
+    logger.info("renaming gtfs file...");
+    Path newPath = renameGtfsFile(path);
+    logger.info("                  ...done");
+
+    return newPath;
 	}
 
     private Path renameGtfsFile(final Path path) {

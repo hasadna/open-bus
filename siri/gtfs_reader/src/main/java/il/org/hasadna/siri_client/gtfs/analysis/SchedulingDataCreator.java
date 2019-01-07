@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import il.org.hasadna.siri_client.gtfs.crud.Route;
-import il.org.hasadna.siri_client.gtfs.main.DefaultGtfsQueryBasedOnFtp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
