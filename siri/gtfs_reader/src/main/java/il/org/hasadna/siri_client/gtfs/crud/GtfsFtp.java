@@ -56,7 +56,7 @@ public class GtfsFtp {
 	}
 
 	public Path downloadGtfsZipFile() throws IOException {
-    return downloadGtfsZipFile(getGtfsZipFilePath());
+    return downloadGtfsZipFile(getTemporaryGtfsZipFilePath());
 	}
 
     public static Optional<Path> findOlderGtfsFile(LocalDate now) throws IOException {
@@ -86,7 +86,7 @@ public class GtfsFtp {
         return Optional.of(Paths.get(newestGtfs.getAbsolutePath()));
     }
 
-    Path getGtfsZipFilePath() throws IOException {
+    Path getTemporaryGtfsZipFilePath() throws IOException {
 
 		return Files.createTempFile(Paths.get(GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory()),
         null, null, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")));
@@ -94,7 +94,8 @@ public class GtfsFtp {
 
 
     public Path downloadMakatZipFile() throws IOException {
-      final Path tempPath = Paths.get(GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory() + "/" + "makat-" + LocalDate.now().toString() + ".zip");
+      final Path tempPath = Files.createTempFile(Paths.get(GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory()),
+          "makat-", ".zip", PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")));
       Path path = downloadFile(tempPath);
       return path;
     }
