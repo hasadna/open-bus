@@ -125,7 +125,7 @@ public class GtfsFtpTest {
 
 		GtfsFtp gtfsFtp = new GtfsFtp() {
 			@Override
-			Path createTempFile() throws IOException {
+			Path getGtfsZipFilePath() throws IOException {
 				return expected;
 			}
 
@@ -153,7 +153,7 @@ public class GtfsFtpTest {
 
 		GtfsFtp gtfsFtp = new GtfsFtp() {
 			@Override
-			Path createTempFile() throws IOException {
+			Path getGtfsZipFilePath() throws IOException {
 				return expected;
 			}
 
