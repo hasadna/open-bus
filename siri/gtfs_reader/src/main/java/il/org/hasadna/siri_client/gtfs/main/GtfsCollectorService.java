@@ -36,11 +36,6 @@ public class GtfsCollectorService {
     this.gtfsFtp = gtfsFtp;
   }
 
-  @PostConstruct
-  public void init() {
-    dateOfLastDownload = GtfsCollectorConfiguration.getDateOfLastDownload();
-  }
-
   private static Logger logger = LoggerFactory.getLogger(GtfsCollectorService.class);
 
   public void run() {
@@ -103,6 +98,10 @@ public class GtfsCollectorService {
   @Scheduled(fixedDelayString = "${gtfs.millisecondsBetweenGtfsChecks:900000}")
   public void scheduleGtfs() {
     logger.trace("Scheduler Started!");
+
+    if (dateOfLastDownload == null) {
+      dateOfLastDownload = GtfsCollectorConfiguration.getDateOfLastDownload();
+    }
 
     LocalTime now = LocalTime.now();
     LocalDate dnow = LocalDate.now();
