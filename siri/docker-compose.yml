@@ -22,7 +22,7 @@ services:
       - gtfs.reschedule.url=http://siri-collector:8080/data/schedules/read/all
       - gtfs.dir.location=/opt/hasadna/data/
       - gtfs.schedules.location=/opt/hasadna/data/
-      - gtfs.getGtfsRawFilesBackupDirectory=/opt/hasadna/data
+      - gtfs.getGtfsRawFilesBackupDirectory=/opt/hasadna/data/
     volumes:
       - ${SCHEDULE_DATA_HOST_PATH}:/opt/hasadna/data
     restart: always

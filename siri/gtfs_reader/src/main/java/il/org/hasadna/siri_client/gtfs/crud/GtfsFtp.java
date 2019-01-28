@@ -31,7 +31,6 @@ public class GtfsFtp {
 
 	private static final String HOST = "gtfs.mot.gov.il";
 	private static final String FILE_NAME = "israel-public-transportation.zip";
-	//private static final String TEMP_DIR = "/tmp/";
 
 	private static Logger logger = LoggerFactory.getLogger(GtfsFtp.class);
 
@@ -89,12 +88,15 @@ public class GtfsFtp {
 
     Path createTempFile() throws IOException {
 
-		return Files.createTempFile(null, null);
+		return Files.createTempFile(Paths.get(GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory()),
+        null, null, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")));
 	}
 
 
     public Path downloadMakatZipFile() throws IOException {
-      final Path tempPath = Files.createTempFile("makat-", ".zip", PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")));
+      final Path tempPath = Files.createTempFile(Paths.get(GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory()),
+          "makat-", ".zip", PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")));
+
       Path path = downloadFile(tempPath);
       return path;
     }
