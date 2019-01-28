@@ -1,5 +1,6 @@
 package il.org.hasadna.siri_client.gtfs.crud;
 
+import il.org.hasadna.siri_client.gtfs.main.GtfsCollectorConfiguration;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -30,7 +31,7 @@ public class GtfsFtp {
 
 	private static final String HOST = "gtfs.mot.gov.il";
 	private static final String FILE_NAME = "israel-public-transportation.zip";
-	private static final String TEMP_DIR = "/tmp/";
+	//private static final String TEMP_DIR = "/tmp/";
 
 	private static Logger logger = LoggerFactory.getLogger(GtfsFtp.class);
 
@@ -60,9 +61,9 @@ public class GtfsFtp {
 	}
 
     public static Optional<Path> findOlderGtfsFile(LocalDate now) throws IOException {
-	    File dir = new File(TEMP_DIR);
+	    File dir = new File(GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory());
 	    if (!dir.isDirectory()) {
-	        throw new DownloadFailedException("can't find directory " + TEMP_DIR);
+	        throw new DownloadFailedException("can't find directory " + GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory());
         }
         File[] x = dir.listFiles();
 	    logger.trace("all files: [{}]", Arrays.stream(x).map(file -> file.getName()).collect(Collectors.joining(",")));
@@ -75,7 +76,7 @@ public class GtfsFtp {
         logger.info("all gtfs files: [{}]", allGtfsFiles.stream().map(file -> file.getName()).collect(Collectors.joining(",")));
 
         if (allGtfsFiles.isEmpty()) {
-          logger.info("couldn't find any older gtfs file in: {}", TEMP_DIR);
+          logger.info("couldn't find any older gtfs file in: {}", GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory());
           return Optional.empty();
         }
 
@@ -149,7 +150,7 @@ public class GtfsFtp {
 
     private Path renameGtfsFile(final Path path) {
 	    try {
-            String meaningfulName = TEMP_DIR + "gtfs" + LocalDate.now().toString() + ".zip";
+            String meaningfulName = GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory() + "gtfs" + LocalDate.now().toString() + ".zip";
             Path newName = Paths.get(meaningfulName);
             Path newPath = Files.move(path, newName, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             return newPath;

@@ -18,6 +18,7 @@ public class GtfsCollectorConfiguration {
   private final long DEFAULT_SECONDS_BETWEEN_CHECKS_IN_MILLISECONDS = TimeUnit.MINUTES.toMillis(15);
   private final String DEFAULT_RESCHEDULE_URL = "http://localhost:8080/data/schedules/read/all";
   private final List<String> DEFAULT_LIST_OF_AGENCIES = Collections.singletonList("5");
+  private final String GTFS_RAW_FILES_BACKUP_DIRECTORY = "/tmp";
 
   private static Boolean downloadTodaysFile = true;
   private static Boolean gtfsDownloadDisabled = false;
@@ -27,6 +28,16 @@ public class GtfsCollectorConfiguration {
   private static String schedulesLocation;
   private static String rescheduleUrl;
   private static List<String> agencies;
+  private static String gtfsRawFilesBackupDirectory;
+
+  public static String getGtfsRawFilesBackupDirectory() {
+    return gtfsRawFilesBackupDirectory;
+  }
+
+  @Value("${gtfs.RawFilesBackupDirectory:/tmp}")
+  public void setGtfsRawFilesBackupDirectory(String gtfsRawFilesBackupDirectory) {
+    GtfsCollectorConfiguration.gtfsRawFilesBackupDirectory = gtfsRawFilesBackupDirectory;
+  }
 
   @Value("${gtfs.gtfsDownloadDisabled:false}")
   public void setDisableDownload(Boolean disableDownload) {
