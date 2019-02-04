@@ -32,15 +32,15 @@ public class GtfsZipFile {
 	 * 
 	 * @param fileName
 	 *            The name of the entry in ZIP file
-	 * @param fileLable
+	 * @param fileLabel
 	 *            String to be used in generating the file's name; may be null
 	 * @return The path to the newly extracted file
 	 * @throws IOException if an I/O error occurs when reading or writing
 	 */
-	Path extractFile(String fileName, String fileLable) throws IOException {
+	Path extractFile(String fileName, String fileLabel) throws IOException {
 		ZipFile d = new ZipFile(getGtfsZip().toFile());
 		InputStream in = getFileInStream(d, fileName);
-		Path dest = Files.createTempFile(fileLable, ".txt");
+		Path dest = Files.createTempFile(fileLabel, ".txt");
 		Files.copy(in, dest, StandardCopyOption.REPLACE_EXISTING);
 		d.close();
 		return dest;
