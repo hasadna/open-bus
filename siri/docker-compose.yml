@@ -3,7 +3,7 @@ version: "3"
 services:
   siri-collector:
     container_name: siri-collector
-    image: openbus1/siri-collector:containerize-siri-collector
+    image: openbus1/siri-collector:${TAG:-__TAG__}
     environment:
       - spring.profiles.active=production
       - scheduler.data.file=/opt/hasadna/data/
@@ -15,7 +15,7 @@ services:
     restart: always
   gtfs-collector:
     container_name: gtfs-collector
-    image: openbus1/gtfs-collector:containerize-siri-collector
+    image: openbus1/gtfs-collector:${TAG:-__TAG__}
     environment:
       - gtfs.agencies=[3,4,5,7,8,14,15,16,18,19,25,30,31,32]
       - gtfs.dateOfLastDownload=2018-11-17
