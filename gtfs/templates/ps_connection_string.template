@@ -1,1 +1,0 @@
-dbname={{data['db_name']}} user={{data['db_user']}} host={{data['db_host']}} port={{data['db_port']}} password={{data['db_password']}}

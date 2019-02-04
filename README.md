@@ -1,4 +1,6 @@
 # Open Bus
+[![Build Status](https://travis-ci.org/hasadna/open-bus.svg?branch=master)](https://travis-ci.org/hasadna/open-bus)
+[![codecov](https://codecov.io/gh/hasadna/open-bus/branch/master/graph/badge.svg)](https://codecov.io/gh/hasadna/open-bus)
 
 Open Bus is a project of [The Public Knowledge Workshop](http://www.hasadna.org.il).
 

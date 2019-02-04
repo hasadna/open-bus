@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/util
+       http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+    <util:map id="longLines" value-type="java.lang.Integer">
+        <!-- key - routeId        value - number of intervals -->
+        <!-- Dan 1 PT BY -->
+        <entry key="13428" value="24" />
+        <entry key="13429" value="24" />
+        <!-- Egged 966  Jer Golan -->
+        <entry key="19742" value="24" />
+        <entry key="19743" value="24" />
+        <entry key="19267" value="24" />
+        <!-- Egged 967  Jer B.Shean -->
+        <entry key="22110" value="24" />
+        <entry key="22111" value="24" />
+
+        <entry key="15438" value="" />
+
+        <entry key="2369" value="24" />
+        <entry key="2376" value="24" />
+        <entry key="2961" value="24" />
+        <entry key="9821" value="24" />
+        <entry key="13579" value="24" />
+        <entry key="2328" value="24" />
+        <entry key="2444" value="24" />
+        <entry key="2457" value="24" />
+        <entry key="2738" value="24" />
+        <entry key="2963" value="24" />
+        <entry key="9802" value="24" />
+        <entry key="9803" value="24" />
+        <entry key="13580" value="24" />
+        <entry key="17826" value="24" />
+        <entry key="2299" value="24" />
+        <entry key="2373" value="24" />
+        <entry key="2379" value="24" />
+        <entry key="2450" value="24" />
+        <entry key="2454" value="24" />
+        <entry key="2467" value="24" />
+        <entry key="2533" value="24" />
+        <entry key="2709" value="24" />
+        <entry key="9785" value="24" />
+        <entry key="9822" value="24" />
+        <entry key="2276" value="24" />
+        <entry key="2296" value="24" />
+
+
+        <!--
+                <entry key="" value="" />
+                <entry key="" value="" />
+                <entry key="" value="" />
+                <entry key="" value="" />
+                <entry key="" value="" />
+                <entry key="" value="" />
+                <entry key="" value="" />
+                <entry key="" value="" />
+                <entry key="" value="" />
+                <entry key="" value="" />
+        -->
+    </util:map>
+</beans>
