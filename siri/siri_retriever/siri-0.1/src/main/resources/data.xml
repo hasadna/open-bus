@@ -20,7 +20,7 @@
         <entry key="22110" value="24" />
         <entry key="22111" value="24" />
 
-        <entry key="15438" value="" />
+        <entry key="15438" value="24" /> <!-- ?? -->
 
         <entry key="2369" value="24" />
         <entry key="2376" value="24" />
@@ -49,8 +49,250 @@
         <entry key="2276" value="24" />
         <entry key="2296" value="24" />
 
+        <!-- added 2019-01-20 -->
+
+        <!-- agency 14 -->
+        <entry key="12651" value="24" />
+        <entry key="12653" value="24" />
+        <entry key="13741" value="24" />
+        <entry key="13807" value="24" />
+        <entry key="14092" value="24" />
+        <entry key="14764" value="24" />
+        <entry key="14811" value="24" />
+        <entry key="15575" value="24" />
+        <entry key="16079" value="24" />
+        <entry key="19254" value="24" />
+        <entry key="6900" value="24" />
+        <entry key="6902" value="24" />
+        <entry key="9471" value="24" />
+        <entry key="9472" value="24" />
+
+        <!-- agency 15 -->
+        <entry key="11102" value="24" />
+        <entry key="8039" value="24" />
+        <entry key="8104" value="24" />
+        <entry key="8107" value="24" />
+        <entry key="9486" value="24" />
+
+        <!-- agency 16 -->
+        <entry key="11090" value="24" />
+        <entry key="14143" value="24" />
+        <entry key="14203" value="24" />
+        <entry key="14813" value="24" />
+        <entry key="14814" value="24" />
+        <entry key="15534" value="24" />
+        <entry key="15663" value="24" />
+        <entry key="15682" value="24" />
+        <entry key="16514" value="24" />
+
+        <!-- agency 18 -->
+        <entry key="1048" value="24" />
+        <entry key="10556" value="24" />
+        <entry key="10571" value="24" />
+        <entry key="11861" value="24" />
+        <entry key="11873" value="24" />
+        <entry key="11882" value="24" />
+        <entry key="11947" value="24" />
+        <entry key="11992" value="24" />
+        <entry key="12633" value="24" />
+        <entry key="13599" value="24" />
+        <entry key="13618" value="24" />
+        <entry key="15629" value="24" />
+        <entry key="16111" value="24" />
+        <entry key="16843" value="24" />
+        <entry key="16852" value="24" />
+        <entry key="17095" value="24" />
+        <entry key="17186" value="24" />
+        <entry key="17494" value="24" />
+        <entry key="18695" value="24" />
+        <entry key="19084" value="24" />
+        <entry key="19085" value="24" />
+        <entry key="21986" value="24" />
+        <entry key="22988" value="24" />
+
+        <!-- agency 25 -->
+        <entry key="10025" value="24" />
+        <entry key="10498" value="24" />
+        <entry key="11110" value="24" />
+        <entry key="11485" value="24" />
+        <entry key="17985" value="24" />
+        <entry key="17994" value="24" />
+        <entry key="18005" value="24" />
+        <entry key="2068" value="24" />
+        <entry key="9724" value="24" />
+
+        <!-- agency 3 (Egged) -->
+        <entry key="10130" value="24" />
+        <entry key="10131" value="24" />
+        <entry key="10372" value="24" />
+        <entry key="10777" value="24" />
+        <entry key="11152" value="24" />
+        <entry key="11298" value="24" />
+        <entry key="11890" value="24" />
+        <entry key="13678" value="24" />
+        <entry key="13747" value="24" />
+        <entry key="13748" value="24" />
+        <entry key="13749" value="24" />
+        <entry key="13761" value="24" />
+        <entry key="13763" value="24" />
+        <entry key="15669" value="24" />
+        <entry key="15988" value="24" />
+        <entry key="16513" value="24" />
+        <entry key="16754" value="24" />
+        <entry key="16755" value="24" />
+        <entry key="17208" value="24" />
+        <entry key="17210" value="24" />
+        <entry key="19145" value="24" />
+        <entry key="19167" value="24" />
+        <entry key="19731" value="24" />
+        <entry key="19735" value="24" />
+        <entry key="19740" value="24" />
+        <entry key="19741" value="24" />
+        <entry key="19964" value="24" />
+        <entry key="21726" value="24" />
+        <entry key="23336" value="24" />
+        <entry key="24060" value="24" />
+        <entry key="24263" value="24" />
+        <entry key="24284" value="24" />
+        <entry key="24285" value="24" />
+        <entry key="3529" value="24" />
+        <entry key="5149" value="24" />
+        <entry key="5167" value="24" />
+        <entry key="5169" value="24" />
+        <entry key="5170" value="24" />
+        <entry key="5185" value="24" />
+        <entry key="5187" value="24" />
+        <entry key="5294" value="24" />
+        <entry key="5875" value="24" />
+        <entry key="5881" value="24" />
+        <entry key="5884" value="24" />
+        <entry key="5999" value="24" />
+        <entry key="6993" value="24" />
+        <entry key="6994" value="24" />
+        <entry key="7062" value="24" />
+        <entry key="7103" value="24" />
+        <entry key="7150" value="24" />
+        <entry key="7151" value="24" />
+        <entry key="7152" value="24" />
+        <entry key="7154" value="24" />
+        <entry key="7155" value="24" />
+        <entry key="7159" value="24" />
+        <entry key="7161" value="24" />
+        <entry key="7166" value="24" />
+        <entry key="7168" value="24" />
+        <entry key="7178" value="24" />
+        <entry key="7179" value="24" />
+        <entry key="7188" value="24" />
+        <entry key="7290" value="24" />
+        <entry key="7295" value="24" />
+        <entry key="7297" value="24" />
+        <entry key="7305" value="24" />
+        <entry key="7425" value="24" />
+        <entry key="7434" value="24" />
+        <entry key="7436" value="24" />
+        <entry key="7448" value="24" />
+        <entry key="7451" value="24" />
+        <entry key="7453" value="24" />
+        <entry key="7456" value="24" />
+        <entry key="7459" value="24" />
+        <entry key="7461" value="24" />
+        <entry key="7462" value="24" />
+        <entry key="7467" value="24" />
+        <entry key="7469" value="24" />
+
+        <!-- agency 31 -->
+        <entry key="16556" value="24" />
+        <entry key="16660" value="24" />
+        <entry key="16669" value="24" />
+        <entry key="16672" value="24" />
+        <entry key="1705" value="24" />
+        <entry key="17067" value="24" />
+        <entry key="17068" value="24" />
+        <entry key="17301" value="24" />
+        <entry key="17309" value="24" />
+        <entry key="1840" value="24" />
+
+        <!-- agency 4 -->
+        <entry key="10625" value="24" />
+        <entry key="11573" value="24" />
+        <entry key="13590" value="24" />
+        <entry key="13773" value="24" />
+        <entry key="14604" value="24" />
+        <entry key="15721" value="24" />
+        <entry key="15722" value="24" />
+        <entry key="15725" value="24" />
+        <entry key="16923" value="24" />
+        <entry key="18337" value="24" />
+        <entry key="18393" value="24" />
+        <entry key="18864" value="24" />
+        <entry key="18878" value="24" />
+        <entry key="19278" value="24" />
+        <entry key="2147" value="24" />
+        <entry key="2158" value="24" />
+        <entry key="2160" value="24" />
+        <entry key="2215" value="24" />
+        <entry key="2222" value="24" />
+        <entry key="6109" value="24" />
+
+        <!-- agency 5 -->
+        <entry key="23595" value="24" />
+        <entry key="23603" value="24" />
+        <entry key="2371" value="24" />
+        <entry key="2817" value="24" />
+        <entry key="2820" value="24" />
+        <entry key="2882" value="24" />
+        <entry key="2890" value="24" />
+        <entry key="2895" value="24" />
+        <entry key="2897" value="24" />
+        <entry key="2907" value="24" />
+        <entry key="2911" value="24" />
+        <entry key="2913" value="24" />
+        <entry key="2914" value="24" />
+        <entry key="2934" value="24" />
+        <entry key="2943" value="24" />
+        <entry key="2950" value="24" />
+        <entry key="2953" value="24" />
+
+        <!-- agency 7 -->
+        <entry key="10031" value="24" />
+        <entry key="17683" value="24" />
+
+        <!-- agency 8 -->
+        <entry key="13779" value="24" />
+
 
         <!--
+        <util:map id="longLinesEx" value-type="java.util.HashMap">
+            <entry key="2276"><ref bean="INTERVALS_24_DURATION_5"/></entry>
+        </util:map>
+
+        <entry key="2296">
+            <util:map id="INTERVALS_24_DURATION_5" map-class="java.util.HashMap">
+                <entry key="numberOfIntervals" value="24"/>
+                <entry key="durationOfIntervalInMinutes">
+                    <ref bean="FIVE_MINUTES"/>
+                </entry>
+            </util:map>
+        </entry>
+
+        <entry key="2276"><ref bean="INTERVALS_24_DURATION_5"/></entry>
+
+        <util:constant id="FIVE_MINUTES" static-field="5"/>
+
+        <util:map id="INTERVALS_24_DURATION_5" map-class="java.util.HashMap">
+            <entry key="numberOfIntervals" value="24"/>
+            <entry key="durationOfIntervalInMinutes">
+                <ref bean="FIVE_MINUTES"/>
+            </entry>
+        </util:map>
+
+        <util:map id="Z" map-class="java.util.HashMap">
+            <entry key="x" value="y"/>
+            <entry key="y">
+                <ref bean="X"/>
+            </entry>
+        </util:map>
+
                 <entry key="" value="" />
                 <entry key="" value="" />
                 <entry key="" value="" />
