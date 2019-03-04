@@ -15,7 +15,7 @@ requirements = [
     'partridge>=0.11.0',
     'gtfstk',
     'numpy',
-    'pandas',
+    'pandas<0.24.0,>=0.23.4',
     'boto3',
     'tqdm',
 ]
