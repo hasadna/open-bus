@@ -415,7 +415,6 @@ public class ScheduleRetrieval {
     @Scheduled(fixedRate=10)    // every 10 ms. ==> max throughput 3000 per minute
     @Async("http-retrieve")
     public void retrieveCommandPeriodically() {
-        logger.info("retrieveCommandPeriodically");
         if (!schedulerEnable) return;
         //logger.trace("scheduled invocation started");
         Command head = queue.peek();
