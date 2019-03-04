@@ -200,7 +200,7 @@ public class GtfsFtp {
     try {
       String meaningfulName = GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory() + prefix + LocalDate.now().toString() + suffix;
       Path newName = Paths.get(meaningfulName);
-      Path newPath = Files.move(path, newName, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+      Path newPath = Files.move(path, newName, StandardCopyOption.REPLACE_EXISTING);
       logger.trace("file renamed to {}", newPath);
       return newPath;
     }
