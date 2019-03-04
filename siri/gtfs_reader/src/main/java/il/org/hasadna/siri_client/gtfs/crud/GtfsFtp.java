@@ -94,10 +94,11 @@ public class GtfsFtp {
   }
 
   Path createTempFile(String prefix) throws IOException {
-    return Files.createTempFile(GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory(), prefix, null, null);
+    return Files.createTempFile(Paths.get(GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory()),
+        prefix, null, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")));
   }
 
-  public Path downloadMakatZipFile() throws IOException {
+  public Path   downloadMakatZipFile() throws IOException {
     logger.info("downloading makat file");
     Path makatFile = downloadMakatZipFile(createTempFile("makat"));
     logger.info("makat file downloaded as {}", makatFile);

@@ -14,7 +14,7 @@ public class GtfsCollectorStartup {
 
   private static Logger logger = LoggerFactory.getLogger(GtfsCollectorStartup.class);
 
-  private static LocalDate dateOfLastReschedule = LocalDate.of(2000, 1, 1);
+
 
   private static LocalDate date;
 

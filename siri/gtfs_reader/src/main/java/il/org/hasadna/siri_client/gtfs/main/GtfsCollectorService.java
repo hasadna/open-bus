@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
 public class GtfsCollectorService {
   private SiriCollectorClient siriCollectorClient;
   private GtfsFtp gtfsFtp;
-  private LocalDate dateOfLastReschedule;
+  private static LocalDate dateOfLastReschedule = LocalDate.of(2000, 1, 1);
   private LocalDate dateOfLastDownload;
 
   @Autowired
