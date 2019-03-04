@@ -1,11 +1,14 @@
 package il.org.hasadna.siri_client.gtfs.crud;
 
+import il.org.hasadna.siri_client.gtfs.main.GtfsCollectorConfiguration;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -29,7 +32,7 @@ public class GtfsZipFile {
 
 	/**
 	 * Extracts a ZIP entry (file name) to temporary file
-	 * 
+	 *
 	 * @param fileName
 	 *            The name of the entry in ZIP file
 	 * @param fileLabel
@@ -40,7 +43,8 @@ public class GtfsZipFile {
 	Path extractFile(String fileName, String fileLabel) throws IOException {
 		ZipFile d = new ZipFile(getGtfsZip().toFile());
 		InputStream in = getFileInStream(d, fileName);
-		Path dest = Files.createTempFile(fileLabel, ".txt");
+		Path dest = Files.createTempFile(Paths.get(GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory()),
+        fileLabel, ".txt", PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")));
 		Files.copy(in, dest, StandardCopyOption.REPLACE_EXISTING);
 		d.close();
 		return dest;
