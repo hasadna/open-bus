@@ -64,12 +64,12 @@ public class GtfsCollectorService {
       }
 
       if (pathToGtfsFile == null) {
-        Optional<Path> optionalOldGtfs = GtfsFtp.findOlderGtfsFile(LocalDate.now());
-        if (!optionalOldGtfs.isPresent()) {
+        Path optionalOldGtfs = GtfsFtp.findOlderGtfsFile(LocalDate.now());
+        if (optionalOldGtfs == null) {
           throw new DownloadFailedException("failed to download gtfs file and no old gtfs file found.");
         }
 
-        pathToGtfsFile = optionalOldGtfs.get();
+        pathToGtfsFile = optionalOldGtfs;
       }
 
       GtfsZipFile gtfsZipFile = new GtfsZipFile(pathToGtfsFile);

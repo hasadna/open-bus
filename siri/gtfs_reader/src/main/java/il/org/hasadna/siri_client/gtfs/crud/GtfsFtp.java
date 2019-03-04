@@ -1,5 +1,6 @@
 package il.org.hasadna.siri_client.gtfs.crud;
 
+import il.org.hasadna.siri_client.gtfs.main.GtfsCollectorConfiguration;
 import java.io.*;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
@@ -28,7 +29,6 @@ public class GtfsFtp {
   private static final String HOST = "gtfs.mot.gov.il";
   private static final String FILE_NAME = "israel-public-transportation.zip";
   private static final String MAKAT_FILE_NAME_ON_FTP = "TripIdToDate.zip";
-  private static final String TEMP_DIR = "/tmp/";
 
   private static Logger logger = LoggerFactory.getLogger(GtfsFtp.class);
 
@@ -72,10 +72,11 @@ public class GtfsFtp {
   }
 
   public static Path findOlderGtfsFile(LocalDate now) throws IOException {
-    File dir = new File(TEMP_DIR);
+    File dir = new File(GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory());
     if (!dir.isDirectory()) {
-      throw new DownloadFailedException("can't find directory " + TEMP_DIR);
+      throw new DownloadFailedException("can't find directory " + GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory());
     }
+
     File[] x = dir.listFiles();
     logger.trace("all files: [{}]", Arrays.stream(x).map(file -> file.getName()).collect(Collectors.joining(",")));
     List<File> allGtfsFiles =
@@ -86,15 +87,14 @@ public class GtfsFtp {
     if (allGtfsFiles.isEmpty()) return null;
     Collections.reverse(allGtfsFiles);  // reverse so we get the newest file first
     logger.info("all gtfs files: [{}]", allGtfsFiles.stream().map(file -> file.getName()).collect(Collectors.joining(",")));
-    File newestGtfs = allGtfsFiles.stream().
-        findFirst().get();
-//                orElseThrow(() -> new DownloadFailedException("can't find older gtfs files in " + TEMP_DIR));
+    File newestGtfs = allGtfsFiles.stream().findFirst().get();
+
     logger.info("newest gtfs file: {}", newestGtfs.getName());
     return Paths.get(newestGtfs.getAbsolutePath());
   }
 
-  Path createTempFile(String prefix) throws IOException {
-    return Files.createTempFile(prefix, null);
+  private Path createTempFile(String prefix) throws IOException {
+    return Files.createTempFile(GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory(), prefix, null, null);
   }
 
   public Path downloadMakatZipFile() throws IOException {
@@ -197,7 +197,7 @@ public class GtfsFtp {
   }
   private Path renameFile(final Path path, final String prefix, final String suffix) {
     try {
-      String meaningfulName = TEMP_DIR + prefix + LocalDate.now().toString() + suffix;
+      String meaningfulName = GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory() + prefix + LocalDate.now().toString() + suffix;
       Path newName = Paths.get(meaningfulName);
       Path newPath = Files.move(path, newName, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
       logger.trace("file renamed to {}", newPath);
