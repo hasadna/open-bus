@@ -47,7 +47,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import static org.hasadna.bus.util.Util.removeSoapEnvelope;
 
 @Component
 @Profile("test")

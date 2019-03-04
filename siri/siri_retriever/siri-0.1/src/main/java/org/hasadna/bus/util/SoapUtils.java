@@ -1,6 +1,6 @@
 package org.hasadna.bus.util;
 
-public class Util {
+public class SoapUtils {
 
     public static String removeSoapEnvelope(String content) {
         // remove soap envelope (ugly)

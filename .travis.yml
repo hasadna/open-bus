@@ -1,12 +1,33 @@
-language: python
-python: 
-  - "3.6"
-install:
-  - pip install boto3 codecov coverage
-# commands to run tests
-script: 
-  - cd ./gtfs/gtfs_utils
-  - python setup.py test
-  - cd ../retriever/
-  - coverage run s3_wrapper_setup.py pytest
-  - codecov
+matrix:
+  include:
+    - language: python
+      python:
+        - "3.6"
+      install:
+        - pip install boto3 codecov coverage
+      # commands to run tests
+      script:
+        - cd ./gtfs/gtfs_utils
+        - python setup.py test
+        - cd ../retriever/
+        - coverage run s3_wrapper_setup.py pytest
+        - codecov
+    - language: java
+      jdk: oraclejdk8
+      script:
+        - cd ./siri/siri_retriever/siri-0.1
+        - ./mvnw install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+        - docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD}
+        - docker build -t siri-collector .
+        - docker tag siri-collector openbus1/siri-collector:${TRAVIS_BRANCH}
+        - docker push openbus1/siri-collector:${TRAVIS_BRANCH}
+    - language: java
+      jdk: oraclejdk8
+      script:
+        - docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD}
+        - cd ./siri/gtfs_reader
+        - mvn install -DskipTests=true
+        - docker build -t gtfs-collector .
+        - docker tag gtfs-collector openbus1/gtfs-collector:${TRAVIS_BRANCH}
+        - docker push openbus1/gtfs-collector:${TRAVIS_BRANCH}
+
