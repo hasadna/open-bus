@@ -4,6 +4,7 @@ import pandas as pd
 import datetime
 import re
 from os.path import join
+import sys
 
 def timestr_to_seconds(x, *, only_mins=False):
     try:
@@ -17,12 +18,12 @@ def timestr_to_seconds(x, *, only_mins=False):
 
     return result
 
-def create_trip_df(path, drop=['timestamp', 'desc'], 
-                   convert_timestr_to_seconds=True, add_date=True, 
+def create_trip_df(path, drop=['timestamp', 'desc'],
+                   convert_timestr_to_seconds=True, add_date=True,
                    add_trailing_zeros=True):
-    header = ["timestamp", "desc", "agency_id", 
-              "route_id", "route_short_name", "service_id", 
-              "planned_start_time", "bus_id", "predicted_end_time", 
+    header = ["timestamp", "desc", "agency_id",
+              "route_id", "route_short_name", "service_id",
+              "planned_start_time", "bus_id", "predicted_end_time",
               "time_recorded", "lat", "lon"]
     date = datetime.datetime.strptime(re.findall('siri_rt_data\\.([^\\.]+)\\.\\d+\\.log', path)[0], '%Y-%m-%d')
     df = pd.read_csv(path, header=None, error_bad_lines=False)
@@ -44,24 +45,27 @@ def create_trip_df(path, drop=['timestamp', 'desc'],
         df = (df
                 .assign(planned_start_time = lambda x: x.planned_start_time+':00')
                 .assign(predicted_end_time = lambda x: x.predicted_end_time+':00'))
-    
-    return df
-    
-FOLDER = '<SIRI_LOGS_FOLDER>'
-out_folder = '<SPLUNK_SIRI_CSV_INPUTS_FOLDER>'
-if not os.path.exists(out_folder):
-    os.mkdir(out_folder)
 
-for file in glob(FOLDER+'/*2019*.log.gz'):
-    base = '.'.join(os.path.basename(file).split('.')[:-2])
-    out_path = os.path.join(out_folder, base+'.csv.gz')
-    if not os.path.exists(out_path):
-        #out_path = os.path.join(out_folder, base+'_FIXED.csv.gz')
-        print(file)
-        try:
-            df = create_trip_df(file, drop=['desc'], convert_timestr_to_seconds=False)
-        except Exception as e:
-            print(str(e))
-        #df.to_parquet(bn + '.parq')
-        #os.remove(file)
-        df.to_csv(out_path, compression='gzip', index=False)
+    return df
+
+def main(FOLDER,out_folder):
+    if not os.path.exists(out_folder):
+        os.mkdir(out_folder)
+
+    for file in glob(FOLDER+'/*'):
+        base = '.'.join(os.path.basename(file).split('.')[:-2])
+        out_path = os.path.join(out_folder, base+'.csv.gz')
+        if not os.path.exists(out_path):
+            #out_path = os.path.join(out_folder, base+'_FIXED.csv.gz')
+            print(file)
+            try:
+                df = create_trip_df(file, drop=['desc'], convert_timestr_to_seconds=False)
+            except Exception as e:
+                print(str(e))
+            #df.to_parquet(bn + '.parq')
+            #os.remove(file)
+            df.to_csv(out_path, compression='gzip', index=False)
+
+if __name__ == '__main__':
+    FOLDER,out_folder = sys.argv[1],sys.argv[2]
+    main(FOLDER,out_folder)
