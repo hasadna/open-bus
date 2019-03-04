@@ -28,6 +28,7 @@ public class DefaultGtfsQueryBasedOnFtpTest {
 	public void setUp() throws Exception {
 	}
 
+/*
 	@Test
 	public void testExec() throws IOException {
 		DefaultGtfsQueryBasedOnFtp defaultGtfsQueryBasedOnFtp = new DefaultGtfsQueryBasedOnFtp(LocalDate.now());
@@ -44,6 +45,7 @@ public class DefaultGtfsQueryBasedOnFtpTest {
 				//Arrays.asList("3","5","16","18");
 		x.run(false);
 	}
+*/
 
 	@Test
 	public void testJsonForSpecificRoute() throws IOException {

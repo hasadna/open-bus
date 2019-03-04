@@ -93,7 +93,7 @@ public class GtfsFtp {
     return Paths.get(newestGtfs.getAbsolutePath());
   }
 
-  private Path createTempFile(String prefix) throws IOException {
+  Path createTempFile(String prefix) throws IOException {
     return Files.createTempFile(GtfsCollectorConfiguration.getGtfsRawFilesBackupDirectory(), prefix, null, null);
   }
 
