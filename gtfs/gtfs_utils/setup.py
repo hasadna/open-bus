@@ -12,10 +12,10 @@ with io.open('gtfs_utils/__version__.py', 'r', encoding='utf-8') as f:
     exec(f.read(), about)
 
 requirements = [
-    'partridge>=0.11.0',
+    'partridge<1.0.0,>=0.11.0',
     'gtfstk',
     'numpy',
-    'pandas',
+    'pandas<0.24.0,>=0.23.4',
     'boto3',
     'tqdm',
 ]
