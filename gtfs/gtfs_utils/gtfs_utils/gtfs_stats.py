@@ -226,8 +226,7 @@ def get_active_trips_df(trip_times):
 
 
 def compute_route_stats_base_partridge(trip_stats_subset,
-                                       headway_start_time='07:00:00',
-                                       headway_end_time='19:00:00', *,
+                                       headway_start_time='07:00:00', headway_end_time='19:00:00', *,
                                        split_directions=False):
     """
     Compute stats for the given subset of trips stats.
@@ -519,10 +518,6 @@ Download file from s3 bucket. Retry using decorator, and report to logger given 
 
         return inner
 
-    output_dir = os.path.dirname(output_path)
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
     if DOWNLOAD_PBAR:
         # TODO: this is an S3 anti-pattern, and is inefficient - so defaulting to not doing this
         if SIZE_FOR_DOWNLOAD_PBAR:
@@ -674,7 +669,6 @@ def get_gtfs_file(file, gtfs_folder, bucket, logger, force=False):
     else:
         logger.info(f'starting file download with retries (key="{file}", local path="{join(gtfs_folder, file)}")')
         s3_download(bucket, file, join(gtfs_folder, file), report=logger.error)
-        # logger.debug(f'finished file download (key="{file}", local path="{gtfs_folder+file}")')
         logger.debug(f'finished file download (key="{file}", local path="{join(gtfs_folder, file)}")')
         downloaded = True
     # TODO: log file size
