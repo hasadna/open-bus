@@ -226,7 +226,9 @@ def get_active_trips_df(trip_times):
 
 
 def compute_route_stats_base_partridge(trip_stats_subset,
-                                       headway_start_time='07:00:00', headway_end_time='19:00:00', *,
+                                       headway_start_time='07:00:00',
+                                       headway_end_time='19:00:00',
+                                       *,
                                        split_directions=False):
     """
     Compute stats for the given subset of trips stats.

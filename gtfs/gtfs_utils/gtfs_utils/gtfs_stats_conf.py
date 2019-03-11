@@ -1,7 +1,7 @@
 import re
 import os.path
 
-_base_folder_path = [os.path.pardir] * 4
+_base_folder_path = [os.path.pardir] * 4  # 4th parent dir
 BASE_FOLDER = os.path.join(*_base_folder_path)
 
 DATA_FOLDER = os.path.join(BASE_FOLDER, 'data')
