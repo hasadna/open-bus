@@ -15,6 +15,7 @@ import gtfs_utils as gu
 import gtfstk
 from collections import OrderedDict, defaultdict
 import os
+from os.path import join
 import boto3
 import logging
 from zipfile import BadZipFile
@@ -114,9 +115,26 @@ def compute_trip_stats_partridge(feed, zones):
          #       )
          )
 
+    # parse route_desc
     f[['route_mkt', 'route_direction', 'route_alternative']] = f['route_desc'].str.split('-', expand=True)
     f = f.drop('route_desc', axis=1)
 
+    # parse stop_desc
+    stop_desc_fields = {'street': 'רחוב',
+                        'city': 'עיר',
+                        'platform': 'רציף',
+                        'floor': 'קומה'}
+
+    stop_desc_prefix = 'stop_desc_'
+
+    STOP_DESC_RE = ''
+    for n, fld in stop_desc_fields.items():
+        STOP_DESC_RE += fld + f':(?P<{stop_desc_prefix + n}>.*)'
+
+    sd = f.stop_desc.str.extract(STOP_DESC_RE).apply(lambda x: x.str.strip())
+    f = pd.concat([f, sd], axis=1)
+
+    # get geometry by stop for distance measurement
     geometry_by_stop = gtfstk.build_geometry_by_stop(feed, use_utm=True)
 
     g = f.groupby('trip_id')
@@ -149,6 +167,8 @@ def compute_trip_stats_partridge(feed, zones):
         d['start_stop_lon'] = group['stop_lon'].iat[0]
         d['end_stop_lat'] = group['stop_lat'].iat[-1]
         d['end_stop_lon'] = group['stop_lon'].iat[-1]
+        d['start_stop_city'] = group['stop_desc_city'].iat[0]
+        d['end_stop_city'] = group['stop_desc_city'].iat[-1]
         d['start_zone'] = group['zone_name'].iat[0]
         d['end_zone'] = group['zone_name'].iat[-1]
         d['num_zones'] = group.zone_name.nunique()
@@ -157,6 +177,14 @@ def compute_trip_stats_partridge(feed, zones):
             geometry_by_stop[d['end_stop_id']])
         d['is_loop'] = int(dist < 400)
         d['duration'] = (d['end_time'] - d['start_time']) / 3600
+
+        d['all_stop_latlon'] = ';'.join(str(x)+','+str(y) for x, y in
+                                        zip(group['stop_lat'].tolist(), group['stop_lon'].tolist()))
+
+        d['all_stop_code'] = ';'.join(group['stop_code'].tolist())
+        d['all_stop_id'] = ';'.join(group['stop_id'].tolist())
+        d['all_stop_desc_city'] = ';'.join(group['stop_desc_city'].tolist())
+
         return pd.Series(d)
 
     h = g.apply(my_agg)
@@ -198,7 +226,8 @@ def get_active_trips_df(trip_times):
 
 
 def compute_route_stats_base_partridge(trip_stats_subset,
-                                       headway_start_time='07:00:00', headway_end_time='19:00:00', *,
+                                       headway_start_time='07:00:00',
+                                       headway_end_time='19:00:00', *,
                                        split_directions=False):
     """
     Compute stats for the given subset of trips stats.
@@ -359,13 +388,24 @@ def compute_route_stats_base_partridge(trip_stats_subset,
         d['end_stop_lat'] = group['end_stop_lat'].iat[0]
         d['end_stop_lon'] = group['end_stop_lon'].iat[0]
 
+        d['start_stop_city'] = group['start_stop_city'].iat[0]
+        d['end_stop_city'] = group['end_stop_city'].iat[0]
+
         d['num_stops'] = group['num_stops'].iat[0]
 
         d['start_zone'] = group['start_zone'].iat[0]
         d['end_zone'] = group['end_zone'].iat[0]
         d['num_zones'] = group['num_zones'].iat[0]
         d['num_zones_missing'] = group['num_zones_missing'].iat[0]
+        d['all_stop_latlon'] = group['all_stop_latlon'].iat[0]
 
+        d['all_stop_code'] = group['all_stop_code'].iat[0]
+        d['all_stop_id'] = group['all_stop_id'].iat[0]
+        d['all_stop_desc_city'] = group['all_stop_desc_city'].iat[0]
+
+        d['all_start_time'] = ';'.join([gtfstk.helpers.timestr_to_seconds(x, inverse=True)
+                                       for x in group['start_time'].tolist()])
+        d['all_trip_id'] = ';'.join(group['trip_id'].tolist())
         return pd.Series(d)
 
     g = f.groupby('route_id').apply(
@@ -391,13 +431,37 @@ def compute_route_stats_base_partridge(trip_stats_subset,
            'service_distance', 'service_duration', 'service_speed',
            'mean_trip_distance', 'mean_trip_duration', 'start_stop_id',
            'end_stop_id', 'start_stop_name', 'end_stop_name',
+           'start_stop_city', 'end_stop_city',
            'start_stop_desc', 'end_stop_desc',
            'start_stop_lat', 'start_stop_lon', 'end_stop_lat',
            'end_stop_lon', 'num_stops', 'start_zone', 'end_zone',
-           'num_zones', 'num_zones_missing'
+           'num_zones', 'num_zones_missing',
+           'all_stop_latlon', 'all_stop_code', 'all_stop_id', 'all_stop_desc_city', 'all_start_time', 'all_trip_id',
            ]]
 
     return g
+def compute_route_stats_time_cutoff(ts1, ts2, cutoff_time='00:00:00',
+                                    headway_start_time='07:00:00',
+                                    headway_end_time='19:00:00', *,
+                                    split_directions=False):
+    """ Compute route stats for a custom day cutoff, default to 00:00:00
+    ts1, ts2 should be trip_stats pandas dataframes of consecutive dates
+    (see compute_trip_stats_partridge function).
+    ts1: the "original" date, ts2: date+1.
+    """
+    cutoff = gtfstk.helpers.timestr_to_seconds(cutoff_time)
+    ts1_start_sec = ts1.start_time.apply(gtfstk.helpers.timestr_to_seconds)
+    ts2_start_sec = ts2.start_time.apply(gtfstk.helpers.timestr_to_seconds)
+    f_ts1 = ts1[ts1_start_sec >= cutoff]
+    f_ts2 = ts2[ts2_start_sec < cutoff]
+    new_ts = pd.concat([f_ts1, f_ts2], sort=False, ignore_index=True)
+    return compute_route_stats_base_partridge(new_ts,
+                                              headway_start_time=
+                                              headway_start_time,
+                                              headway_end_time=
+                                              headway_end_time,
+                                              split_directions=
+                                              split_directions)
 
 
 def retry(delays=(0, 1, 5, 30, 180, 600, 3600),
@@ -476,12 +540,14 @@ def batch_stats(folder=GTFS_FEEDS_PATH, output_folder=OUTPUT_DIR):
     for file in os.listdir(folder):
         date_str = file.split('.')[0]
         date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-        feed = gu.get_partridge_feed_by_date(output_folder + file, date)
+        feed = gu.get_partridge_feed_by_date(join(output_folder, file), date)
         zones = gu.get_zones_df(LOCAL_TARIFF_PATH)
         ts = compute_trip_stats_partridge(feed, zones)
-        ts.to_pickle(output_folder + date_str + '_trip_stats.pkl.gz', compression='gzip')
+        ts.to_pickle(join(output_folder, date_str + '_trip_stats.pkl.gz'),
+                     compression='gzip')
         rs = compute_route_stats_base_partridge(ts)
-        rs.to_pickle(output_folder + date_str + '_route_stats.pkl.gz', compression='gzip')
+        rs.to_pickle(join(output_folder, date_str + '_route_stats.pkl.gz'),
+                     compression='gzip')
 
 
 def _get_existing_output_files(output_folder):
@@ -547,7 +613,8 @@ get a dictionary mapping gtfs file names to a list of dates for forward fill by 
     return ffill
 
 
-def get_valid_file_dates_dict(bucket_objects, existing_output_files, logger, forward_fill):
+def get_valid_file_dates_dict(bucket_objects, existing_output_files, logger,
+                              forward_fill):
     logger.info(f'BUCKET_VALID_FILES_RE={BUCKET_VALID_FILES_RE}')
     bucket_valid_files = get_bucket_valid_files(bucket_objects)
     if forward_fill:
@@ -601,13 +668,14 @@ def get_gtfs_file(file, gtfs_folder, bucket, logger, force=False):
     :return: whether file was downloaded or not
     :rtype: bool
     """
-    if not force and os.path.exists(gtfs_folder + file):
+    if not force and os.path.exists(join(gtfs_folder, file)):
         logger.info(f'found file "{file}" in local folder "{gtfs_folder}"')
         downloaded = False
     else:
-        logger.info(f'starting file download with retries (key="{file}", local path="{gtfs_folder+file}")')
-        s3_download(bucket, file, gtfs_folder + file, report=logger.error)
-        logger.debug(f'finished file download (key="{file}", local path="{gtfs_folder+file}")')
+        logger.info(f'starting file download with retries (key="{file}", local path="{join(gtfs_folder, file)}")')
+        s3_download(bucket, file, join(gtfs_folder, file), report=logger.error)
+        # logger.debug(f'finished file download (key="{file}", local path="{gtfs_folder+file}")')
+        logger.debug(f'finished file download (key="{file}", local path="{join(gtfs_folder, file)}")')
         downloaded = True
     # TODO: log file size
     return downloaded
@@ -635,7 +703,8 @@ and route_stats).
 
     downloaded = False
 
-    trip_stats_output_path = output_folder + date_str + '_trip_stats.pkl.gz'
+    trip_stats_output_path = join(output_folder,
+                                  date_str + '_trip_stats.pkl.gz')
     if os.path.exists(trip_stats_output_path):
         logger.info(f'found trip stats result DF gzipped pickle "{trip_stats_output_path}"')
         ts = pd.read_pickle(trip_stats_output_path, compression='gzip')
@@ -649,28 +718,27 @@ and route_stats).
             gu.write_filtered_feed_by_date(gtfs_folder + file, date, filtered_out_path)
             logger.info(f'reading filtered feed for file from path {filtered_out_path}')
             feed = ptg_feed(filtered_out_path)
-
         else:
-            logger.info(f'creating daily partridge feed for file "{gtfs_folder+file}" with date "{date}"')
+            logger.info(f'creating daily partridge feed for file "{join(gtfs_folder, file)}" with date "{date}"')
             try:
-                feed = gu.get_partridge_feed_by_date(gtfs_folder + file, date)
+                feed = gu.get_partridge_feed_by_date(join(gtfs_folder, file), date)
             except BadZipFile:
                 logger.error('Bad local zip file', exc_info=True)
                 downloaded = get_gtfs_file(file, gtfs_folder, bucket, logger, force=True)
-                feed = gu.get_partridge_feed_by_date(gtfs_folder + file, date)
+                feed = gu.get_partridge_feed_by_date(join(gtfs_folder, file), date)
 
-        logger.debug(f'finished creating daily partridge feed for file "{gtfs_folder+file}" with date "{date}"')
+        logger.debug(f'finished creating daily partridge feed for file "{join(gtfs_folder, file)}" with date "{date}"')
 
         # TODO: add changing zones from archive
         logger.info(f'creating zones DF from "{LOCAL_TARIFF_PATH}"')
         zones = gu.get_zones_df(LOCAL_TARIFF_PATH)
 
         logger.info(
-            f'starting compute_trip_stats_partridge for file "{gtfs_folder+file}" with date "{date}" and zones '
+            f'starting compute_trip_stats_partridge for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
             f'"{LOCAL_TARIFF_PATH}"')
         ts = compute_trip_stats_partridge(feed, zones)
         logger.debug(
-            f'finished compute_trip_stats_partridge for file "{gtfs_folder+file}" with date "{date}" and zones '
+            f'finished compute_trip_stats_partridge for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
             f'"{LOCAL_TARIFF_PATH}"')
         # TODO: log this
         ts['date'] = date_str
@@ -696,7 +764,7 @@ and route_stats).
         f'rs.shape={rs.shape}, num_trips_sum={rs.num_trips.sum()}, dc_route_id={rs.route_id.nunique()}, '
         f'num_start_zones={rs.start_zone.nunique()}, num_agency={rs.agency_name.nunique()}')
 
-    route_stats_output_path = output_folder + date_str + '_route_stats.pkl.gz'
+    route_stats_output_path = join(output_folder, date_str + '_route_stats.pkl.gz')
     logger.info(f'saving route stats result DF to gzipped pickle "{route_stats_output_path}"')
     rs.to_pickle(route_stats_output_path, compression='gzip')
 
@@ -730,10 +798,10 @@ Handle a single GTFS file. Download if necessary compute and save stats files (c
                                           gtfs_folder=gtfs_folder, logger=logger)
 
     if delete_downloaded_gtfs_zips and downloaded:
-        logger.info(f'deleting gtfs zip file "{gtfs_folder+file}"')
-        os.remove(gtfs_folder + file)
+        logger.info(f'deleting gtfs zip file "{join(gtfs_folder, file)}"')
+        os.remove(join(gtfs_folder, file))
     else:
-        logger.debug(f'keeping gtfs zip file "{gtfs_folder+file}"')
+        logger.debug(f'keeping gtfs zip file "{join(gtfs_folder, file)}"')
 
 
 def batch_stats_s3(bucket_name=BUCKET_NAME, output_folder=OUTPUT_DIR,
@@ -811,7 +879,9 @@ TODO: decorate
     logger = logging.getLogger('gtfs_stats')
     logger.setLevel(logging.DEBUG)
     # create file handler which logs even debug messages
-    fh = logging.FileHandler(LOG_FOLDER + f'gtfs_stats_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.log')
+    # fh = logging.FileHandler(LOG_FOLDER + f'gtfs_stats_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.log')
+    fh = logging.FileHandler(join(LOG_FOLDER,
+                                  f'gtfs_stats_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.log'))
     fh.setLevel(logging.DEBUG)
     # create console handler with a higher log level
     ch = logging.StreamHandler()
@@ -826,10 +896,23 @@ TODO: decorate
     return logger
 
 
+def mkdir_if_not_exists(dir_path):
+    """ Create the directory if it does not exist """
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+def init_conf():
+    """ Init directories from conf file """
+    if not os.path.exists(BASE_FOLDER):
+        raise ValueError("Base folder does not exist")
+    for dir_path in [DATA_FOLDER, GTFS_FEEDS_PATH, OUTPUT_DIR,
+                     FILTERED_FEEDS_PATH]:
+        mkdir_if_not_exists(dir_path)
 def main():
+    init_conf()
     logger = get_logger()
     logger.info(f'starting batch_stats_s3 with default config')
-    batch_stats_s3(delete_downloaded_gtfs_zips=DELETE_DOWNLOADED_GTFS_ZIPS, logger=logger)
+    batch_stats_s3(delete_downloaded_gtfs_zips=DELETE_DOWNLOADED_GTFS_ZIPS,
+                   logger=logger)
 
 
 if __name__ == '__main__':
