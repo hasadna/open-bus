@@ -26,7 +26,7 @@ matrix:
       script:
         - docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD}
         - cd ./siri/gtfs_reader
-        - mvn install -DskipTests=true
+        - mvn install
         - docker build -t gtfs-collector .
         - docker tag gtfs-collector openbus1/gtfs-collector:${TRAVIS_BRANCH}
         - docker push openbus1/gtfs-collector:${TRAVIS_BRANCH}
