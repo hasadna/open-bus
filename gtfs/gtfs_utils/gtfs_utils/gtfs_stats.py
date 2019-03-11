@@ -21,6 +21,7 @@ from zipfile import BadZipFile
 import itertools
 from tqdm import tqdm
 from partridge import feed as ptg_feed
+from botocore.handlers import disable_signing
 from gtfs_stats_conf import *
 
 
@@ -454,6 +455,10 @@ Download file from s3 bucket. Retry using decorator, and report to logger given 
 
         return inner
 
+    output_dir = os.path.dirname(output_path)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
     if DOWNLOAD_PBAR:
         # TODO: this is an S3 anti-pattern, and is inefficient - so defaulting to not doing this
         if SIZE_FOR_DOWNLOAD_PBAR:
@@ -761,6 +766,8 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
             os.makedirs(output_folder)
 
         s3 = boto3.resource('s3')
+        s3.meta.client.meta.events.register('choose-signer.s3.*', disable_signing)
+
         bucket = s3.Bucket(bucket_name)
 
         logger.info(f'connected to S3 bucket {bucket_name}')
