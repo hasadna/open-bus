@@ -22,6 +22,7 @@ from zipfile import BadZipFile
 import itertools
 from tqdm import tqdm
 from partridge import feed as ptg_feed
+from botocore.handlers import disable_signing
 from gtfs_stats_conf import *
 
 
@@ -226,7 +227,8 @@ def get_active_trips_df(trip_times):
 
 def compute_route_stats_base_partridge(trip_stats_subset,
                                        headway_start_time='07:00:00',
-                                       headway_end_time='19:00:00', *,
+                                       headway_end_time='19:00:00',
+                                       *,
                                        split_directions=False):
     """
     Compute stats for the given subset of trips stats.
@@ -669,7 +671,6 @@ def get_gtfs_file(file, gtfs_folder, bucket, logger, force=False):
     else:
         logger.info(f'starting file download with retries (key="{file}", local path="{join(gtfs_folder, file)}")')
         s3_download(bucket, file, join(gtfs_folder, file), report=logger.error)
-        # logger.debug(f'finished file download (key="{file}", local path="{gtfs_folder+file}")')
         logger.debug(f'finished file download (key="{file}", local path="{join(gtfs_folder, file)}")')
         downloaded = True
     # TODO: log file size
@@ -829,6 +830,8 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
             os.makedirs(output_folder)
 
         s3 = boto3.resource('s3')
+        s3.meta.client.meta.events.register('choose-signer.s3.*', disable_signing)
+
         bucket = s3.Bucket(bucket_name)
 
         logger.info(f'connected to S3 bucket {bucket_name}')
