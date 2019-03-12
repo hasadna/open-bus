@@ -1,0 +1,116 @@
+openapi: 3.0.1
+info:
+  title: Open-Bus Back-End
+  description: 'API documentation for the back-end of open-bus'
+  version: 1.0.0
+  
+externalDocs:
+  description: open-bus at GitHub
+  url: https://github.com/hasadna/open-bus
+  
+tags:
+- name: transport
+  description: "Case 1: Investigation of a specific case"
+- name: routeStats
+  description: "Case 2: Investigation of a route or a few routes in specified time ranges"
+  
+paths:
+  /transport:
+    get:
+      tags:
+      - transport
+      summary: Finds transport by route ID and origin aimed departure time
+      description: ""
+      operationId: findTransport1
+      parameters:
+      - name: "routeId"
+        in: "query"
+        required: true
+        schema:
+          type: "number"
+      - name: "originAimedDepartureTime"
+        in: "query"
+        required: true
+        schema:
+          type: "string"
+          format: "date-time"
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+components:
+  schemas:
+    Point:
+      required:
+      - lat
+      - lon
+      type: object
+      properties:
+        lat:
+          type: number
+        lon:
+          type: number
+
+    Trip:
+      required:
+      - name
+      - photoUrls
+      type: object
+      properties:
+        tripId:
+          type: integer
+          format: int64
+        routeId:
+          type: integer
+          format: int64
+        routeShortName:
+          type: string
+        routeLongName:
+          type: string
+        agencyName:
+          type: string
+          format: int64
+        routeType:
+          type: integer 
+          description: GTFS route type
+        stops:
+          type: array
+          items:
+            $ref: '#/components/schemas/Stop'
+        startZone:
+          type: string
+          example: השומרון
+        endZone:
+          type: string
+          example: סובב חיפה
+        isLoop:
+          type: boolean
+        distance:
+          type: number
+          description: "Distance from the start point, probably in meters"
+        duration:
+          type: number
+          description: "Trip duration, in hours"
+        speed:
+          type: number
+          description: "Average speed, in km/h"
+        shape:
+          type: array
+          items:
+            $ref: '#/components/schemas/Point'
+    Stop:
+      required:
+      - stopCode
+      - stopName
+      - stopLocation
+      type: object
+      properties:
+        stopCode:
+          type: number
+        stopName:
+          type: string
+        stopLocation:
+          $ref: '#/components/schemas/Point'
