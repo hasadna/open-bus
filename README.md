@@ -18,7 +18,7 @@ Some Jupyter Notebook examples for working directtly with GTFS - [Blog posts](ht
 ## Want to help?
 The project is currently focused on aggregating and analysing data, so we need mainly Python developers and data scientists. We also have side tasks that are quite "stand-alone".
 
-We are using Python 3.5.x . Some of the code requires Postgres SQL, and we are moving to use PostGIS.
+We are using Python 3 for all of our analysis, GTFS and "ETL" code, Java for the siri fetching code.
 
 To get started, clone the repository, and have a look at [our issues](https://github.com/hasadna/open-bus/issues) and [the doc directory](https://github.com/hasadna/open-bus/blob/master/doc/), to see what we need help with. You are welcome to check out our new (and still not perfect) [ROADMAP](https://github.com/hasadna/open-bus/blob/master/ROADMAP.md) too.
 
