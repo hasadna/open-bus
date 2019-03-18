@@ -1,0 +1,24 @@
+{
+  "name": "open-bus-backend-mock",
+  "version": "1.0.0",
+  "description": "A mock for Open-Bus' backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hasadna/open-bus.git"
+  },
+  "author": "The Public Knowledge Workshop",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hasadna/open-bus/issues"
+  },
+  "homepage": "https://github.com/hasadna/open-bus#readme",
+  "dependencies": {
+    "express": "^4.16.4",
+    "morgan": "^1.9.1"
+  }
+}
