@@ -677,6 +677,15 @@ def get_gtfs_file(file, gtfs_folder, bucket, logger, force=False):
     return downloaded
 
 
+def get_closest_archive_path(date, file):
+    for i in range(100):
+        date_str = datetime.datetime.strftime(date - datetime.timedelta(i), '%Y-%m-%d')
+        tariff_path_to_try = join(ARCHIVE_FOLDER, date_str, 'Tariff.zip')
+        if os.path.exists(tariff_path_to_try):
+            return tariff_path_to_try
+    return LOCAL_TARIFF_PATH
+
+
 def handle_gtfs_date(date_str, file, bucket, output_folder=OUTPUT_DIR,
                      gtfs_folder=GTFS_FEEDS_PATH, logger=None):
     """
@@ -725,9 +734,10 @@ and route_stats).
 
         logger.debug(f'finished creating daily partridge feed for file "{join(gtfs_folder, file)}" with date "{date}"')
 
-        # TODO: add changing zones from archive
-        logger.info(f'creating zones DF from "{LOCAL_TARIFF_PATH}"')
-        zones = gu.get_zones_df(LOCAL_TARIFF_PATH)
+        # TODO: use Tariff.zip from s3
+        tariff_path_to_use = get_closest_archive_path(date, 'Tariff.zip')
+        logger.info(f'creating zones DF from "{tariff_path_to_use}"')
+        zones = gu.get_zones_df(tariff_path_to_use)
 
         logger.info(
             f'starting compute_trip_stats_partridge for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
