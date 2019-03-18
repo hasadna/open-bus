@@ -6,9 +6,8 @@ BASE_FOLDER = join(*_base_folder_path)
 
 DATA_FOLDER = join(BASE_FOLDER, 'data')
 
-# LOCAL_TARIFF_PATH = DATA_FOLDER + 'archive/2019-03-07/Tariff.zip'
 ARCHIVE_FOLDER = join(DATA_FOLDER, 'archive')
-LOCAL_TARIFF_PATH = join(ARCHIVE_FOLDER, '2019-03-12', 'Tariff.zip')
+LOCAL_TARIFF_PATH = join(ARCHIVE_FOLDER, '2019-03-17', 'Tariff.zip')
 
 GTFS_FEEDS_PATH = join(DATA_FOLDER, 'gtfs_feeds')
 
@@ -19,8 +18,8 @@ OUTPUT_FILE_NAME_RE = re.compile('^(?P<date_str>[^_]+?)'
                                  '_(?P<type>\w+)\.pkl\.gz')
 
 BUCKET_NAME = 's3.obus.hasadna.org.il'
-# BUCKET_VALID_FILES_RE = re.compile('2019-0\d-\d\d\.zip')
-BUCKET_VALID_FILES_RE = re.compile('2019-03-12.zip')
+BUCKET_VALID_FILES_RE = re.compile('2019-\d\d-\d\d\.zip')
+#BUCKET_VALID_FILES_RE = re.compile('2019-03-12.zip')
 
 FORWARD_FILL = True
 FUTURE_DAYS = 0  # will have an effect only if FORWARD_FILL is True
