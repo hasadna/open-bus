@@ -1,0 +1,90 @@
+[app/ui]
+version = 7.2.0
+modtime = 1540846270.235156300
+
+[app/launcher]
+version = 7.2.0
+modtime = 1540846270.266074400
+
+[inputs/monitor%3A%2F%2FC%3A%5Cdev%5Cds%5Copen-bus-explore%5Cdata%5Cgtfs_stats_csv]
+owner = admin
+version = 7.2.0
+modtime = 1540846791.696794700
+
+[indexes/siri]
+owner = admin
+version = 7.2.1
+modtime = 1543959371.999054000
+
+[inputs/monitor%3A%2F%2FC%3A%5Cdev%5Cds%5Copen-bus-explore%5Cdata%5Csiri_csv]
+owner = admin
+version = 7.2.0
+modtime = 1540939892.492096100
+
+[views/siri_investigator]
+access = read : [ * ], write : [ admin, power ]
+export = none
+owner = admin
+version = 7.2.1
+modtime = 1552916769.512464000
+
+[inputs/monitor%3A%2F%2FC%3A%5Cdev%5Cds%5Copen-bus-explore%5Cdata%5Csiri_csv_new]
+owner = admin
+version = 7.2.0
+modtime = 1543843697.626413400
+
+[indexes/siri_v2]
+owner = admin
+version = 7.2.0
+modtime = 1543845356.750899500
+
+[app/install/install_source_checksum]
+version = 7.2.1
+modtime = 1543937814.703443000
+
+[inputs/monitor%3A%2F%2F%2Fmnt%2Fdisks%2Fsplunk1%2Finputs%2Fgtfs_stats_csv]
+version = 7.2.1
+modtime = 1543938273.874184000
+
+[inputs/monitor%3A%2F%2F%2Fmnt%2Fdisks%2Fsplunk1%2Finputs%2Fsiri_csv]
+version = 7.2.1
+modtime = 1544395545.655485000
+
+[views/vehicle_investigator]
+access = read : [ * ], write : [ admin ]
+export = none
+owner = danb
+version = 7.2.1
+modtime = 1545743389.685552000
+
+[lookups/mehadrin.csv]
+owner = danb
+version = 7.2.1
+modtime = 1546350263.148170000
+
+[savedsearches/SIRI%20Export]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.1
+modtime = 1548096906.698696000
+
+[props/trip_stats_csv]
+owner = danb
+version = 7.2.1
+modtime = 1549377626.370131000
+
+[indexes/trip_stats]
+owner = danb
+version = 7.2.1
+modtime = 1549373979.330241000
+
+[inputs/monitor%3A%2F%2F%2Fmnt%2Fdisks%2Fsplunk1%2Finputs%2Ftrip_stats_csv]
+owner = danb
+version = 7.2.1
+modtime = 1549374244.055492000
+
+[indexes/route_stats]
+owner = danb
+version = 7.2.1
+modtime = 1552839986.031485000
