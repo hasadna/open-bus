@@ -1,0 +1,174 @@
+<form theme="dark">
+  <label>Vehicle Investigator</label>
+  <search id="trips">
+    <query>
+      (index=gtfs_stats OR (index=siri lat!=0 bus_id=$bus_id$)) agency_id=$agency_id$ [tstats count where index=siri date=$date$ bus_id=$bus_id$ by route_id | fields route_id] earliest=$earliest$ latest=$latest$ date=$date$ date_hour&gt;=$hour_min$ date_hour&lt;=$hour_max$ 
+         | eventstats first(route_long_name) as route_long_name first(route_direction) as route_direction by route_id | convert dur2sec(time_recorded) | stats count min(time_recorded) as min_time_recorded  by planned_start_time route_short_name route_long_name | sort min_time_recorded | eval min_time_recorded = tostring(min_time_recorded, "duration")
+    </query>
+    <earliest>0</earliest>
+    <latest></latest>
+  </search>
+  <fieldset submitButton="false" autoRun="true">
+    <input type="time" token="time_setter">
+      <label></label>
+      <default>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="earliest" searchWhenChanged="true">
+      <label>date</label>
+      <fieldForLabel>date_wday</fieldForLabel>
+      <fieldForValue>earliest</fieldForValue>
+      <search>
+        <query>| tstats count where index=siri by date | eval earliest = strptime(date, "%Y-%m-%d") | eval date_wday = date.", ".strftime(earliest, "%a") | sort - date</query>
+        <earliest>$time_setter.earliest$</earliest>
+        <latest>$time_setter.latest$</latest>
+      </search>
+      <change>
+        <condition>
+          <eval token="latest">$value$+86400</eval>
+          <eval token="date">strftime($value$, "%Y-%m-%d")</eval>
+        </condition>
+      </change>
+    </input>
+    <input type="dropdown" token="agency_id" searchWhenChanged="true">
+      <label>Agency</label>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <fieldForLabel>desc</fieldForLabel>
+      <fieldForValue>agency_id</fieldForValue>
+      <search>
+        <query>| tstats sum(num_trips) as count where index=gtfs_stats date=$date$ by agency_name agency_id | eval desc = agency_name." (".agency_id.")" | sort -count</query>
+        <earliest>0</earliest>
+        <latest></latest>
+      </search>
+      <choice value="*">All</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="bus_id">
+      <label>Bus ID</label>
+      <fieldForLabel>bus_id</fieldForLabel>
+      <fieldForValue>bus_id</fieldForValue>
+      <search>
+        <query>| tstats count where index=siri date=$date$ agency_id=$agency_id$ by bus_id</query>
+        <earliest>0</earliest>
+        <latest></latest>
+      </search>
+      <choice value="*">All</choice>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>Trips</title>
+      <table>
+        <search base="trips"></search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <input type="text" token="hour_min" searchWhenChanged="true">
+        <label>hour_min</label>
+        <default>0</default>
+      </input>
+      <input type="text" token="hour_max" searchWhenChanged="true">
+        <label>hour_max</label>
+        <default>24</default>
+      </input>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>(index=gtfs_stats OR (index=siri lat!=0 bus_id=$bus_id$)) agency_id=$agency_id$ [tstats count where index=siri date=$date$ bus_id=$bus_id$ by route_id | fields route_id] earliest=$earliest$ latest=$latest$ date=$date$ date_hour&gt;=$hour_min$ date_hour&lt;=$hour_max$ 
+         | sort sourcetype _time 
+         | eval latitude = coalesce(lat, start_stop_lat), longitude = coalesce(lon, start_stop_lon) 
+         | eval planned_start_time=coalesce(planned_start_time, start_time) 
+         | eval icon=case(sourcetype=="siri_csv", "bus", sourcetype=="route_stats", "home") 
+         |  eval trip_temp_id = if(sourcetype=="siri_csv", route_short_name." - ".planned_start_time, "Start Stop ".route_short_name." (".route_id.")") 
+         | eval tooltip=if(isnull(time_recorded), trip_temp_id, time_recorded)
+         | dedup tooltip trip_temp_id 
+         | eval markerColor = if(sourcetype=="siri_csv", "blue", "red") 
+         | streamstats first(latitude) as prev_lat first(longitude) as prev_lon window=1 current=false by planned_start_time 
+         | eval prev_latlon = prev_lat.",".prev_lon  
+         | eval latlon = latitude.",".longitude 
+         | eval prev_latlon = coalesce(prev_latlon, latlon) 
+         | haversine originField=prev_latlon latlon 
+         | convert dur2sec(time_recorded) as time_recorded_secs 
+         | delta time_recorded_secs as delta_time 
+         | eval speed = distance/(delta_time/3600) 
+         | eval description="&lt;table align=\"center\" border=\"1\"&gt;&lt;tr&gt;&lt;th&gt;time_recorded&lt;/th&gt;&lt;th&gt;planned_start_time&lt;/th&gt;&lt;th&gt;route_short_name&lt;/th&gt;&lt;th&gt;time delta (sec)&lt;/th&gt;&lt;th&gt;speed (kmh)&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=\"center\"&gt;".time_recorded."&lt;/td&gt;&lt;td align=\"center\"&gt;".planned_start_time."&lt;/td&gt;&lt;td align=\"center\"&gt;".route_short_name."&lt;/td&gt;&lt;td align=\"center\"&gt;".delta_time."&lt;/td&gt;&lt;td&gt;".speed."&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;"  
+         | table latitude longitude tooltip icon markerColor clusterGroup _time description planned_start_time trip_temp_id</query>
+          <earliest>0</earliest>
+          <latest></latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
+        <option name="leaflet_maps_app.maps-plus.animate">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
+        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
+        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
+        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
+        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
+        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
+        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapRadius">10</option>
+        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">0</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
+        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
+        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
+        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
+        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
+        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
+        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
+        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
+        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
+        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
+        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.multiplePopups">1</option>
+        <option name="leaflet_maps_app.maps-plus.pathColorList">#D43C29,#0003F0,darkgreen,0xe2d400,darkred,#23A378</option>
+        <option name="leaflet_maps_app.maps-plus.pathIdentifier">trip_temp_id</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">90</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplits">1</option>
+        <option name="leaflet_maps_app.maps-plus.permanentTooltip">1</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
+        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
+        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPathLines">1</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
+        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
+        <option name="leaflet_maps_app.maps-plus.stickyTooltip">0</option>
+        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
+        <option name="refresh.display">progressbar</option>
+      </viz>
+    </panel>
+  </row>
+</form>
