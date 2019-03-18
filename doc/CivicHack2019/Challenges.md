@@ -15,5 +15,5 @@ We get our data from the Israeli ministry of transport.  We have two main types 
 ## Challenges
 1. **:trophy: Data Science :trophy: Identify bus line by its actual driven route :trophy:** https://github.com/hasadna/open-bus/issues/156
 2. **:trophy: Data Science :trophy: Anomaly detection in bus trips :trophy:** https://github.com/hasadna/open-bus/issues/155
-3. **:trophy: Fullstack :trophy: ??? :trophy:**
+3. **:trophy: Fullstack :trophy: Interactive bus trips investigation web app on a map using real-time and schedule data :trophy:** https://github.com/hasadna/open-bus/issues/151
 
