@@ -14,7 +14,6 @@ import java.util.stream.Stream;
  */
 public class GtfsCrud {
 
-	GtfsZipFile gtfsZipFile;
 	private Crud<Trip> tripCrud;
 	private Crud<Calendar> calendarCrud;
 	private Crud<StopTime> stopTimesCrud;
