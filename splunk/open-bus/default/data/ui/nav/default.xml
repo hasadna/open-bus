@@ -2,6 +2,7 @@
   <view name="siri_investigator" default="true"/>
   <view name="vehicle_investigator" />
   <view name="siri_trips" />
+  <view name="data_exporter" />
   <view name="search" />
   <collection label="All reports">
     <saved source="all" />

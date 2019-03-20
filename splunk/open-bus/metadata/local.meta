@@ -88,3 +88,17 @@ modtime = 1549374244.055492000
 owner = danb
 version = 7.2.1
 modtime = 1552839986.031485000
+
+[views/siri_trips]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.1
+modtime = 1552932001.736082000
+
+[views/data_exporter]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.1
+modtime = 1553083962.480246000
