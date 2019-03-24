@@ -5,12 +5,9 @@
 # This will later become a module which we will run on our historical 
 # MoT GTFS archive and schedule for nightly runs. 
 
-# ## Imports and config
-
 import pandas as pd
 import numpy as np
 import datetime
-import time
 import gtfs_utils as gu
 import gtfstk
 from collections import OrderedDict, defaultdict
@@ -19,11 +16,12 @@ from os.path import join
 import boto3
 import logging
 from zipfile import BadZipFile
-import itertools
 from tqdm import tqdm
 from partridge import feed as ptg_feed
 from botocore.handlers import disable_signing
 from gtfs_stats_conf import *
+from retry import retry
+from environment import init_conf
 
 
 def compute_trip_stats_partridge(feed, zones):
@@ -465,40 +463,6 @@ def compute_route_stats_time_cutoff(ts1, ts2, cutoff_time='00:00:00',
                                               split_directions)
 
 
-def retry(delays=(0, 1, 5, 30, 180, 600, 3600),
-          exception=Exception):
-    """
-Decorator which performs retries with dynamic intervals set by given delays tuple. Also pulls report kwarg from the
-wrapped function call for logging.
-    :param delays: tuple of wait time (seconds)
-    :type delays: tuple
-    :param exception: what exception to catch for retries
-    :type exception: type
-    :return: wrapped function
-    :rtype: function
-    """
-
-    def wrapper(func):
-        def wrapped(*args, **kwargs):
-            report = kwargs['report']
-            problems = []
-            for delay in itertools.chain(delays, [None]):
-                try:
-                    return func(*args, **kwargs)
-                except exception as problem:
-                    problems.append(problem)
-                    if delay is None:
-                        report("retryable failed definitely:", problems)
-                        raise
-                    else:
-                        report("retryable failed:", problem,
-                               "-- delaying for %ds" % delay)
-                        time.sleep(delay)
-
-        return wrapped
-
-    return wrapper
-
 
 @retry()
 def s3_download(bucket, key, output_path, report=print):
@@ -902,17 +866,6 @@ TODO: decorate
     return logger
 
 
-def mkdir_if_not_exists(dir_path):
-    """ Create the directory if it does not exist """
-    if not os.path.exists(dir_path):
-        os.makedirs(dir_path)
-def init_conf():
-    """ Init directories from conf file """
-    if not os.path.exists(BASE_FOLDER):
-        raise ValueError("Base folder does not exist")
-    for dir_path in [DATA_FOLDER, GTFS_FEEDS_PATH, OUTPUT_DIR,
-                     FILTERED_FEEDS_PATH]:
-        mkdir_if_not_exists(dir_path)
 def main():
     init_conf()
     logger = get_logger()
