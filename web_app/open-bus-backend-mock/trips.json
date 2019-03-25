@@ -1,0 +1,61 @@
+[
+  {
+    "tripId": 123,
+    "routeId": 0,
+    "routeShortName": "string",
+    "routeLongName": "string",
+    "agencyName": "string",
+    "routeType": 0,
+    "stops": [
+      {
+        "stopCode": 0,
+        "stopName": "string",
+        "stopLocation": {
+          "lat": 0,
+          "lon": 0
+        }
+      }
+    ],
+    "startZone": "השומרון",
+    "endZone": "סובב חיפה",
+    "isLoop": true,
+    "distance": 0,
+    "duration": 0,
+    "speed": 0,
+    "shape": [
+      {
+        "lat": 0,
+        "lon": 0
+      }
+    ]
+  },{
+    "tripId": 456,
+    "routeId": 0,
+    "routeShortName": "string",
+    "routeLongName": "string",
+    "agencyName": "string",
+    "routeType": 0,
+    "stops": [
+      {
+        "stopCode": 0,
+        "stopName": "string",
+        "stopLocation": {
+          "lat": 0,
+          "lon": 0
+        }
+      }
+    ],
+    "startZone": "השומרון",
+    "endZone": "סובב חיפה",
+    "isLoop": true,
+    "distance": 0,
+    "duration": 0,
+    "speed": 0,
+    "shape": [
+      {
+        "lat": 0,
+        "lon": 0
+      }
+    ]
+  }
+]
