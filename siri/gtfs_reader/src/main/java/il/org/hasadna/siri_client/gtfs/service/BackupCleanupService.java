@@ -1,8 +1,10 @@
 package il.org.hasadna.siri_client.gtfs.service;
 
 import il.org.hasadna.siri_client.gtfs.main.GtfsCollectorConfiguration;
+
 import java.io.File;
 import java.time.LocalDate;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -39,20 +41,24 @@ public class BackupCleanupService {
     }
 
     for (File currentFile : fileInDirectory) {
+
       if (!currentFile.isDirectory() && currentFile.getName().startsWith(filePrefix)) {
+        try {
+          int startIndexOfDate = currentFile.getName().indexOf(filePrefix) + filePrefix.length();
+          int finishIndexOfDate = startIndexOfDate + LocalDate.now().toString().length();
 
-        int startIndexOfDate = currentFile.getName().indexOf(filePrefix) + filePrefix.length();
-        int finishIndexOfDate = startIndexOfDate + LocalDate.now().toString().length();
+          LocalDate fileCreationDate = LocalDate.parse(currentFile.getName().substring(startIndexOfDate, finishIndexOfDate));
 
-        LocalDate fileCreationDate = LocalDate.parse(currentFile.getName().substring(startIndexOfDate, finishIndexOfDate));
+          if (isBackupFileExpired(fileCreationDate)) {
+            log.info("file: {} is older than the configured time ({} days), removing file ", currentFile,
+                    GtfsCollectorConfiguration.getGtfsBackupFilesStoreTimeInDays());
 
-        if (isBackupFileExpired(fileCreationDate)) {
-          log.info("file: {} is older than the configured time ({} days), removing file ", currentFile,
-              GtfsCollectorConfiguration.getGtfsBackupFilesStoreTimeInDays());
-
-          if (!currentFile.delete()) {
-            log.error("failed to remove file: " + currentFile);
+            if (!currentFile.delete()) {
+              log.error("failed to remove file: " + currentFile);
+            }
           }
+        } catch (Exception e) {
+          log.error("failed to handle possible expired file: " + currentFile.getName(), e);
         }
       }
     }

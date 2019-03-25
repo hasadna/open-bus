@@ -75,6 +75,32 @@ public class TestBackupCleanupService {
     tempDirectory.toFile().delete();
   }
 
+
+  @Test
+  public void testCleanup_DirectoryHasFile_FileExpired_DirectoryHasInvalidFiles() throws IOException {
+    // given
+    Path tempDirectory = Files.createTempDirectory("unit_test", PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxrwxrwx")));
+
+    new GtfsCollectorConfiguration().setGtfsBackupFilesStoreTimeInDays("1");
+    Path backupFile = Files.createFile(Paths.get(tempDirectory + "/prefix" + LocalDate.now().minusDays(5).toString()),
+            PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")));
+
+    Path invalidBackupFile = Files.createFile(Paths.get(tempDirectory + "/prefix" + "invalid-date"),
+            PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")));
+
+
+    new GtfsCollectorConfiguration().setGtfsRawFilesBackupDirectory(tempDirectory.toAbsolutePath().toString());
+    new GtfsCollectorConfiguration().setBackupFilesPrefixes("[prefix]");
+
+    // when
+    backupCleanupService.cleanup();
+
+    // then
+    Assert.assertFalse("back up file should be removed", backupFile.toFile().exists());
+    Assert.assertTrue("file with invalid date shouldn't be removed", invalidBackupFile.toFile().exists());
+    tempDirectory.toFile().delete();
+  }
+
   @Test
   public void testCleanup_DirectoryHasMultipleFiles_SomeExpired_SomeNotExpired() throws IOException {
     // given
