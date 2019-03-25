@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import il.org.hasadna.siri_client.gtfs.crud.Route;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -13,23 +16,10 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SchedulingDataCreator {
 
@@ -41,7 +31,15 @@ public class SchedulingDataCreator {
     Function<GtfsRecord, String> f = new Function<GtfsRecord, String>() {
         @Override
         public String apply(GtfsRecord gtfsRecord) {
-            return gtfsRecord.getTrip().getRouteId();
+		if (gtfsRecord != null) {
+            		return gtfsRecord.getTrip().getRouteId();
+		}
+		else {
+			logger.warn("null gtfsRecord!");
+			// returning some dummy routeId. So grouping will work, and all failed records will be grouped to routeId "99999999"
+			// which does not exist anyway
+			return "99999999999";
+		}
         }
     };
 
