@@ -3,7 +3,7 @@ import sys, os
 myPath = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, myPath + '/../gtfs_utils/')
 
-from gtfs_stats import parse_date
+from general_utils import parse_date
 
 
 def test_parse_date():

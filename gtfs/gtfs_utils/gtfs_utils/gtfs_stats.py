@@ -22,6 +22,7 @@ from botocore.handlers import disable_signing
 from gtfs_stats_conf import *
 from retry import retry
 from environment import init_conf
+from general_utils import parse_date
 
 
 def compute_trip_stats_partridge(feed, zones):
@@ -439,30 +440,6 @@ def compute_route_stats_base_partridge(trip_stats_subset,
            ]]
 
     return g
-def compute_route_stats_time_cutoff(ts1, ts2, cutoff_time='00:00:00',
-                                    headway_start_time='07:00:00',
-                                    headway_end_time='19:00:00', *,
-                                    split_directions=False):
-    """ Compute route stats for a custom day cutoff, default to 00:00:00
-    ts1, ts2 should be trip_stats pandas dataframes of consecutive dates
-    (see compute_trip_stats_partridge function).
-    ts1: the "original" date, ts2: date+1.
-    """
-    cutoff = gtfstk.helpers.timestr_to_seconds(cutoff_time)
-    ts1_start_sec = ts1.start_time.apply(gtfstk.helpers.timestr_to_seconds)
-    ts2_start_sec = ts2.start_time.apply(gtfstk.helpers.timestr_to_seconds)
-    f_ts1 = ts1[ts1_start_sec >= cutoff]
-    f_ts2 = ts2[ts2_start_sec < cutoff]
-    new_ts = pd.concat([f_ts1, f_ts2], sort=False, ignore_index=True)
-    return compute_route_stats_base_partridge(new_ts,
-                                              headway_start_time=
-                                              headway_start_time,
-                                              headway_end_time=
-                                              headway_end_time,
-                                              split_directions=
-                                              split_directions)
-
-
 
 @retry()
 def s3_download(bucket, key, output_path, report=print):
@@ -598,19 +575,6 @@ def get_valid_file_dates_dict(bucket_objects, existing_output_files, logger,
                 'stats calculations in bucket')
     logger.debug(f'Files: { {key: value for key, value in files_for_stats.items() if len(files_for_stats[key])>0} }')
     return files_for_stats
-
-
-def parse_date(file_name):
-    """
-Parse date from file name
-    :param file_name: file name in YYYY-mm-dd.zip format
-    :type file_name: str
-    :return: date object and date string
-    :rtype: tuple
-    """
-    date_str = file_name.split('.')[0]
-    date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-    return date, date_str
 
 
 def get_gtfs_file(file, gtfs_folder, bucket, logger, force=False):
