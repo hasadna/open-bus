@@ -442,7 +442,7 @@ def compute_route_stats_base_partridge(trip_stats_subset,
     return g
 
 @retry()
-def s3_download(bucket, key, output_path, report=print):
+def s3_download(bucket, key, output_path):
     """
 Download file from s3 bucket. Retry using decorator, and report to logger given in report parameter.
     :param bucket: s3 boto bucket object
@@ -451,8 +451,6 @@ Download file from s3 bucket. Retry using decorator, and report to logger given 
     :type key: str
     :param output_path: output path to download the file to
     :type output_path: str
-    :param report: callable to use for logging (e.g. logging logger object)
-    :type report: callable
     """
 
     def hook(t):
@@ -472,20 +470,6 @@ Download file from s3 bucket. Retry using decorator, and report to logger given 
             bucket.download_file(key, output_path, Callback=hook(t))
     else:
         bucket.download_file(key, output_path)
-
-
-def batch_stats(folder=GTFS_FEEDS_PATH, output_folder=OUTPUT_DIR):
-    for file in os.listdir(folder):
-        date_str = file.split('.')[0]
-        date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-        feed = gu.get_partridge_feed_by_date(join(output_folder, file), date)
-        zones = gu.get_zones_df(LOCAL_TARIFF_PATH)
-        ts = compute_trip_stats_partridge(feed, zones)
-        ts.to_pickle(join(output_folder, date_str + '_trip_stats.pkl.gz'),
-                     compression='gzip')
-        rs = compute_route_stats_base_partridge(ts)
-        rs.to_pickle(join(output_folder, date_str + '_route_stats.pkl.gz'),
-                     compression='gzip')
 
 
 def _get_existing_output_files(output_folder):
@@ -605,10 +589,10 @@ def get_gtfs_file(file, gtfs_folder, bucket, logger, force=False):
     return downloaded
 
 
-def get_closest_archive_path(date, file):
+def get_closest_archive_path(date, file_name):
     for i in range(100):
         date_str = datetime.datetime.strftime(date - datetime.timedelta(i), '%Y-%m-%d')
-        tariff_path_to_try = join(ARCHIVE_FOLDER, date_str, 'Tariff.zip')
+        tariff_path_to_try = join(ARCHIVE_FOLDER, date_str, file_name)
         if os.path.exists(tariff_path_to_try):
             return tariff_path_to_try
     return LOCAL_TARIFF_PATH

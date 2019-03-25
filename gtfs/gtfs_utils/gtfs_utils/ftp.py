@@ -31,19 +31,6 @@ def get_ftp_dir(conn=None):
     return ftp_dir
 
 
-def get_uptodateness(ftp_dir, file_name=GTFS_FILE_NAME, local_path=LOCAL_ZIP_PATH):
-    # returns how many days behind the local file is compared to the ftp file
-    # based on file modified dates
-
-    f = [re.findall(RE_FTP_LINE, line) for line in ftp_dir]
-    f_dates = {t[0][2]: datetime.datetime.strptime(t[0][0], "%m-%d-%y  %H:%M%p") for t in f}
-
-    ftp_date = f_dates[file_name]
-
-    our_date = datetime.datetime.fromtimestamp(os.path.getmtime(local_path))
-    return (ftp_date - our_date).days
-
-
 def get_ftp_file(conn=None, file_name=GTFS_FILE_NAME, local_path=LOCAL_ZIP_PATH, force=False):
     close = False
 
