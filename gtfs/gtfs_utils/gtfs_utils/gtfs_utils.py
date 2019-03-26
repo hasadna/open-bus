@@ -359,14 +359,19 @@ def compute_route_stats_base_partridge(trip_stats_subset,
 
     def compute_route_stats(group):
         d = OrderedDict()
-        d['route_short_name'] = group['route_short_name'].iat[0]
-        d['route_long_name'] = group['route_long_name'].iat[0]
-        d['route_mkt'] = group['route_mkt'].iat[0]
-        d['route_direction'] = group['route_direction'].iat[0]
-        d['route_alternative'] = group['route_alternative'].iat[0]
-        d['agency_id'] = group['agency_id'].iat[0]
-        d['agency_name'] = group['agency_name'].iat[0]
-        d['route_type'] = group['route_type'].iat[0]
+        keys = [
+            'route_short_name', 'route_long_name', 'route_mkt', 'route_direction',
+            'route_alternative', 'agency_id', 'agency_name', 'route_type', 'start_stop_id',
+            'end_stop_id', 'start_stop_name', 'end_stop_name', 'start_stop_desc', 'end_stop_desc',
+            'start_stop_lat', 'start_stop_lon', 'end_stop_lat', 'end_stop_lon', 'start_stop_city',
+            'end_stop_city', 'num_stops', 'start_zone', 'end_zone', 'num_zones',
+            'num_zones_missing', 'all_stop_latlon', 'all_stop_code', 'all_stop_id',
+            'all_stop_desc_city'
+        ]
+        for key in keys:
+            d[key] = group[key].iat[0]
+
+
         d['num_trips'] = group.shape[0]
         d['num_trip_starts'] = group['start_time'].count()
         d['num_trip_ends'] = group.loc[
@@ -404,33 +409,6 @@ def compute_route_stats_base_partridge(trip_stats_subset,
         d['service_distance'] = group['distance'].sum()
         d['service_duration'] = group['duration'].sum()
 
-        # Added by cjer
-        d['start_stop_id'] = group['start_stop_id'].iat[0]
-        d['end_stop_id'] = group['end_stop_id'].iat[0]
-        d['start_stop_name'] = group['start_stop_name'].iat[0]
-        d['end_stop_name'] = group['end_stop_name'].iat[0]
-        d['start_stop_desc'] = group['start_stop_desc'].iat[0]
-        d['end_stop_desc'] = group['end_stop_desc'].iat[0]
-
-        d['start_stop_lat'] = group['start_stop_lat'].iat[0]
-        d['start_stop_lon'] = group['start_stop_lon'].iat[0]
-        d['end_stop_lat'] = group['end_stop_lat'].iat[0]
-        d['end_stop_lon'] = group['end_stop_lon'].iat[0]
-
-        d['start_stop_city'] = group['start_stop_city'].iat[0]
-        d['end_stop_city'] = group['end_stop_city'].iat[0]
-
-        d['num_stops'] = group['num_stops'].iat[0]
-
-        d['start_zone'] = group['start_zone'].iat[0]
-        d['end_zone'] = group['end_zone'].iat[0]
-        d['num_zones'] = group['num_zones'].iat[0]
-        d['num_zones_missing'] = group['num_zones_missing'].iat[0]
-        d['all_stop_latlon'] = group['all_stop_latlon'].iat[0]
-
-        d['all_stop_code'] = group['all_stop_code'].iat[0]
-        d['all_stop_id'] = group['all_stop_id'].iat[0]
-        d['all_stop_desc_city'] = group['all_stop_desc_city'].iat[0]
 
         d['all_start_time'] = ';'.join([gtfstk.helpers.timestr_to_seconds(x, inverse=True)
                                         for x in group['start_time'].tolist()])
