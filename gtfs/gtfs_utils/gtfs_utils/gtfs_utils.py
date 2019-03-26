@@ -76,8 +76,8 @@ def compute_trip_stats_partridge(feed, zones):
     - ``'direction_id'``
     - ``'shape_id'``
     - ``'num_stops'``: number of stops on trip
-    - ``'start_time'``: first departure time of the trip
-    - ``'end_time'``: last departure time of the trip
+    - ``'start_departure_time'``: first departure time of the trip
+    - ``'end_departure_time'``: last departure time of the trip
     - ``'start_stop_id'``: stop ID of the first stop of the trip
     - ``'end_stop_id'``: stop ID of the last stop of the trip
     - ``'start_stop_name'``: stop name of the first stop of the trip
@@ -88,8 +88,8 @@ def compute_trip_stats_partridge(feed, zones):
     - ``'start_stop_lon'``: ``start_stop_lon`` of the first stop of the trip
     - ``'end_stop_lat'``: ``end_stop_lat`` of the last stop of the trip
     - ``'end_stop_lon'``: ``end_stop_lon`` of the last stop of the trip
-    - ``'start_zone'``: zone name of the first stop of the trip
-    - ``'end_zone'``: zone name of the last stop of the trip
+    - ``'start_zone_name'``: zone name of the first stop of the trip
+    - ``'end_zone_name'``: zone name of the last stop of the trip
     - ``'num_zones'``:  ``num_zones`` of the first stop of the trip
     - ``'num_zones_missing'``:  ``num_zones_missing`` of the first stop of the trip
     - ``'is_loop'``: 1 if the start and end stop are less than 400m apart and
@@ -169,42 +169,31 @@ def compute_trip_stats_partridge(feed, zones):
 
     def my_agg(group):
         d = OrderedDict()
-        d['route_id'] = group['route_id'].iat[0]
-        d['route_short_name'] = group['route_short_name'].iat[0]
-        d['route_long_name'] = group['route_long_name'].iat[0]
-        d['route_mkt'] = group['route_mkt'].iat[0]
-        d['route_direction'] = group['route_direction'].iat[0]
-        d['route_alternative'] = group['route_alternative'].iat[0]
-        d['agency_id'] = group['agency_id'].iat[0]
-        d['agency_name'] = group['agency_name'].iat[0]
-        d['route_type'] = group['route_type'].iat[0]
-        d['direction_id'] = group['direction_id'].iat[0]
-        d['shape_id'] = group['shape_id'].iat[0]
+
+        keys = [
+            'route_id', 'route_short_name', 'route_long_name', 'route_mkt', 'route_direction',
+            'route_alternative', 'agency_id', 'agency_name', 'route_type', 'direction_id',
+            'shape_id'
+        ]
+        for key in keys:
+            d[key] = group[key].iat[0]
+
         d['num_stops'] = group.shape[0]
-        d['start_time'] = group['departure_time'].iat[0]
-        d['end_time'] = group['departure_time'].iat[-1]
-        d['start_stop_id'] = group['stop_id'].iat[0]
-        d['end_stop_id'] = group['stop_id'].iat[-1]
-        d['start_stop_code'] = group['stop_code'].iat[0]
-        d['end_stop_code'] = group['stop_code'].iat[-1]
-        d['start_stop_name'] = group['stop_name'].iat[0]
-        d['end_stop_name'] = group['stop_name'].iat[-1]
-        d['start_stop_desc'] = group['stop_desc'].iat[0]
-        d['end_stop_desc'] = group['stop_desc'].iat[-1]
-        d['start_stop_lat'] = group['stop_lat'].iat[0]
-        d['start_stop_lon'] = group['stop_lon'].iat[0]
-        d['end_stop_lat'] = group['stop_lat'].iat[-1]
-        d['end_stop_lon'] = group['stop_lon'].iat[-1]
-        d['start_stop_city'] = group['stop_desc_city'].iat[0]
-        d['end_stop_city'] = group['stop_desc_city'].iat[-1]
-        d['start_zone'] = group['zone_name'].iat[0]
-        d['end_zone'] = group['zone_name'].iat[-1]
+
+        keys_for_start_and_end = [
+            'departure_time', 'stop_id', 'stop_code', 'stop_name',  'stop_desc',  'stop_lat',
+            'stop_lon',  'stop_desc_city',  'zone_name'
+        ]
+        for key in keys_for_start_and_end:
+            d[f'start_{key}'] = group[key].iat[0]
+            d[f'end_{key}'] = group[key].iat[-1]
+
         d['num_zones'] = group.zone_name.nunique()
         d['num_zones_missing'] = group.zone_name.isnull().sum()
         dist = geometry_by_stop[d['start_stop_id']].distance(
             geometry_by_stop[d['end_stop_id']])
         d['is_loop'] = int(dist < 400)
-        d['duration'] = (d['end_time'] - d['start_time']) / 3600
+        d['duration'] = (d['end_departure_time'] - d['start_departure_time']) / 3600
 
         d['all_stop_latlon'] = ';'.join(str(x) + ',' + str(y) for x, y in
                                         zip(group['stop_lat'].tolist(), group['stop_lon'].tolist()))
@@ -221,8 +210,8 @@ def compute_trip_stats_partridge(feed, zones):
     # Reset index and compute final stats
     h = h.reset_index()
     h['speed'] = h['distance'] / h['duration'] / 1000
-    h[['start_time', 'end_time']] = (
-        h[['start_time', 'end_time']].applymap(
+    h[['start_departure_time', 'end_departure_time']] = (
+        h[['start_departure_time', 'end_departure_time']].applymap(
             lambda x: gtfstk.helpers.timestr_to_seconds(x, inverse=True))
     )
     return h
@@ -238,8 +227,8 @@ def get_active_trips_df(trip_times):
     trip_times : DataFrame
         Contains columns
 
-        - start_time: start time of the trip in seconds past midnight
-        - end_time: end time of the trip in seconds past midnight
+        - start_departure_time: start time of the trip in seconds past midnight
+        - end_departure_time: end time of the trip in seconds past midnight
 
     Returns
     -------
@@ -247,8 +236,8 @@ def get_active_trips_df(trip_times):
         index is times from midnight when trips start and end, values are number of active trips for that time
 
     """
-    active_trips = pd.concat([pd.Series(1, trip_times.start_time),  # departed add 1
-                              pd.Series(-1, trip_times.end_time)  # arrived subtract 1
+    active_trips = pd.concat([pd.Series(1, trip_times.start_departure_time),  # departed add 1
+                              pd.Series(-1, trip_times.end_departure_time)  # arrived subtract 1
                               ]).groupby(level=0, sort=True).sum().cumsum().ffill()
     return active_trips
 
@@ -299,8 +288,8 @@ def compute_route_stats_base_partridge(trip_stats_subset,
           its ``is_loop`` field equal to 1; 0 otherwise
         - ``'is_bidirectional'``: 1 if the route has trips in both
           directions; 0 otherwise
-        - ``'start_time'``: start time of the earliest trip on the route
-        - ``'end_time'``: end time of latest trip on the route
+        - ``'start_departure_time'``: start time of the earliest trip on the route
+        - ``'end_departure_time'``: end time of latest trip on the route
         - ``'max_headway'``: maximum of the durations (in minutes)
           between trip starts on the route between
           ``headway_start_time`` and ``headway_end_time`` on the given
@@ -333,8 +322,8 @@ def compute_route_stats_base_partridge(trip_stats_subset,
         - ``'end_stop_lat'``: ``end_stop_lat`` of the first trip for the route
         - ``'end_stop_lon'``: ``end_stop_lon`` of the first trip for the route
         - ``'num_stops'``: ``num_stops`` of the first trip for the route
-        - ``'start_zone'``: ``start_zone`` of the first trip for the route
-        - ``'end_zone'``: ``end_zone`` of the first trip for the route
+        - ``'start_zone_name'``: ``start_zone_name`` of the first trip for the route
+        - ``'end_zone_name'``: ``end_zone_name`` of the first trip for the route
         - ``'num_zones'``:  ``num_zones`` of the first trip for the route
         - ``'num_zones_missing'``:  ``num_zones_missing`` of the first trip for the route
 
@@ -352,7 +341,7 @@ def compute_route_stats_base_partridge(trip_stats_subset,
 
     """
     f = trip_stats_subset.copy()
-    f[['start_time', 'end_time']] = f[['start_time', 'end_time']].applymap(gtfstk.helpers.timestr_to_seconds)
+    f[['start_departure_time', 'end_departure_time']] = f[['start_departure_time', 'end_departure_time']].applymap(gtfstk.helpers.timestr_to_seconds)
 
     headway_start = gtfstk.helpers.timestr_to_seconds(headway_start_time)
     headway_end = gtfstk.helpers.timestr_to_seconds(headway_end_time)
@@ -363,8 +352,8 @@ def compute_route_stats_base_partridge(trip_stats_subset,
             'route_short_name', 'route_long_name', 'route_mkt', 'route_direction',
             'route_alternative', 'agency_id', 'agency_name', 'route_type', 'start_stop_id',
             'end_stop_id', 'start_stop_name', 'end_stop_name', 'start_stop_desc', 'end_stop_desc',
-            'start_stop_lat', 'start_stop_lon', 'end_stop_lat', 'end_stop_lon', 'start_stop_city',
-            'end_stop_city', 'num_stops', 'start_zone', 'end_zone', 'num_zones',
+            'start_stop_lat', 'start_stop_lon', 'end_stop_lat', 'end_stop_lon', 'start_stop_desc_city',
+            'end_stop_desc_city', 'num_stops', 'start_zone_name', 'end_zone_name', 'num_zones',
             'num_zones_missing', 'all_stop_latlon', 'all_stop_code', 'all_stop_id',
             'all_stop_desc_city'
         ]
@@ -373,19 +362,19 @@ def compute_route_stats_base_partridge(trip_stats_subset,
 
 
         d['num_trips'] = group.shape[0]
-        d['num_trip_starts'] = group['start_time'].count()
+        d['num_trip_starts'] = group['start_departure_time'].count()
         d['num_trip_ends'] = group.loc[
-            group['end_time'] < 24 * 3600, 'end_time'].count()
+            group['end_departure_time'] < 24 * 3600, 'end_departure_time'].count()
         d['is_loop'] = int(group['is_loop'].any())
         d['is_bidirectional'] = int(group['direction_id'].unique().size > 1)
-        d['start_time'] = group['start_time'].min()
-        d['end_time'] = group['end_time'].max()
+        d['start_departure_time'] = group['start_departure_time'].min()
+        d['end_departure_time'] = group['end_departure_time'].max()
 
         # Compute headway stats
         headways = np.array([])
         for direction in [0, 1]:
             stimes = group[group['direction_id'] == direction][
-                'start_time'].values
+                'start_departure_time'].values
             stimes = sorted([stime for stime in stimes
                              if headway_start <= stime <= headway_end])
             headways = np.concatenate([headways, np.diff(stimes)])
@@ -399,7 +388,7 @@ def compute_route_stats_base_partridge(trip_stats_subset,
             d['mean_headway'] = np.nan
 
         # Compute peak num trips
-        active_trips = get_active_trips_df(group[['start_time', 'end_time']])
+        active_trips = get_active_trips_df(group[['start_departure_time', 'end_departure_time']])
         times, counts = active_trips.index.values, active_trips.values
         start, end = gtfstk.helpers.get_peak_indices(times, counts)
         d['peak_num_trips'] = counts[start]
@@ -411,7 +400,7 @@ def compute_route_stats_base_partridge(trip_stats_subset,
 
 
         d['all_start_time'] = ';'.join([gtfstk.helpers.timestr_to_seconds(x, inverse=True)
-                                        for x in group['start_time'].tolist()])
+                                        for x in group['start_departure_time'].tolist()])
         d['all_trip_id'] = ';'.join(group['trip_id'].tolist())
         return pd.Series(d)
 
@@ -424,7 +413,7 @@ def compute_route_stats_base_partridge(trip_stats_subset,
     g['mean_trip_duration'] = g['service_duration'] / g['num_trips']
 
     # Convert route times to time strings
-    time_cols = ['start_time', 'end_time', 'peak_start_time', 'peak_end_time']
+    time_cols = ['start_departure_time', 'end_departure_time', 'peak_start_time', 'peak_end_time']
     g[time_cols] = g[time_cols].applymap(lambda x: gtfstk.helpers.timestr_to_seconds(x, inverse=True))
 
     g['service_speed'] = g.service_speed / 1000
@@ -432,16 +421,16 @@ def compute_route_stats_base_partridge(trip_stats_subset,
     g = g[['route_id', 'route_short_name', 'agency_id', 'agency_name',
            'route_long_name', 'route_type', 'route_mkt', 'route_direction', 'route_alternative',
            'num_trips', 'num_trip_starts',
-           'num_trip_ends', 'is_loop', 'is_bidirectional', 'start_time',
-           'end_time', 'max_headway', 'min_headway', 'mean_headway',
+           'num_trip_ends', 'is_loop', 'is_bidirectional', 'start_departure_time',
+           'end_departure_time', 'max_headway', 'min_headway', 'mean_headway',
            'peak_num_trips', 'peak_start_time', 'peak_end_time',
            'service_distance', 'service_duration', 'service_speed',
            'mean_trip_distance', 'mean_trip_duration', 'start_stop_id',
            'end_stop_id', 'start_stop_name', 'end_stop_name',
-           'start_stop_city', 'end_stop_city',
+           'start_stop_desc_city', 'end_stop_desc_city',
            'start_stop_desc', 'end_stop_desc',
            'start_stop_lat', 'start_stop_lon', 'end_stop_lat',
-           'end_stop_lon', 'num_stops', 'start_zone', 'end_zone',
+           'end_stop_lon', 'num_stops', 'start_zone_name', 'end_zone_name',
            'num_zones', 'num_zones_missing',
            'all_stop_latlon', 'all_stop_code', 'all_stop_id', 'all_stop_desc_city', 'all_start_time', 'all_trip_id',
            ]]

@@ -141,7 +141,7 @@ and route_stats).
     # TODO: log more stats
     logger.debug(
         f'ts.shape={ts.shape}, dc_trip_id={ts.trip_id.nunique()}, dc_route_id={ts.route_id.nunique()}, '
-        f'num_start_zones={ts.start_zone.nunique()}, num_agency={ts.agency_name.nunique()}')
+        f'num_start_zones={ts.start_zone_name.nunique()}, num_agency={ts.agency_name.nunique()}')
 
     logger.info(f'starting compute_route_stats_base_partridge from trip stats result')
     rs = gu.compute_route_stats_base_partridge(ts)
@@ -153,7 +153,7 @@ and route_stats).
     # TODO: log more stats
     logger.debug(
         f'rs.shape={rs.shape}, num_trips_sum={rs.num_trips.sum()}, dc_route_id={rs.route_id.nunique()}, '
-        f'num_start_zones={rs.start_zone.nunique()}, num_agency={rs.agency_name.nunique()}')
+        f'num_start_zones={rs.start_zone_name.nunique()}, num_agency={rs.agency_name.nunique()}')
 
     route_stats_output_path = join(output_folder, date_str + '_route_stats.pkl.gz')
     logger.info(f'saving route stats result DF to gzipped pickle "{route_stats_output_path}"')
