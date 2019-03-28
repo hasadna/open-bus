@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 import datetime
 from collections import defaultdict
@@ -5,10 +6,11 @@ from gtfs_stats_conf import *
 from retry import retry
 from general_utils import parse_date
 
+
 @retry()
-def s3_download(bucket, key, output_path, report=print):
+def s3_download(bucket, key, output_path):
     """
-Download file from s3 bucket. Retry using decorator, and report to logger given in report parameter.
+Download file from s3 bucket. Retry using decorator.
     :param bucket: s3 boto bucket object
     :type bucket: boto3.resources.factory.s3.Bucket
     :param key: key of the file to download
@@ -86,14 +88,13 @@ get a dictionary mapping gtfs file names to a list of dates for forward fill by 
     return ffill
 
 
-def get_valid_file_dates_dict(bucket_objects, existing_output_files, logger,
-                              forward_fill):
-    logger.info(f'BUCKET_VALID_FILES_RE={BUCKET_VALID_FILES_RE}')
+def get_valid_file_dates_dict(bucket_objects, existing_output_files, forward_fill):
+    logging.info(f'BUCKET_VALID_FILES_RE={BUCKET_VALID_FILES_RE}')
     bucket_valid_files = get_bucket_valid_files(bucket_objects)
     if forward_fill:
-        logger.info(f'applying forward fill')
+        logging.info(f'applying forward fill')
         ffill_dict = get_forward_fill_dict(bucket_valid_files)
-        logger.info(f'found {sum([len(l) for l in ffill_dict.values()]) - len(bucket_valid_files)} missing dates for '
+        logging.info(f'found {sum([len(l) for l in ffill_dict.values()]) - len(bucket_valid_files)} missing dates for '
                     'forward fill.')
 
         files_for_stats = defaultdict(list)
@@ -106,7 +107,7 @@ def get_valid_file_dates_dict(bucket_objects, existing_output_files, logger,
         for date in get_dates_without_output(bucket_valid_files, existing_output_files):
             files_for_stats[date + '.zip'].append(date)
 
-    logger.info(f'found {len([key for key in files_for_stats if len(files_for_stats[key])>0])} GTFS files valid for '
+    logging.info(f'found {len([key for key in files_for_stats if len(files_for_stats[key])>0])} GTFS files valid for '
                 'stats calculations in bucket')
-    logger.debug(f'Files: { {key: value for key, value in files_for_stats.items() if len(files_for_stats[key])>0} }')
+    logging.debug(f'Files: { {key: value for key, value in files_for_stats.items() if len(files_for_stats[key])>0} }')
     return files_for_stats

@@ -1,11 +1,11 @@
 import itertools
+import logging
 import time
 
 
 def retry(delays=(0, 1, 5, 30, 180, 600, 3600), exception=Exception):
     """
-    Decorator which performs retries with dynamic intervals set by given delays tuple. Also pulls
-    report kwarg from the wrapped function call for logging.
+    Decorator which performs retries with dynamic intervals set by given delays tuple.
     :param delays: tuple of wait time (seconds)
     :type delays: tuple
     :param exception: what exception to catch for retries
@@ -16,7 +16,6 @@ def retry(delays=(0, 1, 5, 30, 180, 600, 3600), exception=Exception):
 
     def wrapper(func):
         def wrapped(*args, **kwargs):
-            report = kwargs['report']
             problems = []
             for delay in itertools.chain(delays, [None]):
                 try:
@@ -24,10 +23,10 @@ def retry(delays=(0, 1, 5, 30, 180, 600, 3600), exception=Exception):
                 except exception as problem:
                     problems.append(problem)
                     if delay is None:
-                        report("Retryable failed definitely:", problems)
+                        logging.error("Retryable failed definitely:", problems)
                         raise
                     else:
-                        report("Retryable failed:", problem, "-- delaying for %ds" % delay)
+                        logging.error("Retryable failed:", problem, "-- delaying for %ds" % delay)
                         time.sleep(delay)
 
         return wrapped

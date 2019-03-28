@@ -15,11 +15,11 @@ from zipfile import BadZipFile
 from tqdm import tqdm
 from partridge import feed as ptg_feed
 from botocore.handlers import disable_signing
+import gtfs_utils as gu
 from gtfs_stats_conf import *
 from environment import init_conf
-from general_utils import parse_date
 from s3 import get_valid_file_dates_dict, s3_download
-import gtfs_utils as gu
+from logging_config import configure_logger
 
 def _get_existing_output_files(output_folder):
     """
@@ -34,7 +34,7 @@ Get existing output files in the given folder, in a list containing tuples of da
              for file in os.listdir(output_folder))]
 
 
-def get_gtfs_file(file, gtfs_folder, bucket, logger, force=False):
+def get_gtfs_file(file, gtfs_folder, bucket, force=False):
     """
 
     :param file: gtfs file name (currently only YYYY-mm-dd.zip)
@@ -43,20 +43,18 @@ def get_gtfs_file(file, gtfs_folder, bucket, logger, force=False):
     :type gtfs_folder: str
     :param bucket: s3 boto bucket object
     :type bucket: boto3.resources.factory.s3.Bucket
-    :param logger: logger to write to
-    :type logger: logging.Logger
     :param force: force download or not
     :type force: bool
     :return: whether file was downloaded or not
     :rtype: bool
     """
     if not force and os.path.exists(join(gtfs_folder, file)):
-        logger.info(f'found file "{file}" in local folder "{gtfs_folder}"')
+        logging.info(f'found file "{file}" in local folder "{gtfs_folder}"')
         downloaded = False
     else:
-        logger.info(f'starting file download with retries (key="{file}", local path="{join(gtfs_folder, file)}")')
-        s3_download(bucket, file, join(gtfs_folder, file), report=logger.error)
-        logger.debug(f'finished file download (key="{file}", local path="{join(gtfs_folder, file)}")')
+        logging.info(f'starting file download with retries (key="{file}", local path="{join(gtfs_folder, file)}")')
+        s3_download(bucket, file, join(gtfs_folder, file))
+        logging.debug(f'finished file download (key="{file}", local path="{join(gtfs_folder, file)}")')
         downloaded = True
     # TODO: log file size
     return downloaded
@@ -71,8 +69,7 @@ def get_closest_archive_path(date, file_name):
     return LOCAL_TARIFF_PATH
 
 
-def handle_gtfs_date(date_str, file, bucket, output_folder=OUTPUT_DIR,
-                     gtfs_folder=GTFS_FEEDS_PATH, logger=None):
+def handle_gtfs_date(date_str, file, bucket, output_folder=OUTPUT_DIR, gtfs_folder=GTFS_FEEDS_PATH):
     """
 Handle a single date for a single GTFS file. Download if necessary compute and save stats files (currently trip_stats
 and route_stats).
@@ -86,8 +83,6 @@ and route_stats).
     :type output_folder: str
     :param gtfs_folder: local path containing GTFS feeds
     :type gtfs_folder: str
-    :param logger: logger to write to
-    :type logger: logging.Logger
     """
     date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
 
@@ -96,75 +91,74 @@ and route_stats).
     trip_stats_output_path = join(output_folder,
                                   date_str + '_trip_stats.pkl.gz')
     if os.path.exists(trip_stats_output_path):
-        logger.info(f'found trip stats result DF gzipped pickle "{trip_stats_output_path}"')
+        logging.info(f'found trip stats result DF gzipped pickle "{trip_stats_output_path}"')
         ts = pd.read_pickle(trip_stats_output_path, compression='gzip')
     else:
-        downloaded = get_gtfs_file(file, gtfs_folder, bucket, logger)
+        downloaded = get_gtfs_file(file, gtfs_folder, bucket)
 
         if WRITE_FILTERED_FEED:
             filtered_out_path = FILTERED_FEEDS_PATH + date_str + '.zip'
-            logger.info(f'writing filtered gtfs feed for file "{gtfs_folder+file}" with date "{date}" in path '
+            logging.info(f'writing filtered gtfs feed for file "{gtfs_folder+file}" with date "{date}" in path '
                         f'{filtered_out_path}')
             gu.write_filtered_feed_by_date(gtfs_folder + file, date, filtered_out_path)
-            logger.info(f'reading filtered feed for file from path {filtered_out_path}')
+            logging.info(f'reading filtered feed for file from path {filtered_out_path}')
             feed = ptg_feed(filtered_out_path)
         else:
-            logger.info(f'creating daily partridge feed for file "{join(gtfs_folder, file)}" with date "{date}"')
+            logging.info(f'creating daily partridge feed for file "{join(gtfs_folder, file)}" with date "{date}"')
             try:
                 feed = gu.get_partridge_feed_by_date(join(gtfs_folder, file), date)
             except BadZipFile:
-                logger.error('Bad local zip file', exc_info=True)
-                downloaded = get_gtfs_file(file, gtfs_folder, bucket, logger, force=True)
+                logging.error('Bad local zip file', exc_info=True)
+                downloaded = get_gtfs_file(file, gtfs_folder, bucket, force=True)
                 feed = gu.get_partridge_feed_by_date(join(gtfs_folder, file), date)
 
-        logger.debug(f'finished creating daily partridge feed for file "{join(gtfs_folder, file)}" with date "{date}"')
+        logging.debug(f'finished creating daily partridge feed for file "{join(gtfs_folder, file)}" with date "{date}"')
 
         # TODO: use Tariff.zip from s3
         tariff_path_to_use = get_closest_archive_path(date, 'Tariff.zip')
-        logger.info(f'creating zones DF from "{tariff_path_to_use}"')
+        logging.info(f'creating zones DF from "{tariff_path_to_use}"')
         zones = gu.get_zones_df(tariff_path_to_use)
 
-        logger.info(
+        logging.info(
             f'starting compute_trip_stats_partridge for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
             f'"{LOCAL_TARIFF_PATH}"')
         ts = gu.compute_trip_stats_partridge(feed, zones)
-        logger.debug(
+        logging.debug(
             f'finished compute_trip_stats_partridge for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
             f'"{LOCAL_TARIFF_PATH}"')
         # TODO: log this
         ts['date'] = date_str
         ts['date'] = pd.Categorical(ts.date)
 
-        logger.info(f'saving trip stats result DF to gzipped pickle "{trip_stats_output_path}"')
+        logging.info(f'saving trip stats result DF to gzipped pickle "{trip_stats_output_path}"')
         ts.to_pickle(trip_stats_output_path, compression='gzip')
 
     # TODO: log more stats
-    logger.debug(
+    logging.debug(
         f'ts.shape={ts.shape}, dc_trip_id={ts.trip_id.nunique()}, dc_route_id={ts.route_id.nunique()}, '
         f'num_start_zones={ts.start_zone_name.nunique()}, num_agency={ts.agency_name.nunique()}')
 
-    logger.info(f'starting compute_route_stats_base_partridge from trip stats result')
+    logging.info(f'starting compute_route_stats_base_partridge from trip stats result')
     rs = gu.compute_route_stats_base_partridge(ts)
-    logger.debug(f'finished compute_route_stats_base_partridge from trip stats result')
+    logging.debug(f'finished compute_route_stats_base_partridge from trip stats result')
     # TODO: log this
     rs['date'] = date_str
     rs['date'] = pd.Categorical(rs.date)
 
     # TODO: log more stats
-    logger.debug(
+    logging.debug(
         f'rs.shape={rs.shape}, num_trips_sum={rs.num_trips.sum()}, dc_route_id={rs.route_id.nunique()}, '
         f'num_start_zones={rs.start_zone_name.nunique()}, num_agency={rs.agency_name.nunique()}')
 
     route_stats_output_path = join(output_folder, date_str + '_route_stats.pkl.gz')
-    logger.info(f'saving route stats result DF to gzipped pickle "{route_stats_output_path}"')
+    logging.info(f'saving route stats result DF to gzipped pickle "{route_stats_output_path}"')
     rs.to_pickle(route_stats_output_path, compression='gzip')
 
     return downloaded
 
 
 def handle_gtfs_file(file, bucket, stats_dates, output_folder=OUTPUT_DIR,
-                     gtfs_folder=GTFS_FEEDS_PATH, delete_downloaded_gtfs_zips=False,
-                     logger=None):
+                     gtfs_folder=GTFS_FEEDS_PATH, delete_downloaded_gtfs_zips=False):
     """
 Handle a single GTFS file. Download if necessary compute and save stats files (currently trip_stats and route_stats).
     :param file: gtfs file name (currently only YYYY-mm-dd.zip)
@@ -177,8 +171,6 @@ Handle a single GTFS file. Download if necessary compute and save stats files (c
     :type gtfs_folder: str
     :param delete_downloaded_gtfs_zips: whether to delete GTFS feed files that have been downloaded by the function.
     :type delete_downloaded_gtfs_zips: bool
-    :param logger: logger to write to
-    :type logger: logging.Logger
     """
 
     downloaded = False
@@ -186,18 +178,18 @@ Handle a single GTFS file. Download if necessary compute and save stats files (c
         for date_str in t:
             t.set_postfix_str(date_str)
             downloaded = handle_gtfs_date(date_str, file, bucket, output_folder=output_folder,
-                                          gtfs_folder=gtfs_folder, logger=logger)
+                                          gtfs_folder=gtfs_folder)
 
     if delete_downloaded_gtfs_zips and downloaded:
-        logger.info(f'deleting gtfs zip file "{join(gtfs_folder, file)}"')
+        logging.info(f'deleting gtfs zip file "{join(gtfs_folder, file)}"')
         os.remove(join(gtfs_folder, file))
     else:
-        logger.debug(f'keeping gtfs zip file "{join(gtfs_folder, file)}"')
+        logging.debug(f'keeping gtfs zip file "{join(gtfs_folder, file)}"')
 
 
 def batch_stats_s3(bucket_name=BUCKET_NAME, output_folder=OUTPUT_DIR,
                    gtfs_folder=GTFS_FEEDS_PATH, delete_downloaded_gtfs_zips=False,
-                   forward_fill=FORWARD_FILL, logger=None):
+                   forward_fill=FORWARD_FILL):
     """
 Create daily trip_stats and route_stats DataFrame pickles, based on the files in an S3 bucket and
 their dates - `YYYY-mm-dd.zip`.
@@ -212,16 +204,14 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
     :type delete_downloaded_gtfs_zips: bool
     :param forward_fill: flag for performing forward fill for missing dates using existing files
     :type forward_fill: bool
-    :param logger: logger to write to
-    :type logger: logging.Logger
     """
     try:
         existing_output_files = []
         if os.path.exists(output_folder):
             existing_output_files = _get_existing_output_files(output_folder)
-            logger.info(f'found {len(existing_output_files)} output files in output folder {output_folder}')
+            logging.info(f'found {len(existing_output_files)} output files in output folder {output_folder}')
         else:
-            logger.info(f'creating output folder {output_folder}')
+            logging.info(f'creating output folder {output_folder}')
             os.makedirs(output_folder)
 
         s3 = boto3.resource('s3')
@@ -229,15 +219,12 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
 
         bucket = s3.Bucket(bucket_name)
 
-        logger.info(f'connected to S3 bucket {bucket_name}')
+        logging.info(f'connected to S3 bucket {bucket_name}')
 
         bucket_objects = bucket.objects.all()
-        logger.info(f'number of objects in bucket: {sum(1 for _ in bucket_objects)}')
+        logging.info(f'number of objects in bucket: {sum(1 for _ in bucket_objects)}')
 
-        file_dates_dict = get_valid_file_dates_dict(bucket_objects,
-                                                    existing_output_files,
-                                                    logger,
-                                                    forward_fill=forward_fill)
+        file_dates_dict = get_valid_file_dates_dict(bucket_objects, existing_output_files, forward_fill)
 
         non_empty_file_dates = {key: value for key, value in file_dates_dict.items() if len(file_dates_dict[key]) > 0}
         with tqdm(non_empty_file_dates, postfix='initializing', unit='file', desc='files') as t:
@@ -245,52 +232,20 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
                 t.set_postfix_str(file)
                 handle_gtfs_file(file, bucket, output_folder=output_folder,
                                  gtfs_folder=gtfs_folder, delete_downloaded_gtfs_zips=delete_downloaded_gtfs_zips,
-                                 stats_dates=file_dates_dict[file], logger=logger)
+                                 stats_dates=file_dates_dict[file])
 
-        logger.info(f'starting synchronous gtfs file download and stats computation from s3 bucket {bucket_name}')
+        logging.info(f'starting synchronous gtfs file download and stats computation from s3 bucket {bucket_name}')
 
-        logger.info(f'finished synchronous gtfs file download and stats computation from s3 bucket {bucket_name}')
+        logging.info(f'finished synchronous gtfs file download and stats computation from s3 bucket {bucket_name}')
     except:
-        logger.error('Failed', exc_info=True)
-
-
-def get_logger():
-    """
-Returns a logger object. Writes all (up to DEBUG) to a file in the configured `LOG_FOLDER`. Errors are also written to
-stdout.
-TODO: use logging conf file
-TODO: use __name__ and call this from each function
-TODO: decorate
-    :return: logger object
-    :rtype: logging.Logger
-    """
-    # create logger with 'gtfs_stats'
-    logger = logging.getLogger('gtfs_stats')
-    logger.setLevel(logging.DEBUG)
-    # create file handler which logs even debug messages
-    # fh = logging.FileHandler(LOG_FOLDER + f'gtfs_stats_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.log')
-    fh = logging.FileHandler(join(LOG_FOLDER,
-                                  f'gtfs_stats_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.log'))
-    fh.setLevel(logging.DEBUG)
-    # create console handler with a higher log level
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.ERROR)
-    # create formatter and add it to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    fh.setFormatter(formatter)
-    ch.setFormatter(formatter)
-    # add the handlers to the logger
-    logger.addHandler(fh)
-    logger.addHandler(ch)
-    return logger
+        logging.error('Failed', exc_info=True)
 
 
 def main():
     init_conf()
-    logger = get_logger()
-    logger.info(f'starting batch_stats_s3 with default config')
-    batch_stats_s3(delete_downloaded_gtfs_zips=DELETE_DOWNLOADED_GTFS_ZIPS,
-                   logger=logger)
+    configure_logger()
+    logging.info(f'starting batch_stats_s3 with default config')
+    batch_stats_s3(delete_downloaded_gtfs_zips=DELETE_DOWNLOADED_GTFS_ZIPS)
 
 
 if __name__ == '__main__':
@@ -311,7 +266,7 @@ if __name__ == '__main__':
 # 1. separate to modules - run, conf, stats, utils...
 # 1. logging - 
 #   1. logging config and call in every function
-#   1. BUG: logger not logging retries
+#   1. BUG: logger not lsgging retries
 #   1. log __name__ with decorator
 #   1. add ids to every record - process, file
 # 1. run older files with older tariff file
