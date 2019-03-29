@@ -43,7 +43,17 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
               new OptionDropDownWidget(
                 defaultOptionText: "Please Choose A Bus Line",
-              )
+                defaultTitleText: "Bus",
+                valueReturned: (busLine) {
+                  _chosenBusLine = busLine;
+                },
+              ),
+             new RaisedButton(
+                 onPressed: () {
+                   print(_chosenBusLine);
+                 },
+               child: Text("Submit"),
+             )
           ],
         ),
       ),

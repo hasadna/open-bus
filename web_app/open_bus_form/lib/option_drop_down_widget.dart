@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 
 class OptionDropDownWidget extends StatefulWidget {
 
-  OptionDropDownWidget({Key key, this.defaultOptionText : null})
+  final ValueChanged<String> valueReturned;
+
+  OptionDropDownWidget({Key key, this.defaultOptionText : "", this.defaultTitleText: "", this.valueReturned})
       : super(key: key);
 
   final String defaultOptionText;
+  final String defaultTitleText;
 
   @override
   _OptionDropDownWidgetState createState() => _OptionDropDownWidgetState();
@@ -39,16 +42,24 @@ class _OptionDropDownWidgetState extends State<OptionDropDownWidget> {
   @override
   Widget build(BuildContext context) {
     loadData();
-    return DropdownButton(
+    return Column(
+      children: <Widget> [
+        new Text(
+            widget.defaultTitleText
+        ),
+        DropdownButton(
         value: _chosenBusLine,
         items: _data,
         hint: new Text(widget.defaultOptionText),
         onChanged: (value) {
           _chosenBusLine = value;
+          widget.valueReturned(_chosenBusLine);
           setState(() {
 
           });
         }
+       )
+      ],
     );
   }
 }
