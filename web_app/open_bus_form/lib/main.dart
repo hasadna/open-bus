@@ -5,9 +5,14 @@ import 'dart:collection';
 
 import 'option_drop_down_widget.dart';
 import 'login_page.dart';
+import 'constants.dart';
 
 
-void main() => runApp(MyApp());
+void main() => runApp(
+   Constants(
+    child:  MyApp(),
+   ),
+);
 
 class MyApp extends StatelessWidget {
   @override
@@ -40,7 +45,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   String _chosenBusLine = null;
   String _chosenBusStop = null;
-  String _chosenBusDirection = null;
   DateTime _date = null;
 
   Map<String, String> _dataToSend = new HashMap<String, String>();
@@ -48,8 +52,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool _validateUserInput() {
     return (_chosenBusLine != null &&
-            _chosenBusStop != null &&
-            _chosenBusDirection != null);
+            _chosenBusStop != null);
   }
 
    Future<String> _getValueFromSharedPrefs(String key) async {
@@ -59,15 +62,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _handleSendingData() {
 
-    Future<String> username = _getValueFromSharedPrefs("Username");
+    Future<String> username = _getValueFromSharedPrefs(Constants.of(context).usernameKey);
     username.then((user) {
-      _dataToSend["Username"] = user;
+      _dataToSend[Constants.of(context).usernameKey] = user;
     });
-    Future<String> usermail = _getValueFromSharedPrefs("UserEmail");
+    Future<String> usermail = _getValueFromSharedPrefs(Constants.of(context).usermailKey);
     usermail.then((mail) {
-      _dataToSend["UserMail"] = mail;
+      _dataToSend[Constants.of(context).usermailKey] = mail;
     });
-
+    print("Sending data...");
     //TODO send data to backend
   }
 
@@ -96,14 +99,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 urlToFetchData: "",
                 valueReturned: (busStop) {
                   _chosenBusStop = busStop;
-                },
-              ),
-              new OptionDropDownWidget(
-                defaultOptionText: "Please Choose A Direction",
-                defaultTitleText: "Bus Direction",
-                urlToFetchData: "",
-                valueReturned: (busDirection) {
-                  _chosenBusDirection = busDirection;
                 },
               ),
              new RaisedButton(

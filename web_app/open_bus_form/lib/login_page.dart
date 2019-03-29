@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'main.dart';
+import 'constants.dart';
 
 
 class LoginPage extends StatefulWidget {
@@ -48,10 +49,10 @@ class LoginFormState extends State<LoginForm> {
     return regExp.hasMatch(email);
   }
 
-  void _saveUserCredentials() async {
+  void _saveUserCredentials(BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString("Username", _userName);
-    await prefs.setString("UserEmail", _userEmail);
+    await prefs.setString(Constants.of(context).usernameKey, _userName);
+    await prefs.setString(Constants.of(context).usermailKey, _userEmail);
   }
 
   @override
@@ -96,7 +97,7 @@ class LoginFormState extends State<LoginForm> {
             child: RaisedButton(
               onPressed: () {
                 if (_formKey.currentState.validate()) {
-                  _saveUserCredentials();
+                  _saveUserCredentials(context);
                   Navigator.pushReplacementNamed(context, "/main");
                 }
               },
