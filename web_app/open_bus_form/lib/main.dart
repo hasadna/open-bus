@@ -30,8 +30,14 @@ class _MyHomePageState extends State<MyHomePage> {
   String _chosenBusLine = null;
   String _chosenBusStop = null;
   String _chosenBusDirection = null;
-  DateTime _date = new DateTime.now();
+  DateTime _date = null;
 
+
+  bool validateUserInput() {
+    return (_chosenBusLine != null &&
+            _chosenBusStop != null &&
+            _chosenBusDirection != null);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,8 +73,11 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
              new RaisedButton(
                  onPressed: () {
-                   print(_chosenBusLine);
-                   print(_date);
+                    if (validateUserInput()) {
+                      _date = new DateTime.now();
+                    } else {
+
+                    }
                  },
                child: Text("Submit"),
              )
