@@ -15,6 +15,23 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
 
   @override
+  void initState() {
+    super.initState();
+    checkIfFirstLogin();
+  }
+
+  Future<Null> checkIfFirstLogin() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool isFirstLogin = prefs.getBool("FirstLogin");
+    if (isFirstLogin != null && isFirstLogin == true) {
+      Navigator.pushReplacementNamed(context, "/main");
+    } else {
+      prefs.setBool("FirstLogin", true);
+    }
+  }
+
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(

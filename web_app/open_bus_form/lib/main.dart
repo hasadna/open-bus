@@ -15,6 +15,7 @@ void main() => runApp(
 );
 
 class MyApp extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -22,7 +23,6 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      //home: MyHomePage(title: 'Open Bus User Form'),
       home: LoginPage(),
       routes: {
         "/main": (_) => new MyHomePage(
