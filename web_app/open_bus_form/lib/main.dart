@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'option_drop_down_widget.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'login_page.dart';
 
 
 void main() => runApp(MyApp());
@@ -13,7 +14,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Open Bus User Form'),
+      //home: MyHomePage(title: 'Open Bus User Form'),
+      home: LoginPage(),
+      routes: {
+        "/main": (_) => new MyHomePage(
+          title: 'Open Bus User Form'
+        ),
+      }
     );
   }
 }
@@ -54,6 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
               new OptionDropDownWidget(
                 defaultOptionText: "Please Choose A Bus Line",
                 defaultTitleText: "Bus Line",
+                urlToFetchData: "",
                 valueReturned: (busLine) {
                   _chosenBusLine = busLine;
                 },
@@ -61,6 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
               new OptionDropDownWidget(
                 defaultOptionText: "Please Choose The Stop You Are At",
                 defaultTitleText: "Bus Stop",
+                urlToFetchData: "",
                 valueReturned: (busStop) {
                   _chosenBusStop = busStop;
                 },
@@ -68,6 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
               new OptionDropDownWidget(
                 defaultOptionText: "Please Choose A Direction",
                 defaultTitleText: "Bus Direction",
+                urlToFetchData: "",
                 valueReturned: (busDirection) {
                   _chosenBusDirection = busDirection;
                 },
@@ -76,6 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
                  onPressed: () {
                     if (validateUserInput()) {
                       _date = new DateTime.now();
+                      //TODO send data to backend
                     } else {
                       Fluttertoast.showToast(
                           msg: "You have failed to provide the necessary input",

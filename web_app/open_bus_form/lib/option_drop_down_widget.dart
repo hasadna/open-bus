@@ -4,11 +4,12 @@ class OptionDropDownWidget extends StatefulWidget {
 
   final ValueChanged<String> valueReturned;
 
-  OptionDropDownWidget({Key key, this.defaultOptionText : "", this.defaultTitleText: "", this.valueReturned})
+  OptionDropDownWidget({Key key, this.defaultOptionText : "", this.defaultTitleText: "", this.urlToFetchData: "", this.valueReturned})
       : super(key: key);
 
   final String defaultOptionText;
   final String defaultTitleText;
+  final String urlToFetchData;
 
   @override
   _OptionDropDownWidgetState createState() => _OptionDropDownWidgetState();
@@ -22,6 +23,7 @@ class _OptionDropDownWidgetState extends State<OptionDropDownWidget> {
 
 
   void loadData() {
+    //TODO add call to fetch data using urlToFetchData
     _data = [];
     _data.add(new DropdownMenuItem(
         child: new Text("Line 1"),
