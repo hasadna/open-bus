@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 
 class OptionDropDownWidget extends StatefulWidget {
 
+  OptionDropDownWidget({Key key, this.defaultOptionText : null})
+      : super(key: key);
+
+  final String defaultOptionText;
+
   @override
   _OptionDropDownWidgetState createState() => _OptionDropDownWidgetState();
 
@@ -37,7 +42,7 @@ class _OptionDropDownWidgetState extends State<OptionDropDownWidget> {
     return DropdownButton(
         value: _chosenBusLine,
         items: _data,
-        hint: new Text("Please Choose A Bus Number"),
+        hint: new Text(widget.defaultOptionText),
         onChanged: (value) {
           _chosenBusLine = value;
           setState(() {

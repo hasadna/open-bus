@@ -42,7 +42,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
               new OptionDropDownWidget(
-
+                defaultOptionText: "Please Choose A Bus Line",
               )
           ],
         ),
