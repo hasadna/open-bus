@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'option_drop_down_widget.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:collection';
+
+import 'option_drop_down_widget.dart';
 import 'login_page.dart';
 
 
@@ -40,11 +43,18 @@ class _MyHomePageState extends State<MyHomePage> {
   String _chosenBusDirection = null;
   DateTime _date = null;
 
+  Map<String, String> _dataToSend = new HashMap<String, String>();
 
-  bool validateUserInput() {
+
+  bool _validateUserInput() {
     return (_chosenBusLine != null &&
             _chosenBusStop != null &&
             _chosenBusDirection != null);
+  }
+
+   Future<String> _getValueFromSharedPrefs(String key) async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      return prefs.getString(key) ?? '';
   }
 
   @override
@@ -84,9 +94,18 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
              new RaisedButton(
                  onPressed: () {
-                    if (validateUserInput()) {
+                    if (_validateUserInput()) {
                       _date = new DateTime.now();
+                      Future<String> username = _getValueFromSharedPrefs("Username");
+                      username.then((user) {
+                        _dataToSend["Username"] = user;
+                      });
+                      Future<String> usermail = _getValueFromSharedPrefs("UserEmail");
+                      usermail.then((mail) {
+                        _dataToSend["UserMail"] = mail;
+                      });
                       //TODO send data to backend
+
                     } else {
                       Fluttertoast.showToast(
                           msg: "You have failed to provide the necessary input",

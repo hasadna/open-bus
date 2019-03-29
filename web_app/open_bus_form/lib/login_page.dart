@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'main.dart';
 
 
@@ -34,8 +35,10 @@ class LoginForm extends StatefulWidget {
 class LoginFormState extends State<LoginForm> {
 
   final _formKey = GlobalKey<FormState>();
+  String _userName = null;
+  String _userEmail = null;
 
-  bool isValidEmail(String email) {
+  bool _isValidEmail(String email) {
     RegExp regExp = new RegExp(
       r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)",
       caseSensitive: false,
@@ -43,6 +46,12 @@ class LoginFormState extends State<LoginForm> {
     );
 
     return regExp.hasMatch(email);
+  }
+
+  void _saveUserCredentials() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString("Username", _userName);
+    await prefs.setString("UserEmail", _userEmail);
   }
 
   @override
@@ -58,6 +67,8 @@ class LoginFormState extends State<LoginForm> {
               validator: (value) {
                 if (value.isEmpty) {
                   return 'Please enter a username';
+                } else {
+                  _userName = value;
                 }
               },
               decoration: new InputDecoration(
@@ -69,8 +80,10 @@ class LoginFormState extends State<LoginForm> {
             leading: const Icon(Icons.email),
             title: TextFormField(
               validator: (value) {
-                if (value.isEmpty || !isValidEmail(value)) {
+                if (value.isEmpty || !_isValidEmail(value)) {
                   return 'Please enter a valid email';
+                } else {
+                  _userEmail = value;
                 }
               },
               decoration: new InputDecoration(
@@ -83,6 +96,7 @@ class LoginFormState extends State<LoginForm> {
             child: RaisedButton(
               onPressed: () {
                 if (_formKey.currentState.validate()) {
+                  _saveUserCredentials();
                   Navigator.pushReplacementNamed(context, "/main");
                 }
               },
