@@ -35,6 +35,16 @@ class LoginFormState extends State<LoginForm> {
 
   final _formKey = GlobalKey<FormState>();
 
+  bool isValidEmail(String email) {
+    RegExp regExp = new RegExp(
+      r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)",
+      caseSensitive: false,
+      multiLine: false,
+    );
+
+    return regExp.hasMatch(email);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -42,12 +52,31 @@ class LoginFormState extends State<LoginForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          TextFormField(
-            validator: (value) {
-              if (value.isEmpty) {
-                return 'Please enter some text';
-              }
-            },
+          new ListTile(
+            leading: const Icon(Icons.person),
+            title: TextFormField(
+              validator: (value) {
+                if (value.isEmpty) {
+                  return 'Please enter a username';
+                }
+              },
+              decoration: new InputDecoration(
+                  hintText: "Username",
+                ),
+              ),
+            ),
+          new ListTile(
+            leading: const Icon(Icons.email),
+            title: TextFormField(
+              validator: (value) {
+                if (value.isEmpty || !isValidEmail(value)) {
+                  return 'Please enter a valid email';
+                }
+              },
+              decoration: new InputDecoration(
+                hintText: "Email",
+              ),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16.0),
