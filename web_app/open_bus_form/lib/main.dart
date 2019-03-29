@@ -57,6 +57,20 @@ class _MyHomePageState extends State<MyHomePage> {
       return prefs.getString(key) ?? '';
   }
 
+  void _handleSendingData() {
+
+    Future<String> username = _getValueFromSharedPrefs("Username");
+    username.then((user) {
+      _dataToSend["Username"] = user;
+    });
+    Future<String> usermail = _getValueFromSharedPrefs("UserEmail");
+    usermail.then((mail) {
+      _dataToSend["UserMail"] = mail;
+    });
+
+    //TODO send data to backend
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -96,15 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
                  onPressed: () {
                     if (_validateUserInput()) {
                       _date = new DateTime.now();
-                      Future<String> username = _getValueFromSharedPrefs("Username");
-                      username.then((user) {
-                        _dataToSend["Username"] = user;
-                      });
-                      Future<String> usermail = _getValueFromSharedPrefs("UserEmail");
-                      usermail.then((mail) {
-                        _dataToSend["UserMail"] = mail;
-                      });
-                      //TODO send data to backend
+                      _handleSendingData();
 
                     } else {
                       Fluttertoast.showToast(
