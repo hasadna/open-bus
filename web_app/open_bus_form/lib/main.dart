@@ -28,6 +28,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String _chosenBusLine = null;
+  String _chosenBusStop = null;
+  String _chosenBusDirection = null;
+  DateTime _date = new DateTime.now();
 
 
   @override
@@ -39,18 +42,33 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
               new OptionDropDownWidget(
                 defaultOptionText: "Please Choose A Bus Line",
-                defaultTitleText: "Bus",
+                defaultTitleText: "Bus Line",
                 valueReturned: (busLine) {
                   _chosenBusLine = busLine;
+                },
+              ),
+              new OptionDropDownWidget(
+                defaultOptionText: "Please Choose The Stop You Are At",
+                defaultTitleText: "Bus Stop",
+                valueReturned: (busStop) {
+                  _chosenBusStop = busStop;
+                },
+              ),
+              new OptionDropDownWidget(
+                defaultOptionText: "Please Choose A Direction",
+                defaultTitleText: "Bus Direction",
+                valueReturned: (busDirection) {
+                  _chosenBusDirection = busDirection;
                 },
               ),
              new RaisedButton(
                  onPressed: () {
                    print(_chosenBusLine);
+                   print(_date);
                  },
                child: Text("Submit"),
              )
