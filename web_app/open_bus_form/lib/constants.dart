@@ -7,6 +7,7 @@ class Constants extends InheritedWidget {
 
   final String usernameKey = 'Username';
   final String usermailKey = 'UserEmail';
+  final String dateKey = 'date';
 
   @override
   bool updateShouldNotify(InheritedWidget oldWidget) {

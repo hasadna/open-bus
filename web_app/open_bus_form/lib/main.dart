@@ -45,7 +45,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   String _chosenBusLine = null;
   String _chosenBusStop = null;
-  DateTime _date = null;
 
   Map<String, String> _dataToSend = new HashMap<String, String>();
 
@@ -70,6 +69,8 @@ class _MyHomePageState extends State<MyHomePage> {
     usermail.then((mail) {
       _dataToSend[Constants.of(context).usermailKey] = mail;
     });
+    _dataToSend[(Constants.of(context).dateKey)] = new DateTime.now().toString();
+    
     print("Sending data...");
     //TODO send data to backend
   }
@@ -104,13 +105,12 @@ class _MyHomePageState extends State<MyHomePage> {
              new RaisedButton(
                  onPressed: () {
                     if (_validateUserInput()) {
-                      _date = new DateTime.now();
                       _handleSendingData();
 
                     } else {
                       Fluttertoast.showToast(
-                          msg: "You have failed to provide the necessary input",
-                          toastLength: Toast.LENGTH_LONG,
+                          msg: "Please fill out the form",
+                          toastLength: Toast.LENGTH_SHORT,
                           timeInSecForIos: 1,
                           backgroundColor: Colors.red,
                           textColor: Colors.white,
