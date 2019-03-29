@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'option_drop_down_widget.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 
 void main() => runApp(MyApp());
@@ -76,7 +77,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     if (validateUserInput()) {
                       _date = new DateTime.now();
                     } else {
-
+                      Fluttertoast.showToast(
+                          msg: "You have failed to provide the necessary input",
+                          toastLength: Toast.LENGTH_LONG,
+                          timeInSecForIos: 1,
+                          backgroundColor: Colors.red,
+                          textColor: Colors.white,
+                          fontSize: 16.0
+                      );
                     }
                  },
                child: Text("Submit"),
