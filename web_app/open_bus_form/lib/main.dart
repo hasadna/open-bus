@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'option_drop_down_widget.dart';
 import 'login_page.dart';
 import 'constants.dart';
+import 'location_page.dart';
 
 
 void main() => runApp(
@@ -28,6 +29,7 @@ class MyApp extends StatelessWidget {
         "/main": (_) => new MyHomePage(
           title: 'Open Bus User Form'
         ),
+        "/location": (_) => new LocationPage(),
       }
     );
   }

@@ -24,7 +24,7 @@ class _LoginPageState extends State<LoginPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool isFirstLogin = prefs.getBool("FirstLogin");
     if (isFirstLogin != null && isFirstLogin == true) {
-      Navigator.pushReplacementNamed(context, "/main");
+      Navigator.pushReplacementNamed(context, "/location");
     } else {
       prefs.setBool("FirstLogin", true);
     }
@@ -115,7 +115,7 @@ class LoginFormState extends State<LoginForm> {
               onPressed: () {
                 if (_formKey.currentState.validate()) {
                   _saveUserCredentials(context);
-                  Navigator.pushReplacementNamed(context, "/main");
+                  Navigator.pushReplacementNamed(context, "/location");
                 }
               },
               child: Text('Submit'),

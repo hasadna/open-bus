@@ -31,7 +31,16 @@ class _LocationPageState extends State<LocationPage> {
       body:Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
-        new Text("Requesting Location Permission..."),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Center(
+            child: new Text(
+                "Requesting Location Permission...",
+                textAlign: TextAlign.center
+            ),
+          )
+        )
+
         ]
       ),
     );
