@@ -16,7 +16,7 @@ import json
 # SHAPE_FILE_7716 = '/home/aviv/Downloads/route_id_7716_shape_id_93603.csv'
 SIRI_EXPORTED_FROM_SPLUNK = 'D:\Downloads\web_app\siri_149.csv'
 GTFS_STAT_EXPORTED_FROM_SPLUNK = 'D:\Downloads\web_app\gtfs_149.csv'
-SHAPE_FILE_7716 = 'D:\Downloads\web_app\route_id_7716_shape_id_93603.csv'
+SHAPE_FILE_7716 = 'D:/Downloads/web_app/route_id_7716_shape_id_93603.csv'
 
 
 # %% md
@@ -151,7 +151,7 @@ class Route():
 
 def create_line_string_from_shape_file(path):
     coordinates = [tuple([float(i['shape_pt_lat']), float(i['shape_pt_lon'])])
-                   for i in csv.DictReader(open(path))]
+                   for i in csv.DictReader(open(path, encoding="utf8"))]
 
     return geojson.LineString(coordinates=coordinates)
 
@@ -159,9 +159,9 @@ def create_line_string_from_shape_file(path):
 # %% md
 # Combine the data as one structure
 # %%
-siri_data = read_siri_trips_from_exported_file(open(SIRI_EXPORTED_FROM_SPLUNK))
+siri_data = read_siri_trips_from_exported_file(open(SIRI_EXPORTED_FROM_SPLUNK, encoding="utf8"))
 # %%
-gtfs_stat_data = [Route.parse(row) for row in csv.DictReader(open(GTFS_STAT_EXPORTED_FROM_SPLUNK))]
+gtfs_stat_data = [Route.parse(row) for row in csv.DictReader(open(GTFS_STAT_EXPORTED_FROM_SPLUNK, encoding="utf8"))]
 gtfs_stat_data_dict = {(i.date, i.route_id): i for i in gtfs_stat_data}
 # %%
 shape = create_line_string_from_shape_file(SHAPE_FILE_7716)
@@ -196,4 +196,4 @@ for siri_itm in filter(lambda x: x.key.route_id == '7716', siri_data):
 
     results.append(res)
 # %%
-json.dump(results, open('out', 'w'), ensure_ascii=False)
+json.dump(results, open('out', 'w', encoding="utf8"), ensure_ascii=False)
