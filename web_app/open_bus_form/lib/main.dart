@@ -7,6 +7,8 @@ import 'option_drop_down_widget.dart';
 import 'login_page.dart';
 import 'constants.dart';
 import 'location_page.dart';
+import 'bus_stop_selection_page.dart';
+import 'end_page.dart';
 
 
 void main() => runApp(
@@ -30,6 +32,8 @@ class MyApp extends StatelessWidget {
           title: 'Open Bus User Form'
         ),
         "/location": (_) => new LocationPage(),
+        "/bus_stop": (_) => new BusStopSelectionPage(),
+        "/end": (_) => new EndPage(),
       }
     );
   }
@@ -46,14 +50,14 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String _chosenBusLine = null;
-  String _chosenBusStop = null;
+  String _reportingReason = null;
 
   Map<String, String> _dataToSend = new HashMap<String, String>();
 
 
   bool _validateUserInput() {
     return (_chosenBusLine != null &&
-            _chosenBusStop != null);
+        _reportingReason != null);
   }
 
    Future<String> _getValueFromSharedPrefs(String key) async {
@@ -92,23 +96,25 @@ class _MyHomePageState extends State<MyHomePage> {
                 defaultOptionText: "Please Choose A Bus Line",
                 defaultTitleText: "Bus Line",
                 urlToFetchData: "",
+                inputData: ["Line 1", "Line 52", "Line 369"],
                 valueReturned: (busLine) {
                   _chosenBusLine = busLine;
                 },
               ),
               new OptionDropDownWidget(
-                defaultOptionText: "Please Choose The Stop You Are At",
-                defaultTitleText: "Bus Stop",
+                defaultOptionText: "What Happened?",
+                defaultTitleText: "Reason for report",
                 urlToFetchData: "",
-                valueReturned: (busStop) {
-                  _chosenBusStop = busStop;
+                inputData: ["Bus is late", "Bus never arrived", "Bus full"],
+                valueReturned: (reportReason) {
+                  _reportingReason = reportReason;
                 },
               ),
              new RaisedButton(
                  onPressed: () {
                     if (_validateUserInput()) {
                       _handleSendingData();
-
+                      Navigator.pushReplacementNamed(context, "/end");
                     } else {
                       Fluttertoast.showToast(
                           msg: "Please fill out the form",
@@ -121,6 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     }
                  },
                child: Text("Submit"),
+               color: Colors.green
              )
           ],
         ),

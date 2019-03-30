@@ -22,7 +22,7 @@ dependencies:
   fluttertoast: 2.2.11
   shared_preferences: ^0.5.1
   flutter_launcher_icons: ^0.7.0
-  simple_permissions: ^0.1.2
+  simple_permissions: ^0.1.9
   location: ^1.4.1
 
 dev_dependencies:

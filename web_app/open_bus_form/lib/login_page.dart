@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'main.dart';
 import 'constants.dart';
 
 
@@ -119,6 +118,7 @@ class LoginFormState extends State<LoginForm> {
                 }
               },
               child: Text('Submit'),
+              color: Colors.lightBlue
             ),
           ),
         ],

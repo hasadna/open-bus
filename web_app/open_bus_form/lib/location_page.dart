@@ -3,6 +3,7 @@ import 'package:simple_permissions/simple_permissions.dart';
 import 'package:location/location.dart';
 
 
+
 class LocationPage extends StatefulWidget {
 
   @override
@@ -13,9 +14,10 @@ class LocationPage extends StatefulWidget {
 
 class _LocationPageState extends State<LocationPage> {
 
+  Map<String, double> userLocation = {};
+
   Future<Map<String, double>> gatherUserLocation() async{
     Location location = new Location();
-    Map<String, double> userLocation = {};
     String error = null;
     try {
       userLocation = await location.getLocation();
@@ -27,22 +29,25 @@ class _LocationPageState extends State<LocationPage> {
   }
 
 
-  void requestLocationPermission() async {
+  void requestLocationPermission(BuildContext context) async {
     bool locationPermissionStatus = await SimplePermissions.checkPermission(Permission.AccessFineLocation);
     print("Location Permission status is " + locationPermissionStatus.toString());
     if (!locationPermissionStatus) {
       PermissionStatus requestPermissionStatus = await SimplePermissions.requestPermission(Permission.AccessFineLocation);
       switch (requestPermissionStatus) {
         case PermissionStatus.authorized : {
-          Future<Map<String, double>> currentLocation = gatherUserLocation();
-          currentLocation.then((loc) {
-            if (loc != null) {
-              print ("Longitude " + loc["longitude"].toString());
-              print ("Latitude " + loc["latitude"].toString());
-            } else {
-              print ("Location is null");
-            }
-          });
+            Navigator.pushReplacementNamed(context, "/bus_stop");
+
+//          Future<Map<String, double>> currentLocation = gatherUserLocation();
+//          currentLocation.then((loc) {
+//            if (loc != null) {
+//              print ("Longitude " + loc["longitude"].toString());
+//              print ("Latitude " + loc["latitude"].toString());
+//            } else {
+//              print ("Location is null");
+//              Navigator.pushReplacementNamed(context, "/bus_stop");
+//            }
+//          });
           break;
         }
         case PermissionStatus.denied : {
@@ -67,22 +72,22 @@ class _LocationPageState extends State<LocationPage> {
 
       //Location permission already granted
     } else {
-//      Future<Map<String, double>> currentLocation = gatherUserLocation();
-//      currentLocation.then((loc) {
-//        if (loc != null) {
-//          print ("Longitude " + loc["longitude"].toString());
-//          print ("Latitude " + loc["latitude"].toString());
-//        } else {
-//          print ("Location is null");
-//        }
-//      });
+      Future<Map<String, double>> currentLocation = gatherUserLocation();
+      currentLocation.then((loc) {
+        if (loc != null) {
+          print ("Longitude " + loc["longitude"].toString());
+          print ("Latitude " + loc["latitude"].toString());
+        } else {
+          print ("Location is null");
+          Navigator.pushReplacementNamed(context, "/bus_stop");
+        }
+      });
     }
   }
 
   @override
   void initState() {
     super.initState();
-    requestLocationPermission();
   }
 
   @override
@@ -102,8 +107,17 @@ class _LocationPageState extends State<LocationPage> {
                 textAlign: TextAlign.center
             ),
           )
-        )
-
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: RaisedButton(
+            onPressed: () {
+                requestLocationPermission(context);
+            },
+            child: Text('Get Location Permission'),
+            color: Colors.green
+          ),
+        ),
         ]
       ),
     );
