@@ -1,0 +1,8 @@
+<div leaflet style="height: 500px;"
+  [leafletOptions]="options"
+  [leafletZoom]="zoom"
+  (leafletZoomChange)="onZoomChange($event)"
+  [leafletCenter]="center"
+  (leafletCenterChange)="onCenterChange($event)"
+  [leafletLayers]="markers">
+</div>
