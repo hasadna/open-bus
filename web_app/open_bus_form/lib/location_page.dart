@@ -13,7 +13,7 @@ class LocationPage extends StatefulWidget {
 class _LocationPageState extends State<LocationPage> {
 
   void gatherAndsendUserLocation() {
-    
+
   }
 
   void requestLocationPermission() async {
