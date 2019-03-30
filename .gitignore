@@ -3,3 +3,51 @@
 .pytest_cache
 gtfs/retriever/.idea/
 build
+
+# Web App section
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# compiled output
+/web_app/bus-routes/dist
+/web_app/bus-routes/tmp
+/web_app/bus-routes/out-tsc
+# Only exists if Bazel was run
+/web_app/bus-routes/bazel-out
+
+# dependencies
+/web_app/bus-routes/node_modules
+
+# profiling files
+/web_app/bus-routes/chrome-profiler-events.json
+/web_app/bus-routes/speed-measure-plugin.json
+
+# IDEs and editors
+/web_app/bus-routes/.idea
+/web_app/bus-routes/.project
+/web_app/bus-routes/.classpath
+/web_app/bus-routes/.c9/
+*.launch
+/web_app/bus-routes/.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+/web_app/bus-routes/.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+/web_app/bus-routes/.history/*
+
+# misc
+/web_app/bus-routes/.sass-cache
+/web_app/bus-routes/connect.lock
+/web_app/bus-routes/coverage
+/web_app/bus-routes/libpeerconnection.log
+/web_app/bus-routes/npm-debug.log
+/web_app/bus-routes/yarn-error.log
+/web_app/bus-routes/testem.log
+/web_app/bus-routes/typings
+
+# System Files
+.DS_Store
+Thumbs.db
