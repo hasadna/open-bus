@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:simple_permissions/simple_permissions.dart';
+import 'package:location/location.dart';
 
 
 class LocationPage extends StatefulWidget {
@@ -12,9 +13,19 @@ class LocationPage extends StatefulWidget {
 
 class _LocationPageState extends State<LocationPage> {
 
-  void gatherAndsendUserLocation() {
-
+  Future<Map<String, double>> gatherUserLocation() async{
+    Location location = new Location();
+    Map<String, double> userLocation = {};
+    String error = null;
+    try {
+      userLocation = await location.getLocation();
+    } catch (e) {
+      print("Error when getting location " + e.toString());
+      userLocation = null;
+    }
+    return userLocation;
   }
+
 
   void requestLocationPermission() async {
     bool locationPermissionStatus = await SimplePermissions.checkPermission(Permission.AccessFineLocation);
@@ -23,7 +34,15 @@ class _LocationPageState extends State<LocationPage> {
       PermissionStatus requestPermissionStatus = await SimplePermissions.requestPermission(Permission.AccessFineLocation);
       switch (requestPermissionStatus) {
         case PermissionStatus.authorized : {
-          gatherAndsendUserLocation();
+          Future<Map<String, double>> currentLocation = gatherUserLocation();
+          currentLocation.then((loc) {
+            if (loc != null) {
+              print ("Longitude " + loc["longitude"].toString());
+              print ("Latitude " + loc["latitude"].toString());
+            } else {
+              print ("Location is null");
+            }
+          });
           break;
         }
         case PermissionStatus.denied : {
@@ -46,6 +65,17 @@ class _LocationPageState extends State<LocationPage> {
         }
       }
 
+      //Location permission already granted
+    } else {
+//      Future<Map<String, double>> currentLocation = gatherUserLocation();
+//      currentLocation.then((loc) {
+//        if (loc != null) {
+//          print ("Longitude " + loc["longitude"].toString());
+//          print ("Latitude " + loc["latitude"].toString());
+//        } else {
+//          print ("Location is null");
+//        }
+//      });
     }
   }
 
