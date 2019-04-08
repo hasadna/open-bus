@@ -42,13 +42,9 @@ modtime = 1543845356.750899500
 version = 7.2.1
 modtime = 1543937814.703443000
 
-[inputs/monitor%3A%2F%2F%2Fmnt%2Fdisks%2Fsplunk1%2Finputs%2Fgtfs_stats_csv]
-version = 7.2.5.1
-modtime = 1554417560.513524000
-
 [inputs/monitor%3A%2F%2F%2Fmnt%2Fdisks%2Fsplunk1%2Finputs%2Fsiri_csv]
 version = 7.2.5.1
-modtime = 1554417536.655159000
+modtime = 1554737164.295200000
 
 [views/vehicle_investigator]
 access = read : [ * ], write : [ admin ]
@@ -78,11 +74,6 @@ modtime = 1549377626.370131000
 owner = danb
 version = 7.2.1
 modtime = 1549373979.330241000
-
-[inputs/monitor%3A%2F%2F%2Fmnt%2Fdisks%2Fsplunk1%2Finputs%2Ftrip_stats_csv]
-owner = danb
-version = 7.2.5.1
-modtime = 1554417567.861416000
 
 [indexes/route_stats]
 owner = danb
