@@ -30,6 +30,19 @@ def generate_trip_stats_aggregation(feed):
             d[f'start_{key}'] = group[key].iat[0]
             d[f'end_{key}'] = group[key].iat[-1]
 
+        # Key is the original name, value is the new name
+        columns_to_rename = {
+            'start_zone_name': 'start_zone',
+            'end_zone_name': 'end_zone',
+            'start_departure_time': 'start_time',
+            'end_departure_time': 'end_time',
+        }
+
+        # Renaming columns
+        for original_name, new_name in columns_to_rename.items():
+            d[new_name] = d[original_name]
+            del d[original_name]
+
         d['num_zones'] = group.zone_name.nunique()
         d['num_zones_missing'] = group.zone_name.isnull().sum()
         dist = geometry_by_stop[d['start_stop_id']].distance(
