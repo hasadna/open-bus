@@ -120,7 +120,8 @@
       <title>Trip info</title>
       <table>
         <search base="trip_base">
-          <query>stats count as distinct_points sum(distance) as total_distance min(time_recorded_secs) as min_time max(time_recorded_secs) as max_time max(speed) as max_speed | eval total_time = max_time-min_time, avg_speed = round(total_distance / (total_time/3600), 2)." km/h" | eval total_time=tostring(total_time, "duration")." hrs", total_distance = round(total_distance, 2)." km", max_speed = round(max_speed, 2)." km/h"| fields - min_time max_time | transpose | rename "row 1" as info</query>
+          <query>stats count as distinct_points sum(distance) as total_distance min(time_recorded_secs) as min_time max(time_recorded_secs) as max_time max(speed) as max_speed | eval total_time = max_time-min_time, avg_speed = round(total_distance / (total_time/3600), 2)." km/h" | eval duration=tostring(total_time, "duration")." hrs", total_distance = round(total_distance, 2)." km", max_speed = round(max_speed, 2)." km/h"| fields - min_time max_time total_time | append [search index=route_stats $route_id$ earliest=$earliest$ latest=$latest$ date=$date$ 
+| eval duration=tostring(round(mean_trip_duration*3600), "duration")." hrs", total_distance = round(mean_trip_distance/1000, 2)." km", avg_speed=round(service_speed, 2)." km/h" | table duration, total_distance, avg_speed] | transpose | rename "row 1" as siri "row 2" as gtfs</query>
         </search>
         <option name="count">5</option>
         <option name="drilldown">none</option>
@@ -178,8 +179,10 @@
       | eval layerDescription=case(like(all_stop_latlon, "XX%"), "First stop", like(all_stop_latlon, "%XX"), "Last Stop", 1==1, "Stop") 
       | rex field=all_stop_latlon "(?&lt;latitude&gt;[\d\.]*),(?&lt;longitude&gt;[\d\.]*)(XX)?" | eval description=stop_code | eval clusterGroup = "stops" | eval markerColor="red" 
       |  eval trip_temp_id = "Stops path"
-      | table latitude, longitude, description, icon, clusterGroup, markerColor, trip_temp_id, layerDescription]
-   | table latitude longitude tooltip icon markerColor clusterGroup _time description planned_start_time trip_temp_id layerDescription</query>
+      | eval pathWeight=1
+      | eval pathColor = "#e41a1c"
+      | table latitude, longitude, description, icon, clusterGroup, markerColor, trip_temp_id, layerDescription, pathWeight pathColor]
+   | table latitude longitude tooltip icon markerColor clusterGroup _time description planned_start_time trip_temp_id layerDescription, pathWeight pathColor</query>
           <earliest>0</earliest>
           <latest></latest>
         </search>
@@ -229,10 +232,10 @@
         <option name="leaflet_maps_app.maps-plus.measureTool">0</option>
         <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.multiplePopups">1</option>
-        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
+        <option name="leaflet_maps_app.maps-plus.pathColorList">#377eb8,#4daf4a,#984ea3,#ff7f00,#ffff33,#a65628,#f781bf,#999999</option>
         <option name="leaflet_maps_app.maps-plus.pathIdentifier">trip_temp_id</option>
         <option name="leaflet_maps_app.maps-plus.pathSplitInterval">90</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">1</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
         <option name="leaflet_maps_app.maps-plus.permanentTooltip">1</option>
         <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
         <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
@@ -247,7 +250,7 @@
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
         <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
         <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">0</option>
+        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
         <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
         <option name="refresh.display">progressbar</option>
       </viz>
