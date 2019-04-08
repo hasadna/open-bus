@@ -100,3 +100,7 @@ export = none
 owner = danb
 version = 7.2.1
 modtime = 1553422173.244654000
+
+[inputs/monitor%3A%2F%2F%2Fmnt%2Fdisks%2Fsplunk1%2Finputs%2Froute_stats_csv]
+version = 7.2.5.1
+modtime = 1554737568.698366000
