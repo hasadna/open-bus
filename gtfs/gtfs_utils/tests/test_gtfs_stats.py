@@ -44,3 +44,4 @@ def test_handle_gtfs_file():
                                                        join(TEST_ASSETS_DIR, 'outputs'),
                                                        TEST_OUTPUTS_DIR)
         assert expected_df.equals(actual_df)
+        os.remove(join(TEST_OUTPUTS_DIR, file_name))
