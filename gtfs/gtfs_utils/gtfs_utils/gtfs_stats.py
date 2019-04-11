@@ -60,16 +60,17 @@ def get_gtfs_file(file, gtfs_folder, bucket, force=False):
     return downloaded
 
 
-def get_closest_archive_path(date, file_name):
+def get_closest_archive_path(date, file_name, archive_folder=ARCHIVE_FOLDER):
     for i in range(100):
         date_str = datetime.datetime.strftime(date - datetime.timedelta(i), '%Y-%m-%d')
-        tariff_path_to_try = join(ARCHIVE_FOLDER, date_str, file_name)
+        tariff_path_to_try = join(archive_folder, date_str, file_name)
         if os.path.exists(tariff_path_to_try):
             return tariff_path_to_try
     return LOCAL_TARIFF_PATH
 
 
-def handle_gtfs_date(date_str, file, bucket, output_folder=OUTPUT_DIR, gtfs_folder=GTFS_FEEDS_PATH):
+def handle_gtfs_date(date_str, file, bucket, output_folder=OUTPUT_DIR, gtfs_folder=GTFS_FEEDS_PATH,
+                     archive_folder=ARCHIVE_FOLDER):
     """
 Handle a single date for a single GTFS file. Download if necessary compute and save stats files (currently trip_stats
 and route_stats).
@@ -115,7 +116,7 @@ and route_stats).
         logging.debug(f'finished creating daily partridge feed for file "{join(gtfs_folder, file)}" with date "{date}"')
 
         # TODO: use Tariff.zip from s3
-        tariff_path_to_use = get_closest_archive_path(date, 'Tariff.zip')
+        tariff_path_to_use = get_closest_archive_path(date, 'Tariff.zip', archive_folder=archive_folder)
         logging.info(f'creating zones DF from "{tariff_path_to_use}"')
         zones = gu.get_zones_df(tariff_path_to_use)
 
