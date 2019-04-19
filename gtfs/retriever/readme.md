@@ -3,7 +3,7 @@
 
 
 ### Retrieve GTFS Files from MOT FTP
-The folowing tool can be used to download GTFS files when new GTFS files are publish.
+The following tool can be used to download GTFS files when new GTFS files are publish.
 
 ```
 usage: gtfs_retrieve.py [-h] [-d [DIR_TO_DOWNLOAD]] [--no_timestamp]
@@ -34,7 +34,7 @@ optional arguments:
 ```
 
 ### S3 Wrapper
-The folowing tool can be used to Download, Upload, and List Files from open-bus S3 buckets. The tool have 3 commands:
+The following tool can be used to Download, Upload, and List Files from open-bus S3 buckets. The tool have 3 commands:
 
 **List Command**
 ```
