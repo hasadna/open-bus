@@ -1,14 +1,16 @@
-gtfs_retrieve
+## Download and Uploads Files
 
-usage: MOT FTP server downloader and AWS S3 uploader [-h]
-                                                     [-d [DIR_TO_DOWNLOAD]]
-                                                     [--no_timestamp]
-                                                     [--no_md5] [--tempfile]
-                                                     [-p [DIR_OF_PICKLE_FILE]]
-                                                     [--print_ftp]
-                                                     [--aws AWS_CONFIG_FILE]
-                                                     [--aws_ul AWS_CONFIG_FILE PATH_OF_FILE_TO_UPLOAD]
-                                                     [--version]
+
+
+### Retrieve GTFS Files from MOT FTP
+The folowing tool can be used to download GTFS files when new GTFS files are publish.
+
+```
+usage: gtfs_retrieve.py [-h] [-d [DIR_TO_DOWNLOAD]] [--no_timestamp]
+                        [--no_md5] [--tempfile] [-p [DIR_OF_PICKLE_FILE]]
+                        [--print_ftp] [--aws AWS_CONFIG_FILE]
+                        [--aws_ul AWS_CONFIG_FILE PATH_OF_FILE_TO_UPLOAD]
+                        [--version]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -29,11 +31,14 @@ optional arguments:
                         /conf/gtfs_download.config.example for a template
                         configuration file
   --version             show program's version number and exit
+```
 
+### S3 Wrapper
+The folowing tool can be used to Download, Upload, and List Files from open-bus S3 buckets. The tool have 3 commands:
 
-s3_wrapper.py
-
-1. usage: s3_wrapper.py list [-h] [--access-key-id <String>]
+**List Command**
+```
+usage: s3_wrapper.py list [-h] [--access-key-id <String>]
                           [--secret-access-key <String>]
                           [--bucket-name <String>] [--endpoint-url <String>]
                           [--access-preset ACCESS_PRESET]
@@ -58,9 +63,10 @@ optional arguments:
                         string
   --regex-filter <String>, -rf <String>
                         filter files path by regex
-
-
-2. usage: s3_wrapper.py download [-h] [--access-key-id <String>]
+```
+**Download Command** 
+```
+usage: s3_wrapper.py download [-h] [--access-key-id <String>]
                               [--secret-access-key <String>]
                               [--bucket-name <String>]
                               [--endpoint-url <String>]
@@ -87,11 +93,11 @@ optional arguments:
                         reference for local file you wish to upload to path to
                         download to
 
+```
+**Upload Command** 
 
-
-
-
-3. usage: s3_wrapper.py upload [-h] [--access-key-id <String>]
+```
+usage: s3_wrapper.py upload [-h] [--access-key-id <String>]
                             [--secret-access-key <String>]
                             [--bucket-name <String>] [--endpoint-url <String>]
                             [--access-preset ACCESS_PRESET] --key <Path>
@@ -120,3 +126,4 @@ optional arguments:
   --path-filter <String>, -pf <String>
                         filter files path
 
+```
