@@ -28,7 +28,7 @@ def splunk_query_builder(**query_kwargs):
 
     for param in params:
         if query_kwargs[param]:
-            if isinstance(query_kwargs[param], tuple):
+            if isinstance(query_kwargs[param], (list, tuple,dict, set)):
                 print("can't filter by list ({})\n".format(param))
             else:
                 where_list.append('{}={} '.format(param, query_kwargs[param]))
