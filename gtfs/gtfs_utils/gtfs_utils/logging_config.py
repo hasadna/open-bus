@@ -10,7 +10,7 @@ def configure_logger():
 
     datetime_string = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     log_file_name = f'gtfs_stats_{datetime_string}.log'
-    log_file_full_path = os.path.join(configuration.localFiles.childDirectories.logsDirectory,
+    log_file_full_path = os.path.join(configuration.files.full_paths.logs,
                                       log_file_name)
     file_handler = logging.FileHandler(log_file_full_path)
 

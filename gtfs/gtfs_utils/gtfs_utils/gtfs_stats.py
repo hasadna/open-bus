@@ -62,21 +62,23 @@ def get_gtfs_file(file, gtfs_folder, bucket, force=False):
     return downloaded
 
 
-def get_closest_archive_path(date, file_name, archive_folder=ARCHIVE_FOLDER):
+def get_closest_archive_path(date,
+                             file_name,
+                             archive_folder=configuration.files.full_paths.archive):
     for i in range(100):
         date_str = datetime.datetime.strftime(date - datetime.timedelta(i), '%Y-%m-%d')
         tariff_path_to_try = join(archive_folder, date_str, file_name)
         if os.path.exists(tariff_path_to_try):
             return tariff_path_to_try
-    return LOCAL_TARIFF_PATH
+    return configuration.files.tariffFilePath
 
 
 def handle_gtfs_date(date_str,
                      file,
                      bucket,
-                     output_folder=configuration.localFiles.childDirectories.output,
-                     gtfs_folder=configuration.localFiles.childDirectories.gtfsFeeds,
-                     archive_folder=ARCHIVE_FOLDER):
+                     output_folder=configuration.files.full_paths.output,
+                     gtfs_folder=configuration.files.full_paths.gtfsFeeds,
+                     archive_folder=configuration.files.full_paths.archive):
     """
 Handle a single date for a single GTFS file. Download if necessary compute and save stats files (currently trip_stats
 and route_stats).
@@ -104,7 +106,7 @@ and route_stats).
         downloaded = get_gtfs_file(file, gtfs_folder, bucket)
 
         if configuration.writeFilteredFeed:
-            filtered_out_path = os.path.join(configuration.localFiles.childDirectories.filteredFeedsDirectory,
+            filtered_out_path = os.path.join(configuration.files.full_paths.filteredFeedsDirectory,
                                              f'{date_str}.zip')
             logging.info(f'writing filtered gtfs feed for file "{gtfs_folder+file}" with date "{date}" in path '
                         f'{filtered_out_path}')
@@ -129,11 +131,11 @@ and route_stats).
 
         logging.info(
             f'starting compute_trip_stats_partridge for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
-            f'"{LOCAL_TARIFF_PATH}"')
+            f'"{configuration.files.tariffFilePath}"')
         ts = gu.compute_trip_stats_partridge(feed, zones)
         logging.debug(
             f'finished compute_trip_stats_partridge for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
-            f'"{LOCAL_TARIFF_PATH}"')
+            f'"{configuration.files.tariffFilePath}"')
         # TODO: log this
         ts['date'] = date_str
         ts['date'] = pd.Categorical(ts.date)
@@ -168,8 +170,8 @@ and route_stats).
 def handle_gtfs_file(file,
                      bucket,
                      stats_dates,
-                     output_folder=configuration.localFiles.childDirectories.output,
-                     gtfs_folder=configuration.localFiles.childDirectories.gtfsFeeds,
+                     output_folder=configuration.files.full_paths.output,
+                     gtfs_folder=configuration.files.full_paths.gtfsFeeds,
                      delete_downloaded_gtfs_zips=False):
     """
 Handle a single GTFS file. Download if necessary compute and save stats files (currently trip_stats and route_stats).
@@ -200,8 +202,8 @@ Handle a single GTFS file. Download if necessary compute and save stats files (c
 
 
 def batch_stats_s3(bucket_name=configuration.bucketName,
-                   output_folder=configuration.localFiles.childDirectories.output,
-                   gtfs_folder=configuration.localFiles.childDirectories.gtfsFeeds,
+                   output_folder=configuration.files.full_paths.output,
+                   gtfs_folder=configuration.files.full_paths.gtfsFeeds,
                    delete_downloaded_gtfs_zips=False,
                    forward_fill=configuration.forwardFill):
     """

@@ -1,14 +1,4 @@
 import re
-from os.path import join, pardir
-
-_base_folder_path = [pardir] * 4  # 4th parent dir
-BASE_FOLDER = join(*_base_folder_path)
-
-DATA_FOLDER = join(BASE_FOLDER, 'data')
-
-ARCHIVE_FOLDER = join(DATA_FOLDER, 'archive')
-LOCAL_TARIFF_PATH = join(ARCHIVE_FOLDER, '2019-03-17', 'Tariff.zip')
-
 
 OUTPUT_FILE_NAME_RE = re.compile('^(?P<date_str>[^_]+?)'
                                  '_(?P<type>\w+)\.pkl\.gz')

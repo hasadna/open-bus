@@ -17,6 +17,15 @@ class ChildDirectories:
     filteredFeeds: str = None
     logs: str = None
 
+@dataclass
+class FullPaths:
+    data: str = None
+    archive: str = None
+    gtfsFeeds: str = None
+    output: str = None
+    filteredFeeds: str = None
+    logs: str = None
+
     def all(self) -> List[str]:
         """
         Returns a list with the paths of all of the directories
@@ -26,16 +35,27 @@ class ChildDirectories:
 
 
 @dataclass
-class LocalFiles:
+class FilesConfiguration:
     baseDirectory: str = None
     childDirectories: ChildDirectories = None
     tariffFilePath: str = None
     outputFileNameRegexp: str = None
 
+    def __init__(self):
+        self.__full_paths: FullPaths = None
+
+    @property
+    def full_paths(self) -> FullPaths:
+        if not self.__full_paths and self.childDirectories:
+            self.__full_paths = FullPaths()
+            for key, value in vars(self.childDirectories).items():
+                setattr(self.__full_paths, key, value)
+
+        return self.__full_paths
 
 @dataclass
 class Configuration:
-    localFiles: LocalFiles = None
+    files: FilesConfiguration = None
     bucketName: str = None
     bucketValidFileNameRegexp: str = None
     forwardFill: bool = True
