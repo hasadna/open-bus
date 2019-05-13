@@ -9,10 +9,6 @@ DATA_FOLDER = join(BASE_FOLDER, 'data')
 ARCHIVE_FOLDER = join(DATA_FOLDER, 'archive')
 LOCAL_TARIFF_PATH = join(ARCHIVE_FOLDER, '2019-03-17', 'Tariff.zip')
 
-GTFS_FEEDS_PATH = join(DATA_FOLDER, 'gtfs_feeds')
-
-# OUTPUT_DIR = join(DATA_FOLDER, 'gtfs_stats_route_desc')
-OUTPUT_DIR = join(DATA_FOLDER, 'gtfs_stats_hack')
 
 OUTPUT_FILE_NAME_RE = re.compile('^(?P<date_str>[^_]+?)'
                                  '_(?P<type>\w+)\.pkl\.gz')

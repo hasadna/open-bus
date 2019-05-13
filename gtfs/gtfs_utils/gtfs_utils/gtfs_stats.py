@@ -71,7 +71,11 @@ def get_closest_archive_path(date, file_name, archive_folder=ARCHIVE_FOLDER):
     return LOCAL_TARIFF_PATH
 
 
-def handle_gtfs_date(date_str, file, bucket, output_folder=OUTPUT_DIR, gtfs_folder=GTFS_FEEDS_PATH,
+def handle_gtfs_date(date_str,
+                     file,
+                     bucket,
+                     output_folder=configuration.localFiles.childDirectories.output,
+                     gtfs_folder=configuration.localFiles.childDirectories.gtfsFeeds,
                      archive_folder=ARCHIVE_FOLDER):
     """
 Handle a single date for a single GTFS file. Download if necessary compute and save stats files (currently trip_stats
@@ -161,8 +165,12 @@ and route_stats).
     return downloaded
 
 
-def handle_gtfs_file(file, bucket, stats_dates, output_folder=OUTPUT_DIR,
-                     gtfs_folder=GTFS_FEEDS_PATH, delete_downloaded_gtfs_zips=False):
+def handle_gtfs_file(file,
+                     bucket,
+                     stats_dates,
+                     output_folder=configuration.localFiles.childDirectories.output,
+                     gtfs_folder=configuration.localFiles.childDirectories.gtfsFeeds,
+                     delete_downloaded_gtfs_zips=False):
     """
 Handle a single GTFS file. Download if necessary compute and save stats files (currently trip_stats and route_stats).
     :param file: gtfs file name (currently only YYYY-mm-dd.zip)
@@ -191,8 +199,10 @@ Handle a single GTFS file. Download if necessary compute and save stats files (c
         logging.debug(f'keeping gtfs zip file "{join(gtfs_folder, file)}"')
 
 
-def batch_stats_s3(bucket_name=configuration.bucketName, output_folder=OUTPUT_DIR,
-                   gtfs_folder=GTFS_FEEDS_PATH, delete_downloaded_gtfs_zips=False,
+def batch_stats_s3(bucket_name=configuration.bucketName,
+                   output_folder=configuration.localFiles.childDirectories.output,
+                   gtfs_folder=configuration.localFiles.childDirectories.gtfsFeeds,
+                   delete_downloaded_gtfs_zips=False,
                    forward_fill=configuration.forwardFill):
     """
 Create daily trip_stats and route_stats DataFrame pickles, based on the files in an S3 bucket and
