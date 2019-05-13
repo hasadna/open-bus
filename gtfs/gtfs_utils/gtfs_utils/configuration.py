@@ -1,8 +1,8 @@
-from dataclasses import dataclass, fields, is_dataclass
+from dataclasses import dataclass, fields, is_dataclass, field
 import json
 import os
 from inspect import isclass
-from typing import Dict
+from typing import Dict, List
 
 CONFIGURATION_FILE_PATH  = os.path.join(os.path.dirname(__file__), 'config.json')
 
@@ -28,7 +28,15 @@ class LocalFiles:
 @dataclass
 class Configuration:
     localFiles: LocalFiles = None
-    # TODO: add required fields here
+    bucketName: str = None
+    bucketValidFileNameRegexp: str = None
+    forwardFill: bool = True
+    futureDaysCount: int = 0
+    displayDownloadProgressBar: bool = True
+    displaySizeOnProgressBar: bool = True
+    deleteDownloadedGtfsZipFiles: bool = True
+    writeFilteredFeed: bool = True
+    statsTypes: List[str] = field(default_factory=list)
 
 
 def dict_to_dataclass(dirty_dict: Dict, data_class: type) -> Dict:
