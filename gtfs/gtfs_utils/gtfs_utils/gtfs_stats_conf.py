@@ -21,14 +21,4 @@ BUCKET_NAME = 's3.obus.hasadna.org.il'
 BUCKET_VALID_FILES_RE = re.compile('2019-\d\d-\d\d\.zip')
 #BUCKET_VALID_FILES_RE = re.compile('2019-03-12.zip')
 
-FORWARD_FILL = True
-FUTURE_DAYS = 0  # will have an effect only if FORWARD_FILL is True
-
-DOWNLOAD_PBAR = False
-SIZE_FOR_DOWNLOAD_PBAR = False
-
-DELETE_DOWNLOADED_GTFS_ZIPS = False
-WRITE_FILTERED_FEED = False
-FILTERED_FEEDS_PATH = join(DATA_FOLDER, 'filtered_feeds')
-
-STATS_TYPES = ['trip_stats', 'route_stats']
+TATS_TYPES = ['trip_stats', 'route_stats']

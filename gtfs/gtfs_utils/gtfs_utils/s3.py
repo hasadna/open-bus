@@ -2,9 +2,10 @@ import logging
 import pandas as pd
 import datetime
 from collections import defaultdict
-from gtfs_stats_conf import *
-from retry import retry
-from general_utils import parse_date
+from .gtfs_stats_conf import *
+from .retry import retry
+from .general_utils import parse_date
+from .configuration import configuration
 
 
 @retry()
@@ -25,9 +26,9 @@ Download file from s3 bucket. Retry using decorator.
 
         return inner
 
-    if DOWNLOAD_PBAR:
+    if configuration.displayDownloadProgressBar:
         # TODO: this is an S3 anti-pattern, and is inefficient - so defaulting to not doing this
-        if SIZE_FOR_DOWNLOAD_PBAR:
+        if configuration.displaySizeOnProgressBar:
             size = [obj.size for obj in bucket.objects.filter(Prefix=key, MaxKeys=1)][0]
         else:
             size = None
@@ -66,7 +67,7 @@ Get list of dates without output files (currently just route_stats is considered
                             if g[1] == 'route_stats']]
 
 
-def get_forward_fill_dict(valid_files, future_days=FUTURE_DAYS):
+def get_forward_fill_dict(valid_files, future_days=configuration.futureDaysCount):
     """
 get a dictionary mapping gtfs file names to a list of dates for forward fill by scanning for missing dates for files
     :param valid_files: list of valid file keys

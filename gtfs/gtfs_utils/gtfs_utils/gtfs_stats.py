@@ -191,9 +191,9 @@ Handle a single GTFS file. Download if necessary compute and save stats files (c
         logging.debug(f'keeping gtfs zip file "{join(gtfs_folder, file)}"')
 
 
-def batch_stats_s3(bucket_name=BUCKET_NAME, output_folder=OUTPUT_DIR,
+def batch_stats_s3(bucket_name=configuration.bucketName, output_folder=OUTPUT_DIR,
                    gtfs_folder=GTFS_FEEDS_PATH, delete_downloaded_gtfs_zips=False,
-                   forward_fill=FORWARD_FILL):
+                   forward_fill=configuration.forwardFill):
     """
 Create daily trip_stats and route_stats DataFrame pickles, based on the files in an S3 bucket and
 their dates - `YYYY-mm-dd.zip`.
