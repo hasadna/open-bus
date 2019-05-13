@@ -4,17 +4,18 @@ import os
 from inspect import isclass
 from typing import Dict, List
 
+
 CONFIGURATION_FILE_PATH  = os.path.join(os.path.dirname(__file__), 'config.json')
 
 
 @dataclass
 class ChildDirectories:
-    dataDirectory: str = None
-    archiveDirectory: str = None
-    gtfsFeedsDirectory: str = None
-    outputDirectory: str = None
-    filteredFeedsDirectory: str = None
-    logsDirectory: str = None
+    data: str = None
+    archive: str = None
+    gtfsFeeds: str = None
+    output: str = None
+    filteredFeeds: str = None
+    logs: str = None
 
     def all(self) -> List[str]:
         """
@@ -58,6 +59,7 @@ def dict_to_dataclass(dirty_dict: Dict, data_class: type) -> Dict:
         else:
             value = dirty_dict[field.name]
 
+        # TODO: Check type of value
         setattr(data_class_instance, field.name, value)
 
     return data_class_instance

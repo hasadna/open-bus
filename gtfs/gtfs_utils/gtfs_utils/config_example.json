@@ -1,15 +1,15 @@
 {
   "localFiles": {
     "baseDirectory": "/home/or/open-bus-files/",
-    "childrenDirectories": {
-      "dataDirectory": "data",
-      "archiveDirectory": "archive",
-      "gtfsFeedsDirectory": "gtfs_feeds",
-      "outputDirectory": "gtfs_stats_hack",
-      "filteredFeedsDirectory": "filtered_feeds",
-      "logsDirectory": "logs"
+    "childDirectories": {
+      "data": "data",
+      "archive": "archive",
+      "gtfsFeeds": "gtfs_feeds",
+      "output": "gtfs_stats_hack",
+      "filteredFeeds": "filtered_feeds",
+      "logs": "logs"
     },
-    "tariffFile": "archive/2019-03-07/Tariff.zip",
+    "tariffFilePath": "archive/2019-03-07/Tariff.zip",
     "outputFileNameRegexp": "^(?P<date_str>[^_]+?)_(?P<type>\\w+)\\.pkl\\.gz"
   },
 
