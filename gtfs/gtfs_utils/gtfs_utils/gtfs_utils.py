@@ -2,8 +2,8 @@ import pandas as pd
 import partridge as ptg
 import zipfile
 import gtfstk
-from constants import *
-from aggregations import generate_trip_stats_aggregation, generate_route_stats_aggregation
+from .constants import *
+from .aggregations import generate_trip_stats_aggregation, generate_route_stats_aggregation
 
 
 def get_zones_df(local_tariff_zip_path):
