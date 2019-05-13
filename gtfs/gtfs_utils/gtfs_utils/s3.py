@@ -2,10 +2,10 @@ import logging
 import pandas as pd
 import datetime
 from collections import defaultdict
-from .gtfs_stats_conf import *
-from .retry import retry
-from .general_utils import parse_date
-from .configuration import configuration
+from gtfs_stats_conf import BUCKET_VALID_FILES_RE
+from retry import retry
+from general_utils import parse_date
+from configuration import configuration
 
 
 @retry()

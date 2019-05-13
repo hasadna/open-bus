@@ -1,5 +1,5 @@
 import os
-from gtfs_utils.gtfs_utils import configuration
+from configuration import configuration
 
 
 def mkdir_if_not_exists(dir_path):

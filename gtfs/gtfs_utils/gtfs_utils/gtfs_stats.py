@@ -16,11 +16,11 @@ from tqdm import tqdm
 from partridge import feed as ptg_feed
 from botocore.handlers import disable_signing
 import gtfs_utils as gu
-from .gtfs_stats_conf import *
-from .environment import init_conf
-from .s3 import get_valid_file_dates_dict, s3_download
-from .logging_config import configure_logger
-from .configuration import configuration
+from gtfs_stats_conf import OUTPUT_FILE_NAME_RE
+from environment import init_conf
+from s3 import get_valid_file_dates_dict, s3_download
+from logging_config import configure_logger
+from configuration import configuration
 
 
 def _get_existing_output_files(output_folder):
