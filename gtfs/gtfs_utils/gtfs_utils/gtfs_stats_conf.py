@@ -32,17 +32,3 @@ WRITE_FILTERED_FEED = False
 FILTERED_FEEDS_PATH = join(DATA_FOLDER, 'filtered_feeds')
 
 STATS_TYPES = ['trip_stats', 'route_stats']
-
-LOG_FOLDER = join(BASE_FOLDER, 'logs')
-
-PROFILE = False
-PROFILE_PATH = join(BASE_FOLDER, 'gtfs_stats_180601.prof')
-
-ALL_FOLDERS = [
-    DATA_FOLDER,
-    GTFS_FEEDS_PATH,
-    OUTPUT_DIR,
-    FILTERED_FEEDS_PATH,
-    LOG_FOLDER,
-    ARCHIVE_FOLDER
-]

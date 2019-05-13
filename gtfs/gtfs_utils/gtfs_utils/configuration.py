@@ -16,6 +16,13 @@ class ChildDirectories:
     filteredFeedsDirectory: str = None
     logsDirectory: str = None
 
+    def all(self) -> List[str]:
+        """
+        Returns a list with the paths of all of the directories
+        :return: a path list
+        """
+        return list(vars(self).values())
+
 
 @dataclass
 class LocalFiles:

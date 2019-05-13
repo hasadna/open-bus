@@ -16,10 +16,12 @@ from tqdm import tqdm
 from partridge import feed as ptg_feed
 from botocore.handlers import disable_signing
 import gtfs_utils as gu
-from gtfs_stats_conf import *
-from environment import init_conf
-from s3 import get_valid_file_dates_dict, s3_download
-from logging_config import configure_logger
+from .gtfs_stats_conf import *
+from .environment import init_conf
+from .s3 import get_valid_file_dates_dict, s3_download
+from .logging_config import configure_logger
+from .configuration import configuration
+
 
 def _get_existing_output_files(output_folder):
     """
@@ -97,8 +99,9 @@ and route_stats).
     else:
         downloaded = get_gtfs_file(file, gtfs_folder, bucket)
 
-        if WRITE_FILTERED_FEED:
-            filtered_out_path = FILTERED_FEEDS_PATH + date_str + '.zip'
+        if configuration.writeFilteredFeed:
+            filtered_out_path = os.path.join(configuration.localFiles.childDirectories.filteredFeedsDirectory,
+                                             f'{date_str}.zip')
             logging.info(f'writing filtered gtfs feed for file "{gtfs_folder+file}" with date "{date}" in path '
                         f'{filtered_out_path}')
             gu.write_filtered_feed_by_date(gtfs_folder + file, date, filtered_out_path)
@@ -246,16 +249,8 @@ def main():
     init_conf()
     configure_logger()
     logging.info(f'starting batch_stats_s3 with default config')
-    batch_stats_s3(delete_downloaded_gtfs_zips=DELETE_DOWNLOADED_GTFS_ZIPS)
+    batch_stats_s3(delete_downloaded_gtfs_zips=configuration.deleteDownloadedGtfsZipFiles)
 
-
-if __name__ == '__main__':
-    if PROFILE:
-        import cProfile
-
-        cProfile.run('main()', filename=PROFILE_PATH)
-    else:
-        main()
 
 # ## What's next
 # 
