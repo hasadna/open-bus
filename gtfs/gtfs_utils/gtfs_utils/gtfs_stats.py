@@ -264,6 +264,10 @@ def main():
     batch_stats_s3(delete_downloaded_gtfs_zips=configuration.deleteDownloadedGtfsZipFiles)
 
 
+if __name__ == '__main__':
+    main()
+
+
 # ## What's next
 # 
 # TODO List
