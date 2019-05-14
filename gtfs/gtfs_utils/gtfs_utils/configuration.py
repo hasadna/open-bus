@@ -64,7 +64,6 @@ class Configuration:
     displaySizeOnProgressBar: bool = True
     deleteDownloadedGtfsZipFiles: bool = True
     writeFilteredFeed: bool = True
-    statsTypes: List[str] = field(default_factory=list)
 
 
 def dict_to_dataclass(dirty_dict: Dict, data_class: type) -> Dict:

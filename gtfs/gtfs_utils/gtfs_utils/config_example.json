@@ -23,10 +23,5 @@
   "displaySizeOnProgressBar": false,
 
   "deleteDownloadedGtfsZipFiles": false,
-  "writeFilteredFeed": false,
-
-  "statsTypes": [
-    "trip_stats",
-    "route_stats"
-  ]
+  "writeFilteredFeed": false
 }
