@@ -20,7 +20,7 @@ Currently (May 2019) the 2 processes run on the same machine - A DigitalOcean cl
 
 A detailed description of each process is available below.
 
-Both processes are developed in the JAVA language. Source code is open-source, can be seen below.
+Both processes are developed in the JAVA language. Source code is open-source, can be seen [here](https://github.com/hasadna/open-bus/tree/master/siri).
 
 ## Functional View
 ### gtfs-reader
