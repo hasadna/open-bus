@@ -69,7 +69,8 @@ public class SiriParseServiceImpl implements SiriParseService {
                 Date departureTime = visit.getMonitoredVehicleJourney().getOriginAimedDepartureTime();
                 String operatorRef = visit.getMonitoredVehicleJourney().getOperatorRef().getValue();
                 String journeyRef = visit.getMonitoredVehicleJourney().getFramedVehicleJourneyRef().getDatedVehicleJourneyRef();
-                String rep = stringRepresentation(lineRef, lineName, recordedAt, expectedArrivalTime, licensePlate, lat, lon, departureTime, operatorRef, journeyRef, responseTimestamp);
+                String dataFrameRef = visit.getMonitoredVehicleJourney().getFramedVehicleJourneyRef().getDataFrameRef().getValue();
+                String rep = stringRepresentation(lineRef, lineName, recordedAt, expectedArrivalTime, licensePlate, lat, lon, departureTime, operatorRef, journeyRef, responseTimestamp, dataFrameRef);
                 s = s + rep + "\n";
             }
             if (!visits.isEmpty()) {
@@ -87,8 +88,8 @@ public class SiriParseServiceImpl implements SiriParseService {
     }
 
 
-    private String stringRepresentation(String lineRef, String lineName, Date recordedAt, Date expectedArrivalTime, String licensePlate, BigDecimal lon, BigDecimal lat, Date departureTime, String operatorRef, String journeyRef, String responseTimestamp) {
-        String s = MessageFormat.format("{10},[line {0} v {1} oad {12} ea {11}],{7},{8},{0},{9},{6},{1},{2},{3},{4},{5}",
+    private String stringRepresentation(String lineRef, String lineName, Date recordedAt, Date expectedArrivalTime, String licensePlate, BigDecimal lon, BigDecimal lat, Date departureTime, String operatorRef, String journeyRef, String responseTimestamp, String dataFrameRef) {
+        String s = MessageFormat.format("{10},[line {0} v {1} oad {12} ea {11}],{7},{8},{0},{9},{6},{1},{2},{3},{4},{5},{13}",
                 lineName, licensePlate,
                 formatDate(expectedArrivalTime),    // expectedArrivalTime should include both date and time - // <ns3:ExpectedArrivalTime>2019-04-01T21:14:00.000+03:00</ns3:ExpectedArrivalTime>
                 formatDate(recordedAt),             // recordedAt should include both date and time
@@ -96,8 +97,8 @@ public class SiriParseServiceImpl implements SiriParseService {
                 formatDate(departureTime),          // OriginAimedDeparture should include both date and time - // <ns3:OriginAimedDepartureTime>2019-04-01T20:00:00.000+03:00</ns3:OriginAimedDepartureTime>
                 operatorRef, lineRef, journeyRef, responseTimestamp,
                 formatTimeHHMM(expectedArrivalTime),    // ea as time only, for the free text part
-                formatTimeHHMM(departureTime)       // oad as time only, for the free text part
-                );
+                dataFrameRef
+        );
         return s ;
     }
 
@@ -118,3 +119,30 @@ public class SiriParseServiceImpl implements SiriParseService {
     }
 
 }
+
+/*
+<ns3:MonitoredVehicleJourney><ns3:LineRef>5962</ns3:LineRef><ns3:DirectionRef>1</ns3:DirectionRef><ns3:FramedVehicleJourneyRef><ns3:DataFrameRef>2019-04-01</ns3:DataFrameRef><ns3:DatedVehicleJourneyRef>31439164</ns3:DatedVehicleJourneyRef></ns3:FramedVehicleJourneyRef><ns3:PublishedLineName>174</ns3:PublishedLineName><ns3:OperatorRef>4</ns3:OperatorRef><ns3:DestinationRef>60664</ns3:DestinationRef><ns3:OriginAimedDepartureTime>2019-04-01T20:36:00.000+03:00</ns3:OriginAimedDepartureTime><ns3:VehicleLocation><ns3:Longitude>35.29014587402344</ns3:Longitude><ns3:Latitude>31.76877212524414</ns3:Latitude></ns3:VehicleLocation><ns3:VehicleRef>7558569</ns3:VehicleRef><ns3:MonitoredCall><ns3:StopPointRef>60664</ns3:StopPointRef><ns3:ExpectedArrivalTime>2019-04-01T21:18:00.000+03:00</ns3:ExpectedArrivalTime></ns3:MonitoredCall></ns3:MonitoredVehicleJourney>
+
+<ns3:MonitoredVehicleJourney>
+    <ns3:LineRef>5962</ns3:LineRef>
+    <ns3:DirectionRef>1</ns3:DirectionRef>
+    <ns3:FramedVehicleJourneyRef>
+        <ns3:DataFrameRef>2019-04-01</ns3:DataFrameRef>
+        <ns3:DatedVehicleJourneyRef>31439164</ns3:DatedVehicleJourneyRef>
+    </ns3:FramedVehicleJourneyRef>
+    <ns3:PublishedLineName>174</ns3:PublishedLineName>
+    <ns3:OperatorRef>4</ns3:OperatorRef>
+    <ns3:DestinationRef>60664</ns3:DestinationRef>
+    <ns3:OriginAimedDepartureTime>2019-04-01T20:36:00.000+03:00</ns3:OriginAimedDepartureTime>
+    <ns3:VehicleLocation>
+        <ns3:Longitude>35.29014587402344</ns3:Longitude>
+        <ns3:Latitude>31.76877212524414</ns3:Latitude>
+    </ns3:VehicleLocation>
+    <ns3:VehicleRef>7558569</ns3:VehicleRef>
+    <ns3:MonitoredCall>
+        <ns3:StopPointRef>60664</ns3:StopPointRef>
+        <ns3:ExpectedArrivalTime>2019-04-01T21:18:00.000+03:00</ns3:ExpectedArrivalTime>
+    </ns3:MonitoredCall>
+</ns3:MonitoredVehicleJourney>
+
+*/
