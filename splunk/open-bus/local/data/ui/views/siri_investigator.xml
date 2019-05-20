@@ -1,4 +1,4 @@
-<form theme="dark">
+<form theme="dark" script="custom_layout_width_si.js">
   <label>SIRI Investigator</label>
   <search id="trip_event_base">
     <query>
@@ -89,8 +89,8 @@
       <fieldForValue>route_id</fieldForValue>
       <search>
         <query>| tstats count where index="route_stats" AND date=$date$ AND route_short_name=$route_short_name$ AND agency_id=$agency_id$ AND (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) by agency_name start_zone route_short_name route_long_name route_id num_trips | eval description = "קו ".route_short_name." (".route_id.") - ".route_long_name." - ".num_trips." נסיעות" | sort -num_trips</query>
-        <earliest>0</earliest>
-        <latest></latest>
+        <earliest>$time_setter.earliest$</earliest>
+        <latest>$time_setter.latest$</latest>
       </search>
       <prefix>(</prefix>
       <suffix>)</suffix>
@@ -104,8 +104,8 @@
       <fieldForValue>planned_start_time</fieldForValue>
       <search>
         <query>| tstats count where index=siri date=$date$ agency_id=$agency_id$ $route_id$ by planned_start_time</query>
-        <earliest>0</earliest>
-        <latest></latest>
+        <earliest>$time_setter.earliest$</earliest>
+        <latest>$time_setter.latest$</latest>
       </search>
       <choice value="*">All</choice>
       <prefix>(</prefix>
@@ -120,36 +120,25 @@
       <title>Trip info</title>
       <table>
         <search base="trip_base">
-          <query>stats count as distinct_points sum(distance) as total_distance min(time_recorded_secs) as min_time max(time_recorded_secs) as max_time max(speed) as max_speed | eval total_time = max_time-min_time, avg_speed = round(total_distance / (total_time/3600), 2)." km/h" | eval total_time=tostring(total_time, "duration")." hrs", total_distance = round(total_distance, 2)." km", max_speed = round(max_speed, 2)." km/h"| fields - min_time max_time | transpose | rename "row 1" as info</query>
+          <query>stats count as distinct_points sum(distance) as total_distance min(time_recorded_secs) as min_time max(time_recorded_secs) as max_time max(speed) as max_speed | eval total_time = max_time-min_time, avg_speed = round(total_distance / (total_time/3600), 2)." km/h" | eval duration=tostring(total_time, "duration")." hrs", total_distance = round(total_distance, 2)." km", max_speed = round(max_speed, 2)." km/h"| fields - min_time max_time total_time | append [search index=route_stats $route_id$ earliest=$earliest$ latest=$latest$ date=$date$ 
+| eval duration=tostring(round(mean_trip_duration*3600), "duration")." hrs", total_distance = round(mean_trip_distance/1000, 2)." km", avg_speed=round(service_speed, 2)." km/h" | table duration, total_distance, avg_speed] | transpose | rename "row 1" as siri "row 2" as gtfs</query>
         </search>
-        <option name="count">10</option>
+        <option name="count">5</option>
         <option name="drilldown">none</option>
         <option name="refresh.display">progressbar</option>
       </table>
       <single>
+        <title>Departure info</title>
         <search base="times">
-          <query>table planned_start_time, time_recorded</query>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">1</option>
-        <option name="trellis.size">small</option>
-      </single>
-      <single>
-        <title>LATE / EARLY DEPARTURE</title>
-        <search base="times">
-          <query>eval td = td/60 | table td</query>
+          <query>eval "late by (minutes)" = td/60 | rename time_recorded as "~actual_start_time" | table planned_start_time, "~actual_start_time" "late by (minutes)"</query>
         </search>
         <option name="colorMode">block</option>
         <option name="drilldown">none</option>
         <option name="rangeColors">["0x006d9c","0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
         <option name="rangeValues">[0,3,5,10]</option>
         <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">0</option>
-        <option name="trellis.size">small</option>
-        <option name="underLabel">(APPROXIMATION)</option>
-        <option name="unit">min</option>
+        <option name="trellis.enabled">1</option>
+        <option name="trellis.size">medium</option>
         <option name="unitPosition">after</option>
         <option name="useColors">1</option>
       </single>
@@ -165,15 +154,16 @@
       </input>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
-          <query>(index=route_stats OR (index=siri lat!=0 $planned_start_time$)) agency_id=$agency_id$ $route_id$ earliest=$earliest$ latest=$latest$ date=$date$ date_hour&gt;=$hour_min$ date_hour&lt;=$hour_max$ 
+          <query>((index=siri lat!=0 $planned_start_time$)) agency_id=$agency_id$ $route_id$ earliest=$earliest$ latest=$latest$ date=$date$ date_hour&gt;=$hour_min$ date_hour&lt;=$hour_max$ 
    | sort sourcetype _time 
    | eval latitude = coalesce(lat, start_stop_lat), longitude = coalesce(lon, start_stop_lon)
-   | eval tooltip=if(isnull(time_recorded), "Start Stop", time_recorded) 
+   | eval tooltip=time_recorded
    | eval planned_start_time=coalesce(planned_start_time, start_time) 
-   | eval icon=case(sourcetype=="siri_csv", "bus", sourcetype=="route_stats", "home") 
+   | eval icon="bus"
+   | eval layerDescription="SIRI point"
    |  eval trip_temp_id = planned_start_time.", bus ".coalesce(bus_id,"UNK").", route_id=".coalesce(route_id, "UNK")
    | dedup tooltip trip_temp_id 
-   | eval markerColor = if(sourcetype=="siri_csv", "blue", "red") 
+   | eval markerColor = "blue"
    | streamstats first(latitude) as prev_lat first(longitude) as prev_lon window=1 current=false by planned_start_time 
    | eval prev_latlon = prev_lat.",".prev_lon  
    | eval latlon = latitude.",".longitude 
@@ -183,7 +173,16 @@
    | delta time_recorded_secs as delta_time 
    | eval speed = distance/(delta_time/3600) 
    | eval description="&lt;table align=\"center\" border=\"1\"&gt;&lt;tr&gt;&lt;th&gt;time_recorded&lt;/th&gt;&lt;th&gt;bus_id&lt;/th&gt;&lt;th&gt;time delta (sec)&lt;/th&gt;&lt;th&gt;speed (kmh)&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=\"center\"&gt;".time_recorded."&lt;/td&gt;&lt;td align=\"center\"&gt;".bus_id."&lt;/td&gt;&lt;td align=\"center\"&gt;".delta_time."&lt;/td&gt;&lt;td&gt;".speed."&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;"  
-   | table latitude longitude tooltip icon markerColor clusterGroup _time description planned_start_time trip_temp_id</query>
+   |   eval cluterGroup="bus_location"
+      | append [search index=route_stats agency_id=$agency_id$ $route_id$ earliest=$earliest$ latest=$latest$ date=$date$ | eval all_stop_latlon="XX".all_stop_latlon."XX" | makemv delim=";" all_stop_latlon | makemv delim=";" all_stop_code | eval all=mvzip(all_stop_latlon, all_stop_code, "|") | mvexpand all | rex field=all "(?&lt;all_stop_latlon&gt;.*)\|(?&lt;stop_code&gt;.*)" 
+      | eval icon=case(like(all_stop_latlon, "XX%"), "home", like(all_stop_latlon, "%XX"), "bed", 1==1, "stop-circle") 
+      | eval layerDescription=case(like(all_stop_latlon, "XX%"), "First stop", like(all_stop_latlon, "%XX"), "Last Stop", 1==1, "Stop") 
+      | rex field=all_stop_latlon "(?&lt;latitude&gt;[\d\.]*),(?&lt;longitude&gt;[\d\.]*)(XX)?" | eval description=stop_code | eval clusterGroup = "stops" | eval markerColor="red" 
+      |  eval trip_temp_id = "Stops path"
+      | eval pathWeight=1
+      | eval pathColor = "#e41a1c"
+      | table latitude, longitude, description, icon, clusterGroup, markerColor, trip_temp_id, layerDescription, pathWeight pathColor]
+   | table latitude longitude tooltip icon markerColor clusterGroup _time description planned_start_time trip_temp_id layerDescription, pathWeight pathColor</query>
           <earliest>0</earliest>
           <latest></latest>
         </search>
@@ -191,7 +190,7 @@
         <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
         <option name="leaflet_maps_app.maps-plus.animate">1</option>
         <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">700</option>
         <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
         <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
         <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
@@ -214,12 +213,12 @@
         <option name="leaflet_maps_app.maps-plus.heatmapRadius">10</option>
         <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
         <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">0</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
+        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">31.0461</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">34.8516</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
         <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
-        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">70</option>
         <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
         <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
         <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
@@ -230,13 +229,13 @@
         <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
         <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
         <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
+        <option name="leaflet_maps_app.maps-plus.measureTool">0</option>
         <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.multiplePopups">1</option>
-        <option name="leaflet_maps_app.maps-plus.pathColorList">#D43C29,#0003F0,darkgreen,0xe2d400,darkred,#23A378</option>
+        <option name="leaflet_maps_app.maps-plus.pathColorList">#377eb8,#4daf4a,#984ea3,#ff7f00,#ffff33,#a65628,#f781bf,#999999</option>
         <option name="leaflet_maps_app.maps-plus.pathIdentifier">trip_temp_id</option>
         <option name="leaflet_maps_app.maps-plus.pathSplitInterval">90</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">1</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
         <option name="leaflet_maps_app.maps-plus.permanentTooltip">1</option>
         <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
         <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
@@ -251,7 +250,7 @@
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
         <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
         <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">0</option>
+        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
         <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
         <option name="refresh.display">progressbar</option>
       </viz>

@@ -25,8 +25,8 @@ modtime = 1540939892.492096100
 access = read : [ * ], write : [ admin, power ]
 export = none
 owner = admin
-version = 7.2.1
-modtime = 1552916769.512464000
+version = 7.2.5.1
+modtime = 1554393860.924350000
 
 [inputs/monitor%3A%2F%2FC%3A%5Cdev%5Cds%5Copen-bus-explore%5Cdata%5Csiri_csv_new]
 owner = admin
@@ -42,13 +42,9 @@ modtime = 1543845356.750899500
 version = 7.2.1
 modtime = 1543937814.703443000
 
-[inputs/monitor%3A%2F%2F%2Fmnt%2Fdisks%2Fsplunk1%2Finputs%2Fgtfs_stats_csv]
-version = 7.2.1
-modtime = 1543938273.874184000
-
 [inputs/monitor%3A%2F%2F%2Fmnt%2Fdisks%2Fsplunk1%2Finputs%2Fsiri_csv]
-version = 7.2.1
-modtime = 1544395545.655485000
+version = 7.2.5.1
+modtime = 1554737164.295200000
 
 [views/vehicle_investigator]
 access = read : [ * ], write : [ admin ]
@@ -79,12 +75,32 @@ owner = danb
 version = 7.2.1
 modtime = 1549373979.330241000
 
-[inputs/monitor%3A%2F%2F%2Fmnt%2Fdisks%2Fsplunk1%2Finputs%2Ftrip_stats_csv]
-owner = danb
-version = 7.2.1
-modtime = 1549374244.055492000
-
 [indexes/route_stats]
 owner = danb
 version = 7.2.1
 modtime = 1552839986.031485000
+
+[views/siri_trips]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.1
+modtime = 1552932001.736082000
+
+[views/data_exporter]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.1
+modtime = 1553167838.812233000
+
+[savedsearches/Allenby%20northbound%20trips]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.1
+modtime = 1553422173.244654000
+
+[inputs/monitor%3A%2F%2F%2Fmnt%2Fdisks%2Fsplunk1%2Finputs%2Froute_stats_csv]
+version = 7.2.5.1
+modtime = 1554737568.698366000

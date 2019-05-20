@@ -8,7 +8,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>bus</name>
+	<name>siri-collector</name>
 	<description>OpenBus Java Data Retriever</description>
 
 	<parent>
