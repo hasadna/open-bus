@@ -13,9 +13,9 @@ with io.open('gtfs_utils/__version__.py', 'r', encoding='utf-8') as f:
 
 requirements = [
     'partridge<1.0.0,>=0.11.0',
-    'gtfstk',
+    'gtfstk==9.6.3',
     'numpy',
-    'pandas<0.24.0,>=0.23.4',
+    'pandas<0.25,>=0.24',
     'boto3',
     'tqdm',
 ]
