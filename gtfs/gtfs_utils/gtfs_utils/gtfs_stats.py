@@ -8,6 +8,7 @@
 import pandas as pd
 import datetime
 import os
+import re
 from os.path import join
 import boto3
 import logging
@@ -16,7 +17,6 @@ from tqdm import tqdm
 from partridge import feed as ptg_feed
 from botocore.handlers import disable_signing
 import gtfs_utils as gu
-from gtfs_stats_conf import OUTPUT_FILE_NAME_RE
 from environment import init_conf
 from s3 import get_valid_file_dates_dict, s3_download
 from logging_config import configure_logger
@@ -32,7 +32,7 @@ Get existing output files in the given folder, in a list containing tuples of da
     :rtype: list
     """
     return [(g[0], g[1]) for g in
-            (re.match(OUTPUT_FILE_NAME_RE, file).groups()
+            (re.match(configuration.files.outputFileNameRegexp, file).groups()
              for file in os.listdir(output_folder))]
 
 
@@ -70,7 +70,7 @@ def get_closest_archive_path(date,
         tariff_path_to_try = join(archive_folder, date_str, file_name)
         if os.path.exists(tariff_path_to_try):
             return tariff_path_to_try
-    return configuration.files.tariffFilePath
+    return join(configuration.files.baseDirectory, configuration.files.tariffFilePath)
 
 
 def handle_gtfs_date(date_str,

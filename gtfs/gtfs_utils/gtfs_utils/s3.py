@@ -1,8 +1,9 @@
 import logging
+import re
+
 import pandas as pd
 import datetime
 from collections import defaultdict
-from gtfs_stats_conf import BUCKET_VALID_FILES_RE
 from retry import retry
 from general_utils import parse_date
 from configuration import configuration
@@ -41,14 +42,14 @@ Download file from s3 bucket. Retry using decorator.
 
 def get_bucket_valid_files(bucket_objects):
     """
-Get list of valid files from bucket, as set by BUCKET_VALID_FILES_RE
+    Get list of valid files from bucket, as set by configuration.bucketValidFileNameRegexp
     :param bucket_objects: collection of bucket objects
     :type bucket_objects: s3.Bucket.objectsCollection
     :return: list of valid file keys
     :rtype: list of str
     """
     return [obj.key for obj in bucket_objects
-            if re.match(BUCKET_VALID_FILES_RE, obj.key)]
+            if re.match(configuration.bucketValidFileNameRegexp, obj.key)]
 
 
 def get_dates_without_output(valid_files, existing_output_files):
@@ -90,7 +91,7 @@ get a dictionary mapping gtfs file names to a list of dates for forward fill by 
 
 
 def get_valid_file_dates_dict(bucket_objects, existing_output_files, forward_fill):
-    logging.info(f'BUCKET_VALID_FILES_RE={BUCKET_VALID_FILES_RE}')
+    logging.info(f'configuration.bucketValidFileNameRegexp={configuration.bucketValidFileNameRegexp}')
     bucket_valid_files = get_bucket_valid_files(bucket_objects)
     if forward_fill:
         logging.info(f'applying forward fill')

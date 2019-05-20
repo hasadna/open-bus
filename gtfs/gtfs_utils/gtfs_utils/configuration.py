@@ -1,6 +1,7 @@
 from dataclasses import dataclass, fields, is_dataclass, field
 import json
 import os
+import re
 from inspect import isclass
 from typing import Dict, List
 
@@ -16,6 +17,7 @@ class ChildDirectories:
     output: str = None
     filteredFeeds: str = None
     logs: str = None
+
 
 @dataclass
 class FullPaths:
@@ -42,22 +44,23 @@ class FilesConfiguration:
     outputFileNameRegexp: str = None
 
     def __init__(self):
-        self.__full_paths: FullPaths = None
+        self.__full_paths = None
 
     @property
     def full_paths(self) -> FullPaths:
         if not self.__full_paths and self.childDirectories:
             self.__full_paths = FullPaths()
-            for key, value in vars(self.childDirectories).items():
-                setattr(self.__full_paths, key, value)
+            for dir_name, dir_path in vars(self.childDirectories).items():
+                setattr(self.__full_paths, dir_name, os.path.join(self.baseDirectory, dir_path))
 
         return self.__full_paths
+
 
 @dataclass
 class Configuration:
     files: FilesConfiguration = None
     bucketName: str = None
-    bucketValidFileNameRegexp: str = None
+    bucketValidFileNameRegexp: re.Pattern = None
     forwardFill: bool = True
     futureDaysCount: int = 0
     displayDownloadProgressBar: bool = True
@@ -66,17 +69,19 @@ class Configuration:
     writeFilteredFeed: bool = True
 
 
-def dict_to_dataclass(dirty_dict: Dict, data_class: type) -> Dict:
+def dict_to_dataclass(data_dict: Dict, data_class: type) -> Dict:
     """
-    Clears the dict from fields that are not part of the
+    Converts the dict to a dataclass instance of the given type.
     """
     data_class_instance = data_class()
 
     for field in fields(data_class):
         if isclass(field.type) and is_dataclass(field.type):
-            value = dict_to_dataclass(dirty_dict[field.name], field.type)
+            value = dict_to_dataclass(data_dict[field.name], field.type)
+        elif field.type == re.Pattern:
+            value = re.compile(data_dict[field.name])
         else:
-            value = dirty_dict[field.name]
+            value = data_dict[field.name]
 
         # TODO: Check type of value
         setattr(data_class_instance, field.name, value)
