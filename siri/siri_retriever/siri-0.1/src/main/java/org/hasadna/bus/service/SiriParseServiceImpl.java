@@ -70,7 +70,8 @@ public class SiriParseServiceImpl implements SiriParseService {
                 String operatorRef = visit.getMonitoredVehicleJourney().getOperatorRef().getValue();
                 String journeyRef = visit.getMonitoredVehicleJourney().getFramedVehicleJourneyRef().getDatedVehicleJourneyRef();
                 String dataFrameRef = visit.getMonitoredVehicleJourney().getFramedVehicleJourneyRef().getDataFrameRef().getValue();
-                String rep = stringRepresentation(lineRef, lineName, recordedAt, expectedArrivalTime, licensePlate, lat, lon, departureTime, operatorRef, journeyRef, responseTimestamp, dataFrameRef);
+                String stopPointRef = visit.getMonitoredVehicleJourney().getMonitoredCall().getStopPointRef().getValue();
+                String rep = stringRepresentation(lineRef, lineName, recordedAt, expectedArrivalTime, licensePlate, lat, lon, departureTime, operatorRef, journeyRef, responseTimestamp, dataFrameRef, stopPointRef);
                 s = s + rep + "\n";
             }
             if (!visits.isEmpty()) {
@@ -88,8 +89,11 @@ public class SiriParseServiceImpl implements SiriParseService {
     }
 
 
-    private String stringRepresentation(String lineRef, String lineName, Date recordedAt, Date expectedArrivalTime, String licensePlate, BigDecimal lon, BigDecimal lat, Date departureTime, String operatorRef, String journeyRef, String responseTimestamp, String dataFrameRef) {
-        String s = MessageFormat.format("{10},[line {0} v {1} oad {12} ea {11}],{7},{8},{0},{9},{6},{1},{2},{3},{4},{5},{13}",
+    private String stringRepresentation(String lineRef, String lineName, Date recordedAt, Date expectedArrivalTime,
+                                        String licensePlate, BigDecimal lon, BigDecimal lat, Date departureTime,
+                                        String operatorRef, String journeyRef, String responseTimestamp,
+                                        String dataFrameRef, String stopPointRef) {
+        String s = MessageFormat.format("{10},[line {0} v {1} oad {12} ea {11}],{7},{8},{0},{9},{6},{1},{2},{3},{4},{5},{13},{14}",
                 lineName, licensePlate,
                 formatDate(expectedArrivalTime),    // expectedArrivalTime should include both date and time - // <ns3:ExpectedArrivalTime>2019-04-01T21:14:00.000+03:00</ns3:ExpectedArrivalTime>
                 formatDate(recordedAt),             // recordedAt should include both date and time
@@ -97,7 +101,7 @@ public class SiriParseServiceImpl implements SiriParseService {
                 formatDate(departureTime),          // OriginAimedDeparture should include both date and time - // <ns3:OriginAimedDepartureTime>2019-04-01T20:00:00.000+03:00</ns3:OriginAimedDepartureTime>
                 operatorRef, lineRef, journeyRef, responseTimestamp,
                 formatTimeHHMM(expectedArrivalTime),    // ea as time only, for the free text part
-                dataFrameRef
+                dataFrameRef, stopPointRef
         );
         return s ;
     }
