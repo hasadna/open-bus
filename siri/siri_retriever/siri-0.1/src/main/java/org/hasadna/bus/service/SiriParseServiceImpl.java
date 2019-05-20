@@ -91,7 +91,7 @@ public class SiriParseServiceImpl implements SiriParseService {
         String s = MessageFormat.format("{10},[line {0} v {1} oad {12} ea {11}],{7},{8},{0},{9},{6},{1},{2},{3},{4},{5}",
                 lineName, licensePlate,
                 formatDate(expectedArrivalTime),    // expectedArrivalTime should include both date and time - // <ns3:ExpectedArrivalTime>2019-04-01T21:14:00.000+03:00</ns3:ExpectedArrivalTime>
-                formatTime(recordedAt),
+                formatDate(recordedAt),             // recordedAt should include both date and time
                 lon.toString(), lat.toString(),
                 formatDate(departureTime),          // OriginAimedDeparture should include both date and time - // <ns3:OriginAimedDepartureTime>2019-04-01T20:00:00.000+03:00</ns3:OriginAimedDepartureTime>
                 operatorRef, lineRef, journeyRef, responseTimestamp,
