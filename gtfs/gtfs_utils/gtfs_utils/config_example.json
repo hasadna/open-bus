@@ -2,7 +2,6 @@
   "files": {
     "baseDirectory": "/home/or/open-bus-files/",
     "childDirectories": {
-      "data": "data",
       "archive": "archive",
       "gtfsFeeds": "gtfs_feeds",
       "output": "gtfs_stats_hack",

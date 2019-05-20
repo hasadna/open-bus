@@ -11,7 +11,6 @@ CONFIGURATION_FILE_PATH  = os.path.join(os.path.dirname(__file__), 'config.json'
 
 @dataclass
 class ChildDirectories:
-    data: str = None
     archive: str = None
     gtfsFeeds: str = None
     output: str = None
@@ -21,7 +20,6 @@ class ChildDirectories:
 
 @dataclass
 class FullPaths:
-    data: str = None
     archive: str = None
     gtfsFeeds: str = None
     output: str = None
@@ -83,7 +81,11 @@ def dict_to_dataclass(data_dict: Dict, data_class: type) -> Dict:
         else:
             value = data_dict[field.name]
 
-        # TODO: Check type of value
+        if not isinstance(value, field.type):
+            raise TypeError(f'Configuration field \'{field.name}\' '
+                            f'should be of type {field.type.__name__}, '
+                            f'but is actually of type {type(value).__name__}')
+
         setattr(data_class_instance, field.name, value)
 
     return data_class_instance
