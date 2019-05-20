@@ -29,14 +29,14 @@
 
   <!-- This file is machine readable -->
   <appender name="FILE-SiriRealTimeData" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${SIRI_OUTPUT_PATH}/siri_rt_data.log</file>
+    <file>${SIRI_OUTPUT_PATH}/siri_rt_data_v2.log</file>
     <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
       <Pattern>%msg%n</Pattern>
     </encoder>
 
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <!-- rollover daily + zip -->
-      <fileNamePattern>${SIRI_OUTPUT_PATH}/archived/siri_rt_data.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+      <fileNamePattern>${SIRI_OUTPUT_PATH}/archived/siri_rt_data_v2.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
       <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
         <maxFileSize>100MB</maxFileSize>
       </timeBasedFileNamingAndTriggeringPolicy>
