@@ -12,18 +12,18 @@ CONFIGURATION_FILE_PATH  = os.path.join(os.path.dirname(__file__), 'config.json'
 @dataclass
 class ChildDirectories:
     archive: str = None
-    gtfsFeeds: str = None
+    gtfs_feeds: str = None
     output: str = None
-    filteredFeeds: str = None
+    filtered_feeds: str = None
     logs: str = None
 
 
 @dataclass
 class FullPaths:
     archive: str = None
-    gtfsFeeds: str = None
+    gtfs_feeds: str = None
     output: str = None
-    filteredFeeds: str = None
+    filtered_feeds: str = None
     logs: str = None
 
     def all(self) -> List[str]:
@@ -36,20 +36,20 @@ class FullPaths:
 
 @dataclass
 class FilesConfiguration:
-    baseDirectory: str = None
-    childDirectories: ChildDirectories = None
-    tariffFilePath: str = None
-    outputFileNameRegexp: str = None
+    base_directory: str = None
+    child_directories: ChildDirectories = None
+    tariff_file_path: str = None
+    output_file_name_regexp: str = None
 
     def __init__(self):
         self.__full_paths = None
 
     @property
     def full_paths(self) -> FullPaths:
-        if not self.__full_paths and self.childDirectories:
+        if not self.__full_paths and self.child_directories:
             self.__full_paths = FullPaths()
-            for dir_name, dir_path in vars(self.childDirectories).items():
-                setattr(self.__full_paths, dir_name, os.path.join(self.baseDirectory, dir_path))
+            for dir_name, dir_path in vars(self.child_directories).items():
+                setattr(self.__full_paths, dir_name, os.path.join(self.base_directory, dir_path))
 
         return self.__full_paths
 
@@ -57,14 +57,14 @@ class FilesConfiguration:
 @dataclass
 class Configuration:
     files: FilesConfiguration = None
-    bucketName: str = None
-    bucketValidFileNameRegexp: re.Pattern = None
-    forwardFill: bool = True
-    futureDaysCount: int = 0
-    displayDownloadProgressBar: bool = True
-    displaySizeOnProgressBar: bool = True
-    deleteDownloadedGtfsZipFiles: bool = True
-    writeFilteredFeed: bool = True
+    bucket_name: str = None
+    bucket_valid_file_name_regexp: re.Pattern = None
+    forward_fill: bool = True
+    future_days_count: int = 0
+    display_download_progress_bar: bool = True
+    display_size_on_progress_bar: bool = True
+    delete_downloaded_gtfs_zip_files: bool = True
+    write_filtered_feed: bool = True
 
 
 def dict_to_dataclass(data_dict: Dict, data_class: type) -> Dict:

@@ -32,7 +32,7 @@ Get existing output files in the given folder, in a list containing tuples of da
     :rtype: list
     """
     return [(g[0], g[1]) for g in
-            (re.match(configuration.files.outputFileNameRegexp, file).groups()
+            (re.match(configuration.files.output_file_name_regexp, file).groups()
              for file in os.listdir(output_folder))]
 
 
@@ -70,14 +70,14 @@ def get_closest_archive_path(date,
         tariff_path_to_try = join(archive_folder, date_str, file_name)
         if os.path.exists(tariff_path_to_try):
             return tariff_path_to_try
-    return join(configuration.files.baseDirectory, configuration.files.tariffFilePath)
+    return join(configuration.files.baseDirectory, configuration.files.tariff_file_path)
 
 
 def handle_gtfs_date(date_str,
                      file,
                      bucket,
                      output_folder=configuration.files.full_paths.output,
-                     gtfs_folder=configuration.files.full_paths.gtfsFeeds,
+                     gtfs_folder=configuration.files.full_paths.gtfs_feeds,
                      archive_folder=configuration.files.full_paths.archive):
     """
 Handle a single date for a single GTFS file. Download if necessary compute and save stats files (currently trip_stats
@@ -105,8 +105,8 @@ and route_stats).
     else:
         downloaded = get_gtfs_file(file, gtfs_folder, bucket)
 
-        if configuration.writeFilteredFeed:
-            filtered_out_path = os.path.join(configuration.files.full_paths.filteredFeedsDirectory,
+        if configuration.write_filtered_feed:
+            filtered_out_path = os.path.join(configuration.files.full_paths.filtered_feeds_directory,
                                              f'{date_str}.zip')
             logging.info(f'writing filtered gtfs feed for file "{gtfs_folder+file}" with date "{date}" in path '
                         f'{filtered_out_path}')
@@ -131,11 +131,11 @@ and route_stats).
 
         logging.info(
             f'starting compute_trip_stats_partridge for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
-            f'"{configuration.files.tariffFilePath}"')
+            f'"{configuration.files.tariff_file_path}"')
         ts = gu.compute_trip_stats_partridge(feed, zones)
         logging.debug(
             f'finished compute_trip_stats_partridge for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
-            f'"{configuration.files.tariffFilePath}"')
+            f'"{configuration.files.tariff_file_path}"')
         # TODO: log this
         ts['date'] = date_str
         ts['date'] = pd.Categorical(ts.date)
@@ -171,7 +171,7 @@ def handle_gtfs_file(file,
                      bucket,
                      stats_dates,
                      output_folder=configuration.files.full_paths.output,
-                     gtfs_folder=configuration.files.full_paths.gtfsFeeds,
+                     gtfs_folder=configuration.files.full_paths.gtfs_feeds,
                      delete_downloaded_gtfs_zips=False):
     """
 Handle a single GTFS file. Download if necessary compute and save stats files (currently trip_stats and route_stats).
@@ -201,11 +201,11 @@ Handle a single GTFS file. Download if necessary compute and save stats files (c
         logging.debug(f'keeping gtfs zip file "{join(gtfs_folder, file)}"')
 
 
-def batch_stats_s3(bucket_name=configuration.bucketName,
+def batch_stats_s3(bucket_name=configuration.bucket_name,
                    output_folder=configuration.files.full_paths.output,
-                   gtfs_folder=configuration.files.full_paths.gtfsFeeds,
+                   gtfs_folder=configuration.files.full_paths.gtfs_feeds,
                    delete_downloaded_gtfs_zips=False,
-                   forward_fill=configuration.forwardFill):
+                   forward_fill=configuration.forward_fill):
     """
 Create daily trip_stats and route_stats DataFrame pickles, based on the files in an S3 bucket and
 their dates - `YYYY-mm-dd.zip`.
@@ -261,7 +261,7 @@ def main():
     init_conf()
     configure_logger()
     logging.info(f'starting batch_stats_s3 with default config')
-    batch_stats_s3(delete_downloaded_gtfs_zips=configuration.deleteDownloadedGtfsZipFiles)
+    batch_stats_s3(delete_downloaded_gtfs_zips=configuration.delete_downloaded_gtfs_zip_files)
 
 
 if __name__ == '__main__':
