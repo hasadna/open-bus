@@ -161,8 +161,10 @@
    | eval tooltip=time_recorded
    | eval planned_start_time=coalesce(planned_start_time, start_time) 
    | eval icon="bus"
-   | eval layerDescription="SIRI point"
    |  eval trip_temp_id = planned_start_time.", bus ".coalesce(bus_id,"UNK").", route_id=".coalesce(route_id, "UNK")
+   | eval pathLayer = trip_temp_id
+   | eval layerDescription = trip_temp_id
+   | eval layerGroup = trip_temp_id
    | dedup tooltip trip_temp_id 
    | eval markerColor = "blue"
    | streamstats first(latitude) as prev_lat first(longitude) as prev_lon window=1 current=false by planned_start_time 
@@ -181,8 +183,9 @@
       |  eval trip_temp_id = "Stops path"
       | eval pathWeight=1
       | eval pathColor = "#e41a1c"
-      | table latitude, longitude, description, icon, clusterGroup, markerColor, trip_temp_id, layerDescription, pathWeight pathColor]
-   | table latitude longitude tooltip icon markerColor clusterGroup _time description planned_start_time trip_temp_id layerDescription, pathWeight pathColor</query>
+      | eval pathLayer = "Stops path"
+      | table latitude, longitude, description, icon, clusterGroup, markerColor, trip_temp_id, layerDescription, pathWeight pathColor, pathLayer]
+   | table latitude longitude tooltip icon markerColor clusterGroup _time description planned_start_time trip_temp_id layerDescription, pathWeight pathColor antPath pathLayer layerGroup</query>
           <earliest>0</earliest>
           <latest></latest>
         </search>
@@ -250,7 +253,7 @@
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
         <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
         <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
+        <option name="leaflet_maps_app.maps-plus.stickyTooltip">0</option>
         <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
         <option name="refresh.display">progressbar</option>
       </viz>

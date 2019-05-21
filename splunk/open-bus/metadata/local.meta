@@ -25,8 +25,8 @@ modtime = 1540939892.492096100
 access = read : [ * ], write : [ admin, power ]
 export = none
 owner = admin
-version = 7.2.5.1
-modtime = 1558015584.717831000
+version = 7.2.6
+modtime = 1558430982.988213000
 
 [inputs/monitor%3A%2F%2FC%3A%5Cdev%5Cds%5Copen-bus-explore%5Cdata%5Csiri_csv_new]
 owner = admin
