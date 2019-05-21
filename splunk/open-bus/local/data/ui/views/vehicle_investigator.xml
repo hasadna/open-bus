@@ -39,7 +39,7 @@
       <fieldForLabel>desc</fieldForLabel>
       <fieldForValue>agency_id</fieldForValue>
       <search>
-        <query>| tstats sum(num_trips) as count where index=gtfs_stats date=$date$ by agency_name agency_id | eval desc = agency_name." (".agency_id.")" | sort -count</query>
+        <query>| tstats sum(num_trips) as count where index=route_stats date=$date$ by agency_name agency_id | eval desc = agency_name." (".agency_id.")" | sort -count</query>
         <earliest>0</earliest>
         <latest></latest>
       </search>

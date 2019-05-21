@@ -155,7 +155,8 @@
       <viz type="leaflet_maps_app.maps-plus">
         <search>
           <query>((index=siri lat!=0 $planned_start_time$)) agency_id=$agency_id$ $route_id$ earliest=$earliest$ latest=$latest$ date=$date$ date_hour&gt;=$hour_min$ date_hour&lt;=$hour_max$ 
-   | sort sourcetype _time 
+   | convert dur2sec(time_recorded) as time_recorded_secs 
+   | sort sourcetype time_recorded_secs 
    | eval latitude = coalesce(lat, start_stop_lat), longitude = coalesce(lon, start_stop_lon)
    | eval tooltip=time_recorded
    | eval planned_start_time=coalesce(planned_start_time, start_time) 
@@ -169,7 +170,6 @@
    | eval latlon = latitude.",".longitude 
    | eval prev_latlon = coalesce(prev_latlon, latlon) 
    | haversine originField=prev_latlon latlon 
-   | convert dur2sec(time_recorded) as time_recorded_secs 
    | delta time_recorded_secs as delta_time 
    | eval speed = distance/(delta_time/3600) 
    | eval description="&lt;table align=\"center\" border=\"1\"&gt;&lt;tr&gt;&lt;th&gt;time_recorded&lt;/th&gt;&lt;th&gt;bus_id&lt;/th&gt;&lt;th&gt;time delta (sec)&lt;/th&gt;&lt;th&gt;speed (kmh)&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=\"center\"&gt;".time_recorded."&lt;/td&gt;&lt;td align=\"center\"&gt;".bus_id."&lt;/td&gt;&lt;td align=\"center\"&gt;".delta_time."&lt;/td&gt;&lt;td&gt;".speed."&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;"  
@@ -264,13 +264,14 @@
         <search>
           <query>index=route_stats $route_id$ earliest=$earliest$ latest=$latest$ date=$date$ 
 | eval mean_trip_duration=tostring(round(mean_trip_duration*3600), "duration")." hrs", mean_trip_distance = round(mean_trip_distance/1000, 2)." km", service_speed=round(service_speed, 2)." km/h"
-| table agency_name route_short_name start_zone end_zone num_zones num_zones_missing route_id route_mkt route_alternative is_loop route_direction mean_trip_duration mean_trip_distance service_speed num_trips start_time end_time num_stops start_stop_name end_stop_name | append [ | stats count | fields - count | eval agency_name=1, route_short_name=2, start_zone=3, end_zone=4,  num_zones=5, num_zones_missing=6, route_id=6.5, route_mkt=7, route_alternative=8, is_loop=9, route_direction=10, mean_trip_duration=10.4, mean_trip_distance=10.6, service_speed=10.7, num_trips=11, start_time=12, end_time=13, num_stops=14, start_stop_name=15, end_stop_name=16] | sort agency_name | transpose | sort "row 1" | fields - "row 1" | rename "row *" as route_* | rename route_2 as route_1 | rename route_3 as route_2 | rename route_4 as route_3 | rename route_5 as route_4 | rename route_6 as route_5 | rename route_7 as route_6</query>
+| table agency_name route_short_name start_zone end_zone num_zones num_zones_missing route_id route_mkt route_alternative is_loop route_direction mean_trip_duration mean_trip_distance service_speed num_trips start_time end_time num_stops start_stop_name end_stop_name all_start_time | append [ | stats count | fields - count | eval agency_name=1, route_short_name=2, start_zone=3, end_zone=4,  num_zones=5, num_zones_missing=6, route_id=6.5, route_mkt=7, route_alternative=8, is_loop=9, route_direction=10, mean_trip_duration=10.4, mean_trip_distance=10.6, service_speed=10.7, num_trips=11, start_time=12, end_time=13, num_stops=14, start_stop_name=15, end_stop_name=16, all_start_time=17] | sort agency_name | transpose | sort "row 1" | fields - "row 1" | rename "row *" as route_* | rename route_2 as route_1 | rename route_3 as route_2 | rename route_4 as route_3 | rename route_5 as route_4 | rename route_6 as route_5 | rename route_7 as route_6</query>
           <earliest>0</earliest>
           <latest></latest>
         </search>
-        <option name="count">20</option>
+        <option name="count">30</option>
         <option name="drilldown">none</option>
         <option name="refresh.display">progressbar</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
     <panel>

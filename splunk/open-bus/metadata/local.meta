@@ -26,7 +26,7 @@ access = read : [ * ], write : [ admin, power ]
 export = none
 owner = admin
 version = 7.2.5.1
-modtime = 1554393860.924350000
+modtime = 1558015584.717831000
 
 [inputs/monitor%3A%2F%2FC%3A%5Cdev%5Cds%5Copen-bus-explore%5Cdata%5Csiri_csv_new]
 owner = admin
@@ -50,8 +50,8 @@ modtime = 1554737164.295200000
 access = read : [ * ], write : [ admin ]
 export = none
 owner = danb
-version = 7.2.1
-modtime = 1545743389.685552000
+version = 7.2.5.1
+modtime = 1558372083.356268000
 
 [lookups/mehadrin.csv]
 owner = danb
@@ -104,3 +104,10 @@ modtime = 1553422173.244654000
 [inputs/monitor%3A%2F%2F%2Fmnt%2Fdisks%2Fsplunk1%2Finputs%2Froute_stats_csv]
 version = 7.2.5.1
 modtime = 1554737568.698366000
+
+[savedsearches/Compare%20num_trips%20Oct-18%20vs%20Apr-19%20by%20city]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.5.1
+modtime = 1554912550.696237000
