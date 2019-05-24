@@ -221,7 +221,7 @@
         <option name="leaflet_maps_app.maps-plus.mapCenterLon">34.8516</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
         <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
-        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">70</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">30</option>
         <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
         <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
         <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
