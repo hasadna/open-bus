@@ -111,10 +111,3 @@ export = none
 owner = danb
 version = 7.2.5.1
 modtime = 1554912550.696237000
-
-[props/siri_csv/FIELDALIAS-xD7timestamp_fix]
-access = read : [ * ]
-export = none
-owner = danb
-version = 7.2.6
-modtime = 1558726535.333249000
