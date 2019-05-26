@@ -100,7 +100,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         }
         try {
             logger.debug("lineRef={}, stopCode={}, previewInterval={}", lineRef, stopCode, previewInterval);
-            logger.trace(" response={}", content);
+            //logger.trace(" response={}", content);
             responseLogger.warn("{},{}", lineRef, content.replace("\n", ""));
         }
         catch (Exception ex) {
