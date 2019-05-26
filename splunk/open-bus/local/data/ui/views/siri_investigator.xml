@@ -100,10 +100,10 @@
     </input>
     <input type="multiselect" token="planned_start_time">
       <label>Planned start time</label>
-      <fieldForLabel>planned_start_time</fieldForLabel>
+      <fieldForLabel>desc</fieldForLabel>
       <fieldForValue>planned_start_time</fieldForValue>
       <search>
-        <query>| tstats count where index=siri date=$date$ agency_id=$agency_id$ $route_id$ by planned_start_time</query>
+        <query>| tstats count where index=siri date=$date$ agency_id=$agency_id$ $route_id$ by planned_start_time index | append [search index=route_stats date=$date$ agency_id=$agency_id$ $route_id$ | makemv delim=";" all_start_time | stats count by index all_start_time | rename all_start_time as planned_start_time | eval index="gtfs"] | stats dc(index) as index_dc first(index) as index by planned_start_time | eval desc = if(index_dc==2, planned_start_time, planned_start_time." (".index.")")</query>
         <earliest>$time_setter.earliest$</earliest>
         <latest>$time_setter.latest$</latest>
       </search>
