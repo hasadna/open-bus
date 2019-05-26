@@ -185,11 +185,11 @@
       | eval pathColor = "#e41a1c"
       | eval pathLayer = "Stops path"
       | table latitude, longitude, description, icon, clusterGroup, markerColor, trip_temp_id, layerDescription, pathWeight pathColor, pathLayer]
-   | table latitude longitude tooltip icon markerColor clusterGroup _time description planned_start_time trip_temp_id layerDescription, pathWeight pathColor antPath pathLayer layerGroup</query>
+   | table latitude longitude tooltip icon markerColor clusterGroup _time description planned_start_time trip_temp_id layerDescription, pathWeight pathColor antPath pathLayer layerGroup bus_id date agency_id</query>
           <earliest>0</earliest>
           <latest></latest>
         </search>
-        <option name="drilldown">none</option>
+        <option name="drilldown">all</option>
         <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
         <option name="leaflet_maps_app.maps-plus.animate">1</option>
         <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
@@ -203,7 +203,7 @@
         <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
         <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoomLevel">15</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldown">1</option>
         <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
         <option name="leaflet_maps_app.maps-plus.fullScreen">1</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
@@ -257,6 +257,9 @@
         <option name="leaflet_maps_app.maps-plus.stickyTooltip">0</option>
         <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
         <option name="refresh.display">progressbar</option>
+        <drilldown>
+          <link target="_blank">/app/open-bus/vehicle_investigator?form.bus_id=$row.bus_id$&amp;form.agency_id=$row.agency_id$&amp;form.date=$row.date$&amp;form.earliest=$form.earliest$</link>
+        </drilldown>
       </viz>
     </panel>
   </row>
