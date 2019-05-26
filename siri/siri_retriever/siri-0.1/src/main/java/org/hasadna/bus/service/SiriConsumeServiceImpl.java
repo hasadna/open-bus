@@ -108,7 +108,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         }
 
         content = SoapUtils.removeSoapEnvelope(content);
-        logger.trace(content);
+        //logger.trace(content);
 
         //unmarshall XML to object
         GetStopMonitoringServiceResponse response = unmarshalXml(content);
