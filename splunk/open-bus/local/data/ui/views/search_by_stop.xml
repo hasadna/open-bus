@@ -170,7 +170,7 @@
 
 | eval lat_min = lat-$radius$*0.89, lat_max = lat+$radius$*0.89, lon_min=lon-$radius$*1.08, lon_max = lon+$radius$*1.08 
 | eval search = "lat&lt;".lat_max." AND lat&gt;".lat_min." AND lon&lt;".lon_max." AND lon&gt;".lon_min | fields + search]
-| stats count by route_id route_short_name planned_start_time | fields - count</query>
+| stats count earliest(time_recorded) as first_near latest(time_recorded) as last_near by route_id route_short_name planned_start_time | eval last_near = if(first_near==last_near, "", last_near) | fields - count</query>
           <earliest>$time_setter.earliest$</earliest>
           <latest>$time_setter.latest$</latest>
         </search>
