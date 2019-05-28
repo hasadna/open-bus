@@ -1,6 +1,5 @@
 # imports
 import sys
-import re
 import pandas as pd
 from io import BytesIO
 from time import sleep, time
