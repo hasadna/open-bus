@@ -3,6 +3,7 @@
   <view name="vehicle_investigator" />
   <view name="siri_trips" />
   <view name="data_exporter" />
+  <view name="search_by_stop" />
   <view name="search" />
   <collection label="All reports">
     <saved source="all" />
