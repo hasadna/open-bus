@@ -1,8 +1,9 @@
 matrix:
   include:
     - language: python
+      dist: xenial
       python:
-        - "3.6"
+        - "3.7"
       install:
         - pip install boto3 codecov coverage
       # commands to run tests
