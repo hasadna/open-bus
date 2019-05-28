@@ -96,6 +96,7 @@
 | eval missing_trips = if(siri_points==0, start_time, NULL)
 | eval less_than_ten_trips = if(siri_points&lt;10 AND siri_points&gt;0, start_time, NULL)
 | stats avg(siri_points) as avg_points count(eval(siri_points==0)) as no_siri count(eval(siri_points&lt;10 AND siri_points&gt;0)) as less_than_ten_siri count as total values(missing_trips) values(less_than_ten_trips) by route_id date
+| eval avg_points = round(avg_points,1)
 | eval bad_trips_ratio = round((no_siri+less_than_ten_siri)/total,2)</query>
           <earliest>$time_setter.earliest$</earliest>
           <latest>$time_setter.latest$</latest>
@@ -105,6 +106,7 @@
         <option name="dataOverlayMode">none</option>
         <option name="drilldown">none</option>
         <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
         <option name="rowNumbers">false</option>
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>

@@ -201,7 +201,7 @@
         <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
         <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
         <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
-        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
         <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoomLevel">15</option>
         <option name="leaflet_maps_app.maps-plus.drilldown">1</option>
         <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
