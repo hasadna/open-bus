@@ -57,12 +57,16 @@
       <valueSuffix>"</valueSuffix>
       <delimiter> OR </delimiter>
     </input>
+    <input type="text" token="stop_code" searchWhenChanged="true">
+      <label>stop_code</label>
+      <default>*</default>
+    </input>
   </fieldset>
   <row>
     <panel>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
-          <query>index=route_stats $agency_id$ $route_short_name$ earliest=$earliest$ latest=$latest$ date=$date$  | stats count by all_stop_latlon all_stop_code | makemv delim=";" all_stop_latlon | makemv delim=";" all_stop_code | eval x = mvzip(all_stop_code, all_stop_latlon, "_") | stats count by x | mvexpand x | rex field=x "(?&lt;tooltip&gt;\d+)_(?&lt;latitude&gt;.*),(?&lt;longitude&gt;.*)" | stats count by tooltip, latitude, longitude | eval icon="stop-circle", markerColor="red" | eval lat=latitude, lon=longitude</query>
+          <query>index=route_stats $agency_id$ $route_short_name$ earliest=$earliest$ latest=$latest$ date=$date$  | stats count by all_stop_latlon all_stop_code | makemv delim=";" all_stop_latlon | makemv delim=";" all_stop_code | search all_stop_code=$stop_code$ | eval x = mvzip(all_stop_code, all_stop_latlon, "_") | stats count by x | mvexpand x | rex field=x "(?&lt;tooltip&gt;\d+)_(?&lt;latitude&gt;.*),(?&lt;longitude&gt;.*)" | search tooltip=$stop_code$ | stats count by tooltip, latitude, longitude | eval icon="stop-circle", markerColor="red" | eval lat=latitude, lon=longitude</query>
           <earliest>-30d@d</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
