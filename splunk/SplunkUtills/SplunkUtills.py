@@ -1,3 +1,17 @@
+# imports
+import sys
+import re
+import pandas as pd
+from io import BytesIO
+from time import sleep, time
+
+if 'splunk-sdk-python-1.6.6' not in sys.path:
+    try:
+        sys.path.append('splunk-sdk-python-1.6.6')
+    except:
+        None
+
+import splunklib.client as client
 
 def splunk_query_builder(**query_kwargs):
     '''This function creates Search Processing Language (SPL) query for Splunk database.
@@ -53,7 +67,7 @@ def splunk_query_builder(**query_kwargs):
 
 
 
-def read_splunk(query, username, password, host, port):
+def read_splunk(query, username, password, host, port, time_limit=5):
     '''This function queries Splunk database.
     Note that function dependencies includes installing splunklib.
 
@@ -62,32 +76,19 @@ def read_splunk(query, username, password, host, port):
         username (str): Splunk username.
         password (str): Splunk password.
         host (str): Splunk host.
-        port (int): Splunk port.
+        port (int): Splunk management port.
+        time_limit (int): time limit (minutes) for the query (default: 5).
 
     Returns:
         DataFrame: query results.
     '''
 
+    # save start time
+    start_time = time()
+
     print('start..\n')
 
     print('your query:\n {}\n'.format("|\n".join(query.split("|"))))
-
-    # imports
-    import sys
-    import re
-    import pandas as pd
-    from io import BytesIO
-    from time import sleep
-
-    if 'splunk-sdk-python-1.6.6' not in sys.path:
-        try:
-            sys.path.append('splunk-sdk-python-1.6.6')
-        except:
-            None
-
-    import splunklib.client as client
-
-    print('imports completed\n')
 
     # connect to splunk
     service = client.connect(host=host, port=port, username=username, password=password)
@@ -100,7 +101,15 @@ def read_splunk(query, username, password, host, port):
     # A normal search returns the job's SID right away, so we need to poll for completion
     while True:
         while not job.is_ready():
-            pass
+            if time() > start_time + (time_limit*60):
+                break
+            else:
+                pass
+
+        if time() > start_time + (time_limit*60):
+            print("\n\njob stopped - query run more then {} minutes. You can change this limitation ('time_limit')\n".format(time_limit))
+            return None
+
         stats = {"isDone": job["isDone"],
                  "doneProgress": float(job["doneProgress"]) * 100,
                  "scanCount": int(job["scanCount"]),
@@ -115,6 +124,7 @@ def read_splunk(query, username, password, host, port):
         if stats["isDone"] == "1":
             sys.stdout.write("\n\nDone!\n\n")
             break
+
         sleep(0.01)
 
     job_results = job.results(output_mode='csv', count=0)
@@ -127,7 +137,7 @@ def read_splunk(query, username, password, host, port):
 
     if 'job' in locals():
         job.cancel()
-        print("job_canceled\n")
+        print("job finished and canceled\n")
 
     # transform results to DataFrame
     try:
