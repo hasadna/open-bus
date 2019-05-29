@@ -43,7 +43,7 @@ public class SiriParseServiceImpl implements SiriParseService {
                     }
                     Date departureTime = visit.getMonitoredVehicleJourney().getOriginAimedDepartureTime();
                     licensePlates.add(licensePlate);
-                    visits.put(formatDate(departureTime) + "/" + licensePlate, visit);
+                    visits.putIfAbsent(((departureTime==null)?"99:99":formatDate(departureTime)) + "/" + licensePlate, visit);
                 }
             }
             String s = "";
