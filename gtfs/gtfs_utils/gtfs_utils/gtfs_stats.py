@@ -130,6 +130,7 @@ and route_stats).
         # TODO: log this
         ts['date'] = date_str
         ts['date'] = pd.Categorical(ts.date)
+        ts['gtfs_file_name'] = file
 
         logging.info(f'saving trip stats result DF to gzipped pickle "{trip_stats_output_path}"')
         ts.to_pickle(trip_stats_output_path, compression='gzip')
@@ -145,6 +146,7 @@ and route_stats).
     # TODO: log this
     rs['date'] = date_str
     rs['date'] = pd.Categorical(rs.date)
+    rs['gtfs_file_name'] = file
 
     # TODO: log more stats
     logging.debug(
