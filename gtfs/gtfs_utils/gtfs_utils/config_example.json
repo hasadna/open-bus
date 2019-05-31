@@ -1,6 +1,6 @@
 {
   "files": {
-    "base_directory": "/home/or/open-bus-files/",
+    "base_directory": "/home/travis/build/open-bus-files/",
     "child_directories": {
       "archive": "archive",
       "gtfs_feeds": "gtfs_feeds",

@@ -7,6 +7,10 @@ matrix:
       install:
         - pip install boto3 codecov coverage
       # commands to run tests
+      before_script:
+        - cd ./gtfs/gtfs_utils/gtfs_utils/
+        - cp ./config_example.json ./config.json
+        - cd -
       script:
         - cd ./gtfs/gtfs_utils
         - python setup.py test
