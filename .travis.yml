@@ -30,6 +30,7 @@ matrix:
         - cd ./siri/gtfs_reader
         - mvn install
         - docker build -t gtfs-collector .
-        - docker tag gtfs-collector openbus1/gtfs-collector:${TRAVIS_BRANCH}
-        - docker push openbus1/gtfs-collector:${TRAVIS_BRANCH}
+        - export DOCKER_TAG=$(sed 's/\//_/' <<< ${TRAVIS_BRANCH}) # Replacing a slash in branch name with an underscore
+        - docker tag gtfs-collector openbus1/gtfs-collector:${DOCKER_TAG}
+        - docker push openbus1/gtfs-collector:${DOCKER_TAG}
 
