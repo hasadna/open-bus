@@ -13,6 +13,7 @@ matrix:
         - coverage run s3_wrapper_setup.py pytest
         - codecov
     - language: java
+      dist: trusty
       jdk: oraclejdk8
       script:
         - cd ./siri/siri_retriever/siri-0.1
@@ -22,6 +23,7 @@ matrix:
         - docker tag siri-collector openbus1/siri-collector:${TRAVIS_BRANCH}
         - docker push openbus1/siri-collector:${TRAVIS_BRANCH}
     - language: java
+      dist: trusty
       jdk: oraclejdk8
       script:
         - docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD}
