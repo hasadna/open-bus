@@ -176,9 +176,8 @@
         </search>
         <option name="count">20</option>
         <option name="drilldown">row</option>
-        <option name="refresh.display">progressbar</option>
         <drilldown>
-          <link target="_blank">/app/open-bus/siri_investigator?form.route_id=$row.route_id$&amp;form.route_short_name=$row.route_short_name$&amp;form.date=$form.date$&amp;form.earliest=$form.earliest$&amp;form.planned_start_time=$row.planned_start_time$</link>
+          <link target="_blank">/app/open-bus/siri_investigator?form.route_id=$row.route_id$&amp;form.route_short_name=$row.route_short_name$&amp;form.date=$form.date$&amp;form.planned_start_time=$row.planned_start_time$</link>
         </drilldown>
       </table>
     </panel>

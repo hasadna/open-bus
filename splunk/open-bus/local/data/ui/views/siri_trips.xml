@@ -89,7 +89,7 @@
     <panel>
       <table>
         <search id="bad_trips">
-          <query>((index=siri lat!=0 [search index=route_stats $route_id$ | makemv delim=";" all_start_time |  stats count by route_id all_start_time | rename all_start_time AS planned_start_time | fields - count]) OR index=route_stats) $route_id$ 
+          <query>((index=siri lat!=0  [search index=route_stats agency_id=$agency_id$ $route_id$ | makemv delim=";" all_start_time |  stats count by route_id all_start_time | rename all_start_time AS planned_start_time | fields - count]) OR index=route_stats) $route_id$ agency_id=$agency_id$
 | makemv delim=";" all_start_time
 | eval start_time = coalesce(planned_start_time, all_start_time) 
 | stats dc(time_recorded) as siri_points by route_id date start_time 
