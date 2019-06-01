@@ -26,7 +26,7 @@ access = read : [ * ], write : [ admin, power ]
 export = none
 owner = admin
 version = 7.2.6
-modtime = 1558939706.086533000
+modtime = 1559374265.119879000
 
 [inputs/monitor%3A%2F%2FC%3A%5Cdev%5Cds%5Copen-bus-explore%5Cdata%5Csiri_csv_new]
 owner = admin
@@ -85,7 +85,7 @@ access = read : [ * ]
 export = none
 owner = danb
 version = 7.2.6
-modtime = 1558898553.485273000
+modtime = 1559211446.384629000
 
 [views/data_exporter]
 access = read : [ * ]
@@ -131,4 +131,11 @@ access = read : [ * ]
 export = none
 owner = danb
 version = 7.2.6
-modtime = 1559071937.914798000
+modtime = 1559306984.051970000
+
+[views/late_rides]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.6
+modtime = 1559405826.718058000

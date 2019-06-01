@@ -28,10 +28,10 @@
         <latest>now</latest>
       </default>
     </input>
-    <input type="dropdown" token="earliest" searchWhenChanged="true">
+    <input type="dropdown" token="date" searchWhenChanged="true">
       <label>date</label>
       <fieldForLabel>date_wday</fieldForLabel>
-      <fieldForValue>earliest</fieldForValue>
+      <fieldForValue>date</fieldForValue>
       <search>
         <query>| tstats count where index=siri by date | eval earliest = strptime(date, "%Y-%m-%d") | eval date_wday = date.", ".strftime(earliest, "%a") | sort - date</query>
         <earliest>$time_setter.earliest$</earliest>
@@ -39,8 +39,8 @@
       </search>
       <change>
         <condition>
-          <eval token="latest">$value$+86400</eval>
-          <eval token="date">strftime($value$, "%Y-%m-%d")</eval>
+          <eval token="latest">strptime($value$, "%Y-%m-%d")+86400</eval>
+          <eval token="earliest">strptime($value$, "%Y-%m-%d")</eval>
         </condition>
       </change>
     </input>
@@ -103,7 +103,9 @@
       <fieldForLabel>desc</fieldForLabel>
       <fieldForValue>planned_start_time</fieldForValue>
       <search>
-        <query>| tstats count where index=siri date=$date$ agency_id=$agency_id$ $route_id$ by planned_start_time index | append [search index=route_stats date=$date$ agency_id=$agency_id$ $route_id$ | makemv delim=";" all_start_time | stats count by index all_start_time | rename all_start_time as planned_start_time | eval index="gtfs"] | stats dc(index) as index_dc first(index) as index by planned_start_time | eval desc = if(index_dc==2, planned_start_time, planned_start_time." (".index.")")</query>
+        <query>| tstats dc(time_recorded) as points count where index=siri lat!=0 date=$date$ agency_id=$agency_id$ $route_id$ by planned_start_time index 
+| append [search index=route_stats date=$date$ agency_id=$agency_id$ $route_id$ | makemv delim=";" all_start_time | stats count by index all_start_time | rename all_start_time as planned_start_time | eval index="gtfs"] 
+| stats first(points) as points dc(index) as index_dc first(index) as index by planned_start_time | eval desc = if(index_dc==2, planned_start_time." - ".points, planned_start_time." (".index.") - ".points)</query>
         <earliest>$time_setter.earliest$</earliest>
         <latest>$time_setter.latest$</latest>
       </search>
@@ -229,11 +231,10 @@
         <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
         <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
         <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">0</option>
+        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">sqmeters</option>
+        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">meters</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">kilometers</option>
+        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
         <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.multiplePopups">1</option>
         <option name="leaflet_maps_app.maps-plus.pathColorList">#377eb8,#4daf4a,#984ea3,#ff7f00,#ffff33,#a65628,#f781bf,#999999</option>
