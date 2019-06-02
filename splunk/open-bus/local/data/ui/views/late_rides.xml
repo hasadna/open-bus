@@ -132,7 +132,7 @@
   <row>
     <panel>
       <table>
-        <search base="all_rides">
+        <search base="all_rides_stats">
           <query>
               | rename count as siri_rides
               | eval siri_rides_no_few = siri_rides - few_points
