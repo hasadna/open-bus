@@ -15,7 +15,7 @@
       | convert dur2sec(planned_start_time) AS psts dur2sec(departure_time_estimated) AS trs dur2sec(earliest_time_recorded) as ftrs
       | eval late_sec = trs-psts
       | eval earliest_late_sec = ftrs-psts
-      | eval late=tostring(late_sec, "duration"), earliest_late=tostring(earliest_late_sec, "duration")
+      | eval late=if(late_sec&lt;0, "-".tostring(-late_sec, "duration"), tostring(late_sec, "duration")), earliest_late=if(earliest_late_sec&lt;0, "-".tostring(-earliest_late_sec, "duration"), tostring(earliest_late_sec, "duration"))
       | fields route_short_name route_id date bus_id planned_start_time points departure_time_estimated late distance earliest_time_recorded earliest_late earliest_distance psts trs ftrs late_sec earliest_late_sec
 
    </query>
