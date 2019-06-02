@@ -15,11 +15,6 @@
     <query>sort sourcetype _time | eval latitude = coalesce(lat, start_stop_lat), longitude = coalesce(lon, start_stop_lon), tooltip=if(isnull(time_recorded), "Start Stop", time_recorded) | eval planned_start_time=coalesce(planned_start_time, start_time) | eval icon=case(sourcetype=="siri_csv", "bus", sourcetype=="route_stats", "home") | dedup tooltip planned_start_time | eval markerColor = if(sourcetype=="siri_csv", "blue", "red") | eval clusterGroup = sourcetype | streamstats first(latitude) as prev_lat first(longitude) as prev_lon window=1 current=false by planned_start_time | eval prev_latlon = prev_lat.",".prev_lon  | eval latlon = latitude.",".longitude | eval prev_latlon = coalesce(prev_latlon, latlon) | haversine originField=prev_latlon latlon | convert dur2sec(time_recorded) as time_recorded_secs | delta time_recorded_secs as delta_time | eval speed = distance/(delta_time/3600)
     </query>
   </search>
-  <search id="basic_stats">
-    <query>(( index=siri lat!=0)) earliest=$earliest$ latest=$latest$ date=$date$ agency_id=$agency_id$ $route_id$  | append [search index="route_stats" date=$date$ agency_id=$agency_id$ $route_id$ | table num_trips] | stats dc(planned_start_time) as siri_trips sum(num_trips) as gtfs_trips</query>
-    <earliest>0</earliest>
-    <latest></latest>
-  </search>
   <fieldset submitButton="false" autoRun="true">
     <input type="time" token="time_setter">
       <label></label>
