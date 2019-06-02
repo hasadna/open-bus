@@ -15,12 +15,33 @@
       | convert dur2sec(planned_start_time) AS psts dur2sec(departure_time_estimated) AS trs dur2sec(earliest_time_recorded) as ftrs
       | eval late_sec = trs-psts
       | eval earliest_late_sec = ftrs-psts
-      | eval late=tostring(late_sec, "duration"), earliest_late=tostring(earliest_late_sec, "duration")
+      | eval late=if(late_sec&lt;0, "-".tostring(-late_sec, "duration"), tostring(late_sec, "duration")), earliest_late=if(earliest_late_sec&lt;0, "-".tostring(-earliest_late_sec, "duration"), tostring(earliest_late_sec, "duration"))
       | fields route_short_name route_id date bus_id planned_start_time points departure_time_estimated late distance earliest_time_recorded earliest_late earliest_distance psts trs ftrs late_sec earliest_late_sec
 
    </query>
     <earliest>$time_setter.earliest$</earliest>
     <latest>$time_setter.latest$</latest>
+  </search>
+  <search base="all_rides" id="all_rides_stats">
+    <query>| stats  
+            count(eval(( (points&lt;=15) ))) as few_points
+            count(eval(( (late_sec&gt;=60*6) and (late_sec&lt;60*10) and (distance&lt;=500) and (points&gt;15) ))) as late6
+            count(eval(( (late_sec&gt;=60*10) and (distance&lt;=500) and (points&gt;15) ))) as late10 
+            count(eval(( (late_sec&gt;=60*6) and (late_sec&lt;60*10) and (distance&gt;500) and (points&gt;15) ))) as late6_far
+            count(eval(( (late_sec&gt;=60*10) and (distance&gt;500) and (points&gt;15) ))) as late10_far
+            count(eval(( (late_sec&lt;=-60*1) and (distance&lt;=500) and (points&gt;15) ))) as early
+            count(eval(( (late_sec&lt;=-60*1) and (distance&gt;500) and (points&gt;15) ))) as early_far
+            count(eval(( (earliest_late_sec&gt;=60*6) and (earliest_late_sec&lt;60*10) and (points&gt;15) ))) as earliest_late6
+            count(eval(( (earliest_late_sec&gt;=60*10) and (points&gt;15) ))) as earliest_late10 
+            count(eval(( (earliest_late_sec&gt;=60*6) and (earliest_late_sec&lt;60*10) and (earliest_distance&lt;=500) and (points&gt;15) ))) as earliest_late6_far
+            count(eval(( (earliest_late_sec&gt;=60*10) and (earliest_distance&lt;=500) and (points&gt;15) ))) as earliest_late10_far
+            count
+            by route_id route_short_name 
+      | join route_id 
+           [search index=route_stats ($route_id$ agency_id=$agency_id$)  
+        | makemv delim=";" all_start_time | mvexpand all_start_time | search all_start_time!=23* all_start_time!=22* all_start_time!=00* all_start_time!=01* 
+        | stats count as gtfs_trips by route_id]
+    </query>
   </search>
   <fieldset submitButton="false" autoRun="true">
     <input type="time" token="time_setter">
@@ -92,24 +113,27 @@
   <row>
     <panel>
       <table>
-        <search base="all_rides">
-          <query>| stats  
-                  count(eval(( (points&lt;=15) ))) as few_points
-                  count(eval(( (late_sec&gt;=60*6) and (late_sec&lt;60*10) and (distance&lt;=500) and (points&gt;15) ))) as late6
-                  count(eval(( (late_sec&gt;=60*10) and (distance&lt;=500) and (points&gt;15) ))) as late10 
-                  count(eval(( (late_sec&gt;=60*6) and (late_sec&lt;60*10) and (distance&gt;500) and (points&gt;15) ))) as late6_far
-                  count(eval(( (late_sec&gt;=60*10) and (distance&gt;500) and (points&gt;15) ))) as late10_far
-                  count(eval(( (late_sec&lt;=-60*1) and (distance&lt;=500) and (points&gt;15) ))) as early
-                  count(eval(( (late_sec&lt;=-60*1) and (distance&gt;500) and (points&gt;15) ))) as early_far
-                  count(eval(( (earliest_late_sec&gt;=60*6) and (earliest_late_sec&lt;60*10) and (points&gt;15) ))) as earliest_late6
-                  count(eval(( (earliest_late_sec&gt;=60*10) and (points&gt;15) ))) as earliest_late10 
-                  count(eval(( (earliest_late_sec&gt;=60*6) and (earliest_late_sec&lt;60*10) and (earliest_distance&lt;=500) and (points&gt;15) ))) as earliest_late6_far
-                  count(eval(( (earliest_late_sec&gt;=60*10) and (earliest_distance&lt;=500) and (points&gt;15) ))) as earliest_late10_far
-                  count
-                  by route_short_name route_id 
-              | join route_id 
-                 [search index=route_stats ($route_id$ agency_id=$agency_id$)  
-                  | makemv delim=";" all_start_time | mvexpand all_start_time | search all_start_time!=23* all_start_time!=22* all_start_time!=00* all_start_time!=01* | stats count as gtfs_trips by route_id]
+        <search base="all_rides_stats">
+          <query>
+              | stats sum(gtfs_trips) as gtfs_trips sum(few_points) as few_points sum(late6) as late6 sum(late10) as late10 sum(late6_far) as late6_far sum(late10_far) as late10_far sum(early) as early sum(early_far) as early_far sum(earliest_late6) as earliest_late6 sum(earliest_late10) as earliest_late10 sum(earliest_late6_far) as earliest_late6_far sum(earliest_late10_far) as earliest_late10_far sum(count) as count by route_short_name
+              | rename count as siri_rides
+              | eval siri_rides_no_few = siri_rides - few_points
+              | eval few_points=round(few_points/gtfs_trips, 3), late6=round(late6/gtfs_trips, 3), late10=round(late10/gtfs_trips, 3), late6_far=round(late6_far/gtfs_trips, 3), late10_far=round(late10_far/gtfs_trips, 3), early=round(early/gtfs_trips, 3), early_far=round(early_far/gtfs_trips, 3), earliest_late6=round(earliest_late6/gtfs_trips, 3), earliest_late10=round(earliest_late10/gtfs_trips, 3), earliest_late6_far=round(earliest_late6_far/gtfs_trips, 3), earliest_late10_far=round(earliest_late10_far/gtfs_trips, 3)
+              | eval missing_rides = round(1-siri_rides/gtfs_trips, 3)
+              | eval missing_no_few = round(1-siri_rides_no_few/gtfs_trips, 3)
+              | table route_short_name route_id gtfs_trips siri_rides missing_rides few_points missing_no_few late6 late10 late6_far late10_far early early_far earliest_late6 earliest_late10 earliest_late6_far earliest_late10_far</query>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search base="all_rides_stats">
+          <query>
               | rename count as siri_rides
               | eval siri_rides_no_few = siri_rides - few_points
               | eval few_points=round(few_points/gtfs_trips, 3), late6=round(late6/gtfs_trips, 3), late10=round(late10/gtfs_trips, 3), late6_far=round(late6_far/gtfs_trips, 3), late10_far=round(late10_far/gtfs_trips, 3), early=round(early/gtfs_trips, 3), early_far=round(early_far/gtfs_trips, 3), earliest_late6=round(earliest_late6/gtfs_trips, 3), earliest_late10=round(earliest_late10/gtfs_trips, 3), earliest_late6_far=round(earliest_late6_far/gtfs_trips, 3), earliest_late10_far=round(earliest_late10_far/gtfs_trips, 3)
