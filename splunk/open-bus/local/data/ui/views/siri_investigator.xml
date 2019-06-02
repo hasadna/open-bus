@@ -111,6 +111,11 @@
       <valueSuffix>"</valueSuffix>
       <delimiter> OR </delimiter>
     </input>
+    <input type="checkbox" token="show_route_info">
+      <label></label>
+      <choice value="Show route info?">Show route info?</choice>
+      <delimiter> </delimiter>
+    </input>
   </fieldset>
   <row>
     <panel>
@@ -259,7 +264,7 @@
       </viz>
     </panel>
   </row>
-  <row>
+  <row depends="$show_route_info$">
     <panel>
       <title>Route Info</title>
       <table>
