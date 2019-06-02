@@ -282,22 +282,5 @@
         <option name="wrap">true</option>
       </table>
     </panel>
-    <panel>
-      <title>Missing Trips</title>
-      <chart>
-        <search base="basic_stats">
-          <query>eval missing_trips=gtfs_trips-siri_trips | eval perc5=gtfs_trips*0.05 | eval perc10=gtfs_trips/10 | eval quarter=gtfs_trips/4 | eval half=quarter*2 | eval thr=quarter*3 | gauge missing_trips 0  perc5 perc10 quarter half thr gtfs_trips</query>
-        </search>
-        <option name="charting.axisTitleX.visibility">visible</option>
-        <option name="charting.axisTitleY.visibility">visible</option>
-        <option name="charting.axisTitleY2.visibility">visible</option>
-        <option name="charting.chart">fillerGauge</option>
-        <option name="charting.chart.style">minimal</option>
-        <option name="charting.legend.placement">right</option>
-        <option name="height">566</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">0</option>
-      </chart>
-    </panel>
   </row>
 </form>
