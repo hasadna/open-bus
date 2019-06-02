@@ -93,8 +93,7 @@
     <panel>
       <table>
         <search base="all_rides">
-          <query>
-              | stats  
+          <query>| stats  
                   count(eval(( (points&lt;=15) ))) as few_points
                   count(eval(( (late_sec&gt;=60*6) and (late_sec&lt;60*10) and (distance&lt;=500) and (points&gt;15) ))) as late6
                   count(eval(( (late_sec&gt;=60*10) and (distance&lt;=500) and (points&gt;15) ))) as late10 
@@ -112,11 +111,11 @@
                  [search index=route_stats ($route_id$ agency_id=$agency_id$)  
                   | makemv delim=";" all_start_time | mvexpand all_start_time | search all_start_time!=23* all_start_time!=22* all_start_time!=00* all_start_time!=01* | stats count as gtfs_trips by route_id]
               | rename count as siri_rides
-              | eval siri_rides_no_few = count - few_points
+              | eval siri_rides_no_few = siri_rides - few_points
               | eval few_points=round(few_points/gtfs_trips, 3), late6=round(late6/gtfs_trips, 3), late10=round(late10/gtfs_trips, 3), late6_far=round(late6_far/gtfs_trips, 3), late10_far=round(late10_far/gtfs_trips, 3), early=round(early/gtfs_trips, 3), early_far=round(early_far/gtfs_trips, 3), earliest_late6=round(earliest_late6/gtfs_trips, 3), earliest_late10=round(earliest_late10/gtfs_trips, 3), earliest_late6_far=round(earliest_late6_far/gtfs_trips, 3), earliest_late10_far=round(earliest_late10_far/gtfs_trips, 3)
-              | eval ride_to_trip_ratio = round(siri_rides/gtfs_trips, 3)
-              | eval no_few_to_trip_ratio = round(siri_rides_no_few/gtfs_trips, 3)
-          </query>
+              | eval missing_rides = round(1-siri_rides/gtfs_trips, 3)
+              | eval missing_no_few = round(1-siri_rides_no_few/gtfs_trips, 3)
+              | table route_short_name route_id gtfs_trips siri_rides missing_rides few_points missing_no_few late6 late10 late6_far late10_far early early_far earliest_late6 earliest_late10 earliest_late6_far earliest_late10_far</query>
         </search>
         <option name="count">20</option>
         <option name="drilldown">none</option>
