@@ -57,46 +57,46 @@ def compute_trip_stats_partridge(feed, zones):
     """
     Parameters
     ----------
-    feed : partridge feed
-    zones: DataFrame with stop_code to zone_name mapping
+    :param feed: partridge feed
+    :param zones: DataFrame with stop_code to zone_name mapping
 
     Returns
     -------
     DataFrame with the following columns:
 
-    - ``'trip_id'``
-    - ``'route_id'``
-    - ``'route_short_name'``
-    - ``'route_short_name'``
-    - ``'agency_id'``
-    - ``'agency_name'``
-    - ``'route_long_name'``
-    - ``'route_type'``
-    - ``'direction_id'``
-    - ``'shape_id'``
-    - ``'num_stops'``: number of stops on trip
-    - ``'start_time'``: first departure time of the trip
-    - ``'end_time'``: last departure time of the trip
-    - ``'start_stop_id'``: stop ID of the first stop of the trip
-    - ``'end_stop_id'``: stop ID of the last stop of the trip
-    - ``'start_stop_name'``: stop name of the first stop of the trip
-    - ``'end_stop_name'``: stop name of the last stop of the trip
-    - ``'start_stop_code'``: stop code of the first stop of the trip
-    - ``'end_stop_code'``: stop code of the last stop of the trip
-    - ``'start_stop_lat'``: ``start_stop_lat`` of the first stop of the trip
-    - ``'start_stop_lon'``: ``start_stop_lon`` of the first stop of the trip
-    - ``'end_stop_lat'``: ``end_stop_lat`` of the last stop of the trip
-    - ``'end_stop_lon'``: ``end_stop_lon`` of the last stop of the trip
-    - ``'start_zone'``: zone name of the first stop of the trip
-    - ``'end_zone'``: zone name of the last stop of the trip
-    - ``'num_zones'``:  ``num_zones`` of the first stop of the trip
-    - ``'num_zones_missing'``:  ``num_zones_missing`` of the first stop of the trip
-    - ``'is_loop'``: 1 if the start and end stop are less than 400m apart and
+    - ``trip_id`` - blabla
+    - ``route_id`` - blabla
+    - ``route_short_name``
+    - ``route_short_name``
+    - ``agency_id``
+    - ``agency_name``
+    - ``route_long_name``
+    - ``route_type``
+    - ``direction_id``
+    - ``shape_id``
+    - ``num_stops`` - number of stops on trip
+    - ``start_time`` - first departure time of the trip
+    - ``end_time`` - last departure time of the trip
+    - ``start_stop_id`` - stop ID of the first stop of the trip
+    - ``end_stop_id`` - stop ID of the last stop of the trip
+    - ``start_stop_name`` - stop name of the first stop of the trip
+    - ``end_stop_name`` - stop name of the last stop of the trip
+    - ``start_stop_code`` - stop code of the first stop of the trip
+    - ``end_stop_code`` - stop code of the last stop of the trip
+    - ``start_stop_lat`` - ``start_stop_lat`` of the first stop of the trip
+    - ``start_stop_lon`` - ``start_stop_lon`` of the first stop of the trip
+    - ``end_stop_lat`` - ``end_stop_lat`` of the last stop of the trip
+    - ``end_stop_lon`` - ``end_stop_lon`` of the last stop of the trip
+    - ``start_zone`` - zone name of the first stop of the trip
+    - ``end_zone`` - zone name of the last stop of the trip
+    - ``num_zones`` -  ``num_zones`` of the first stop of the trip
+    - ``num_zones_missing`` -  ``num_zones_missing`` of the first stop of the trip
+    - ``is_loop`` - 1 if the start and end stop are less than 400m apart and
       0 otherwise
-    - ``'distance'``: distance of the trip in ``feed.dist_units``;
+    - ``distance`` - distance of the trip in ``feed.dist_units``;
       contains all ``np.nan`` entries if ``feed.shapes is None``
-    - ``'duration'``: duration of the trip in hours
-    - ``'speed'``: distance/duration
+    - ``duration`` - duration of the trip in hours
+    - ``speed`` - distance/duration
 
     TODO: this is not true here, we're only using shape_dist_traveled
     TODO: implement or drop from docs
@@ -207,60 +207,60 @@ def compute_route_stats_base_partridge(trip_stats_subset,
     DataFrame
         Columns are
 
-        - ``'route_id'``
-        - ``'route_short_name'``
-        - ``'agency_id'``
-        - ``'agency_name'``
-        - ``'route_long_name'``
-        - ``'route_type'``
-        - ``'direction_id'``: 1/0
-        - ``'num_trips'``: number of trips on the route in the subset
-        - ``'num_trip_starts'``: number of trips on the route with
+        - ``route_id``
+        - ``route_short_name``
+        - ``agency_id``
+        - ``agency_name``
+        - ``route_long_name``
+        - ``route_type``
+        - ``direction_id`` - 1/0
+        - ``num_trips`` - number of trips on the route in the subset
+        - ``num_trip_starts`` - number of trips on the route with
           nonnull start times
-        - ``'num_trip_ends'``: number of trips on the route with nonnull
+        - ``num_trip_ends`` - number of trips on the route with nonnull
           end times that end before 23:59:59
-        - ``'is_loop'``: 1 if at least one of the trips on the route has
+        - ``is_loop`` - 1 if at least one of the trips on the route has
           its ``is_loop`` field equal to 1; 0 otherwise
-        - ``'is_bidirectional'``: 1 if the route has trips in both
+        - ``is_bidirectional`` - 1 if the route has trips in both
           directions; 0 otherwise
-        - ``'start_time'``: start time of the earliest trip on the route
-        - ``'end_time'``: end time of latest trip on the route
-        - ``'max_headway'``: maximum of the durations (in minutes)
+        - ``start_time`` - start time of the earliest trip on the route
+        - ``end_time`` - end time of latest trip on the route
+        - ``max_headway`` - maximum of the durations (in minutes)
           between trip starts on the route between
           ``headway_start_time`` and ``headway_end_time`` on the given
           dates
-        - ``'min_headway'``: minimum of the durations (in minutes)
+        - ``min_headway`` - minimum of the durations (in minutes)
           mentioned above
-        - ``'mean_headway'``: mean of the durations (in minutes)
+        - ``mean_headway`` - mean of the durations (in minutes)
           mentioned above
-        - ``'peak_num_trips'``: maximum number of simultaneous trips in
+        - ``peak_num_trips`` - maximum number of simultaneous trips in
           service (for the given direction, or for both directions when
           ``split_directions==False``)
-        - ``'peak_start_time'``: start time of first longest period
+        - ``peak_start_time`` - start time of first longest period
           during which the peak number of trips occurs
-        - ``'peak_end_time'``: end time of first longest period during
+        - ``peak_end_time`` - end time of first longest period during
           which the peak number of trips occurs
-        - ``'service_duration'``: total of the duration of each trip on
+        - ``service_duration`` - total of the duration of each trip on
           the route in the given subset of trips; measured in hours
-        - ``'service_distance'``: total of the distance traveled by each
+        - ``service_distance`` - total of the distance traveled by each
           trip on the route in the given subset of trips; measured in
           whatever distance units are present in ``trip_stats_subset``;
           contains all ``np.nan`` entries if ``feed.shapes is None``
-        - ``'service_speed'``: service_distance/service_duration;
+        - ``service_speed`` - service_distance/service_duration;
           measured in distance units per hour
-        - ``'mean_trip_distance'``: service_distance/num_trips
-        - ``'mean_trip_duration'``: service_duration/num_trips
-        - ``'start_stop_id'``: ``start_stop_id`` of the first trip for the route
-        - ``'end_stop_id'``: ``end_stop_id`` of the first trip for the route
-        - ``'start_stop_lat'``: ``start_stop_lat`` of the first trip for the route
-        - ``'start_stop_lon'``: ``start_stop_lon`` of the first trip for the route
-        - ``'end_stop_lat'``: ``end_stop_lat`` of the first trip for the route
-        - ``'end_stop_lon'``: ``end_stop_lon`` of the first trip for the route
-        - ``'num_stops'``: ``num_stops`` of the first trip for the route
-        - ``'start_zone'``: ``start_zone`` of the first trip for the route
-        - ``'end_zone'``: ``end_zone`` of the first trip for the route
-        - ``'num_zones'``:  ``num_zones`` of the first trip for the route
-        - ``'num_zones_missing'``:  ``num_zones_missing`` of the first trip for the route
+        - ``mean_trip_distance`` - service_distance/num_trips
+        - ``mean_trip_duration`` - service_duration/num_trips
+        - ``start_stop_id`` - ``start_stop_id`` of the first trip for the route
+        - ``end_stop_id`` - ``end_stop_id`` of the first trip for the route
+        - ``start_stop_lat`` - ``start_stop_lat`` of the first trip for the route
+        - ``start_stop_lon`` - ``start_stop_lon`` of the first trip for the route
+        - ``end_stop_lat`` - ``end_stop_lat`` of the first trip for the route
+        - ``end_stop_lon`` - ``end_stop_lon`` of the first trip for the route
+        - ``num_stops`` - ``num_stops`` of the first trip for the route
+        - ``start_zone`` - ``start_zone`` of the first trip for the route
+        - ``end_zone`` - ``end_zone`` of the first trip for the route
+        - ``num_zones`` -  ``num_zones`` of the first trip for the route
+        - ``num_zones_missing`` -  ``num_zones_missing`` of the first trip for the route
 
         TODO: actually implement split_directions
         If not ``split_directions``, then remove the
