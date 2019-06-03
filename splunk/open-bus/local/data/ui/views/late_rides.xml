@@ -115,7 +115,7 @@
       <table>
         <search base="all_rides_stats">
           <query>
-              | stats sum(gtfs_trips) as gtfs_trips sum(few_points) as few_points sum(late6) as late6 sum(late10) as late10 sum(late6_far) as late6_far sum(late10_far) as late10_far sum(early) as early sum(early_far) as early_far sum(earliest_late6) as earliest_late6 sum(earliest_late10) as earliest_late10 sum(earliest_late6_far) as earliest_late6_far sum(earliest_late10_far) as earliest_late10_far sum(count) as count by route_short_name
+              | stats values(route_id) as route_id sum(gtfs_trips) as gtfs_trips sum(few_points) as few_points sum(late6) as late6 sum(late10) as late10 sum(late6_far) as late6_far sum(late10_far) as late10_far sum(early) as early sum(early_far) as early_far sum(earliest_late6) as earliest_late6 sum(earliest_late10) as earliest_late10 sum(earliest_late6_far) as earliest_late6_far sum(earliest_late10_far) as earliest_late10_far sum(count) as count by route_short_name
               | rename count as siri_rides
               | eval siri_rides_no_few = siri_rides - few_points
               | eval few_points=round(few_points/gtfs_trips, 3), late6=round(late6/gtfs_trips, 3), late10=round(late10/gtfs_trips, 3), late6_far=round(late6_far/gtfs_trips, 3), late10_far=round(late10_far/gtfs_trips, 3), early=round(early/gtfs_trips, 3), early_far=round(early_far/gtfs_trips, 3), earliest_late6=round(earliest_late6/gtfs_trips, 3), earliest_late10=round(earliest_late10/gtfs_trips, 3), earliest_late6_far=round(earliest_late6_far/gtfs_trips, 3), earliest_late10_far=round(earliest_late10_far/gtfs_trips, 3)
