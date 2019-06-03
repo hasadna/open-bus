@@ -112,6 +112,10 @@
   </fieldset>
   <row>
     <panel>
+      <input type="checkbox" token="split_rid">
+        <label></label>
+        <choice value="Split route_id?">Split route_id?</choice>
+      </input>
       <table>
         <search base="all_rides_stats">
           <query>
@@ -129,7 +133,7 @@
       </table>
     </panel>
   </row>
-  <row>
+  <row depends="$split_rid$">
     <panel>
       <table>
         <search base="all_rides_stats">
