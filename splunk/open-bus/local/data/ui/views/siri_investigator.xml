@@ -181,7 +181,9 @@
       | append [search index=route_stats agency_id=$agency_id$ $route_id$ earliest=$earliest$ latest=$latest$ date=$date$ | eval all_stop_latlon="XX".all_stop_latlon."XX" | makemv delim=";" all_stop_latlon | makemv delim=";" all_stop_code | eval all=mvzip(all_stop_latlon, all_stop_code, "|") | mvexpand all | rex field=all "(?&lt;all_stop_latlon&gt;.*)\|(?&lt;stop_code&gt;.*)" 
       | eval icon=case(like(all_stop_latlon, "XX%"), "home", like(all_stop_latlon, "%XX"), "bed", 1==1, "stop-circle") 
       | eval layerDescription=case(like(all_stop_latlon, "XX%"), "First stop", like(all_stop_latlon, "%XX"), "Last Stop", 1==1, "Stop") 
-      | rex field=all_stop_latlon "(?&lt;latitude&gt;[\d\.]*),(?&lt;longitude&gt;[\d\.]*)(XX)?" | eval description=stop_code | eval clusterGroup = "stops" | eval markerColor="red" 
+      | rex field=all_stop_latlon "(?&lt;latitude&gt;[\d\.]*),(?&lt;longitude&gt;[\d\.]*)(XX)?" | eval description=stop_code
+      | eval markerColor=case(like(all_stop_latlon, "XX%"), "green", like(all_stop_latlon, "%XX"), "red", 1==1, "orange") 
+      | eval clusterGroup=layerDescription
       |  eval trip_temp_id = "Stops path"
       | eval pathWeight=1
       | eval pathColor = "#e41a1c"
