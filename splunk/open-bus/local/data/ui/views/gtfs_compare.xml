@@ -115,20 +115,51 @@
       </chart>
     </panel>
   </row>
+  <row depends="$alwaysHideCSSPanel$">
+    <panel>
+      <html>
+       <style>
+         #tableWithDrilldown table tbody tr td:nth-child(1){
+           cursor: default !important;
+           color: white !important;
+         }
+         #tableWithDrilldown table tbody tr td:nth-child(2){
+           cursor: default !important;
+           color: white !important;
+         }
+         #tableWithDrilldown table tbody tr td:nth-child(3){
+           cursor: default !important;
+           color: white !important;
+         }
+         #tableWithDrilldown table tbody tr td:nth-child(4){
+           cursor: default !important;
+           color: white !important;
+         }
+       </style>
+     </html>
+    </panel>
+  </row>
   <row>
     <panel>
       <title>All trip start times by date</title>
-      <table>
+      <table id="tableWithDrilldown">
         <search>
-          <query>index=route_stats $date$ agency_id=$agency_id$ $route_id$ $route_short_name$ (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) | eval row=route_id.";".route_short_name.";".start_stop_name.";".end_stop_name | makemv delim=";" all_start_time | chart values(all_start_time) over row by date useother=false limit=100 | rex field=row "(?&lt;route_id&gt;.*);(?&lt;route_short_name&gt;.*);(?&lt;start_stop_name&gt;.*);(?&lt;end_stop_name&gt;.*)" | fields - row | table route_id route_short_name start_stop_name end_stop_name *</query>
+          <query>index=route_stats $date$ agency_id=$agency_id$ $route_id$ (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) | eval row=route_id.";".route_short_name.";".start_stop_name.";".end_stop_name | makemv delim=";" all_start_time | chart values(all_start_time) over row by date useother=false limit=100 | rex field=row "(?&lt;route_id&gt;.*);(?&lt;route_short_name&gt;.*);(?&lt;start_stop_name&gt;.*);(?&lt;end_stop_name&gt;.*)" | fields - row | table route_id route_short_name start_stop_name end_stop_name *</query>
           <earliest>$time_setter.earliest$</earliest>
           <latest>$time_setter.latest$</latest>
         </search>
         <option name="count">5</option>
         <option name="drilldown">cell</option>
-        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
         <drilldown>
-          <link target="_blank">/app/open-bus/siri_investigator?form.date=$click.name2$&amp;form.planned_start_time=$click.value2$&amp;form.route_id=$row.route_id$&amp;form.agency_id=$form.agency_id$&amp;form.route_short_name=$row.route_short_name$</link>
+          <condition field="route_id"></condition>
+          <condition field="route_short_name"></condition>
+          <condition field="start_stop_name"></condition>
+          <condition field="end_stop_name"></condition>
+          <condition field="*">
+            <link target="_blank">/app/open-bus/siri_investigator?form.date=$click.name2$&amp;form.planned_start_time=$click.value2$&amp;form.route_id=$row.route_id$&amp;form.agency_id=$form.agency_id$&amp;form.route_short_name=$row.route_short_name$</link>
+          </condition>
         </drilldown>
       </table>
     </panel>
