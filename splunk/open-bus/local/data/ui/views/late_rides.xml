@@ -8,15 +8,16 @@
       | eval dist_time = distance."_".time_recorded
       | streamstats min(distance) as min_dist by route_id bus_id planned_start_time date
       | eventstats earliest(time_recorded) as earliest_time_recorded earliest(distance) as earliest_distance dc(time_recorded) as points by route_id bus_id planned_start_time date
+      | eventstats mean(points) as mean_points by route_id
       | sort 0 min_dist time_recorded
       | streamstats count by route_id bus_id planned_start_time date
       | where count&lt;=20 and distance&gt;200 and distance&gt;=min_dist 
-      | stats first(time_recorded) as departure_time_estimated first(distance) as distance first(earliest_time_recorded) as earliest_time_recorded first(earliest_distance) as earliest_distance first(points) as points by route_id date planned_start_time bus_id route_short_name
+      | stats first(time_recorded) as departure_time_estimated first(distance) as distance first(earliest_time_recorded) as earliest_time_recorded first(earliest_distance) as earliest_distance first(points) as points first(mean_points) as mean_points by route_id date planned_start_time bus_id route_short_name
       | convert dur2sec(planned_start_time) AS psts dur2sec(departure_time_estimated) AS trs dur2sec(earliest_time_recorded) as ftrs
       | eval late_sec = trs-psts
       | eval earliest_late_sec = ftrs-psts
       | eval late=if(late_sec&lt;0, "-".tostring(-late_sec, "duration"), tostring(late_sec, "duration")), earliest_late=if(earliest_late_sec&lt;0, "-".tostring(-earliest_late_sec, "duration"), tostring(earliest_late_sec, "duration"))
-      | fields route_short_name route_id date bus_id planned_start_time points departure_time_estimated late distance earliest_time_recorded earliest_late earliest_distance psts trs ftrs late_sec earliest_late_sec
+      | fields route_short_name route_id date bus_id planned_start_time points departure_time_estimated late distance earliest_time_recorded earliest_late earliest_distance psts trs ftrs late_sec earliest_late_sec mean_points
 
    </query>
     <earliest>$time_setter.earliest$</earliest>
@@ -24,17 +25,17 @@
   </search>
   <search base="all_rides" id="all_rides_stats">
     <query>| stats  
-            count(eval(( (points&lt;=15) ))) as few_points
-            count(eval(( (late_sec&gt;=60*6) and (late_sec&lt;60*10) and (distance&lt;=500) and (points&gt;15) ))) as late6
-            count(eval(( (late_sec&gt;=60*10) and (distance&lt;=500) and (points&gt;15) ))) as late10 
-            count(eval(( (late_sec&gt;=60*6) and (late_sec&lt;60*10) and (distance&gt;500) and (points&gt;15) ))) as late6_far
-            count(eval(( (late_sec&gt;=60*10) and (distance&gt;500) and (points&gt;15) ))) as late10_far
-            count(eval(( (late_sec&lt;=-60*1) and (distance&lt;=500) and (points&gt;15) ))) as early
-            count(eval(( (late_sec&lt;=-60*1) and (distance&gt;500) and (points&gt;15) ))) as early_far
-            count(eval(( (earliest_late_sec&gt;=60*6) and (earliest_late_sec&lt;60*10) and (points&gt;15) ))) as earliest_late6
-            count(eval(( (earliest_late_sec&gt;=60*10) and (points&gt;15) ))) as earliest_late10 
-            count(eval(( (earliest_late_sec&gt;=60*6) and (earliest_late_sec&lt;60*10) and (earliest_distance&lt;=500) and (points&gt;15) ))) as earliest_late6_far
-            count(eval(( (earliest_late_sec&gt;=60*10) and (earliest_distance&lt;=500) and (points&gt;15) ))) as earliest_late10_far
+            count(eval(( (points&lt;=mean_points/4) ))) as few_points
+            count(eval(( (late_sec&gt;=60*6) and (late_sec&lt;60*10) and (distance&lt;=500) and (points&gt;mean_points/4) ))) as late6
+            count(eval(( (late_sec&gt;=60*10) and (distance&lt;=500) and (points&gt;mean_points/4) ))) as late10 
+            count(eval(( (late_sec&gt;=60*6) and (late_sec&lt;60*10) and (distance&gt;500) and (points&gt;mean_points/4) ))) as late6_far
+            count(eval(( (late_sec&gt;=60*10) and (distance&gt;500) and (points&gt;mean_points/4) ))) as late10_far
+            count(eval(( (late_sec&lt;=-60*1) and (distance&lt;=500) and (points&gt;mean_points/4) ))) as early
+            count(eval(( (late_sec&lt;=-60*1) and (distance&gt;500) and (points&gt;mean_points/4) ))) as early_far
+            count(eval(( (earliest_late_sec&gt;=60*6) and (earliest_late_sec&lt;60*10) and (points&gt;mean_points/4) ))) as earliest_late6
+            count(eval(( (earliest_late_sec&gt;=60*10) and (points&gt;mean_points/4) ))) as earliest_late10 
+            count(eval(( (earliest_late_sec&gt;=60*6) and (earliest_late_sec&lt;60*10) and (earliest_distance&lt;=500) and (points&gt;mean_points/4) ))) as earliest_late6_far
+            count(eval(( (earliest_late_sec&gt;=60*10) and (earliest_distance&lt;=500) and (points&gt;mean_points/4) ))) as earliest_late10_far
             count
             by route_id route_short_name 
       | join route_id 
