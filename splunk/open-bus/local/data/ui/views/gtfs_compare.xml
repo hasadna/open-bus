@@ -4,8 +4,8 @@
     <input type="time" token="time_setter">
       <label></label>
       <default>
-        <earliest>-30d@d</earliest>
-        <latest>now</latest>
+        <earliest>-7d@w0</earliest>
+        <latest>@w0</latest>
       </default>
     </input>
     <input type="multiselect" token="date" searchWhenChanged="true">
