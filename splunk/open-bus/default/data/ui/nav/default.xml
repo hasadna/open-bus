@@ -5,6 +5,7 @@
   <view name="data_exporter" />
   <view name="search_by_stop" />
   <view name="late_rides" />
+  <view name="gtfs_compare" />
   <view name="search" />
   <collection label="All reports">
     <saved source="all" />
