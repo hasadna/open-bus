@@ -74,7 +74,7 @@
       <fieldForLabel>description</fieldForLabel>
       <fieldForValue>route_id</fieldForValue>
       <search>
-        <query>| tstats count max(num_trips) as num_trips first(route_long_name) as route_long_name where index="route_stats" AND $route_short_name$ AND agency_id=$agency_id$ AND (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) by agency_name route_short_name route_id  | eval description = "מזהה ".route_id." - ".num_trips." נסיעות - ".route_long_name." - קו ".route_short_name | sort -num_trips</query>
+        <query>| tstats count max(num_trips) as num_trips first(route_long_name) as route_long_name first(route_short_name) as route_short_name where index="route_stats" AND $route_short_name$ AND agency_id=$agency_id$ AND (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) by agency_name route_id  | eval description = "מזהה ".route_id." - ".num_trips." נסיעות - ".route_long_name." - קו ".route_short_name | sort -num_trips</query>
         <earliest>$time_setter.earliest$</earliest>
         <latest>$time_setter.latest$</latest>
       </search>
