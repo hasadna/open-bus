@@ -92,7 +92,7 @@
       <title>Number of trips by date</title>
       <chart>
         <search>
-          <query>index=route_stats $date$ agency_id=$agency_id$ $route_id$ $route_short_name$ (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) | eval row="קו ".route_short_name.";id=".route_id.";".start_stop_name."-&gt;".end_stop_name | makemv delim=";" all_start_time | chart sum(num_trips) over date by row useother=false</query>
+          <query>index=route_stats $date$ agency_id=$agency_id$ $route_id$ $route_short_name$ (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) | eval row="קו ".route_short_name.";id=".route_id.";".start_stop_name."-&gt;".end_stop_name | makemv delim=";" all_start_time | chart sum(num_trips) over date by row useother=false limit=100</query>
           <earliest>$time_setter.earliest$</earliest>
           <latest>$time_setter.latest$</latest>
         </search>
@@ -115,11 +115,11 @@
       <title>All trip start times by date</title>
       <table>
         <search>
-          <query>index=route_stats $date$ agency_id=$agency_id$ $route_id$ $route_short_name$ (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) | eval row=route_id.";".route_short_name.";".start_stop_name.";".end_stop_name | makemv delim=";" all_start_time | chart values(all_start_time) over row by date useother=false | rex field=row "(?&lt;route_id&gt;.*);(?&lt;route_short_name&gt;.*);(?&lt;start_stop_name&gt;.*);(?&lt;end_stop_name&gt;.*)" | fields - row | table route_id route_short_name start_stop_name end_stop_name *</query>
+          <query>index=route_stats $date$ agency_id=$agency_id$ $route_id$ $route_short_name$ (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) | eval row=route_id.";".route_short_name.";".start_stop_name.";".end_stop_name | makemv delim=";" all_start_time | chart values(all_start_time) over row by date useother=false limit=100 | rex field=row "(?&lt;route_id&gt;.*);(?&lt;route_short_name&gt;.*);(?&lt;start_stop_name&gt;.*);(?&lt;end_stop_name&gt;.*)" | fields - row | table route_id route_short_name start_stop_name end_stop_name *</query>
           <earliest>$time_setter.earliest$</earliest>
           <latest>$time_setter.latest$</latest>
         </search>
-        <option name="count">50</option>
+        <option name="count">5</option>
         <option name="drilldown">cell</option>
         <option name="refresh.display">progressbar</option>
         <drilldown>
