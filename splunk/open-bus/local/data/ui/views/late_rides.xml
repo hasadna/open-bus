@@ -1,5 +1,5 @@
 <form theme="dark">
-  <label>Late Rides</label>
+  <label>Bad Rides</label>
   <search id="all_rides">
     <query>index=route_stats OR (index=siri planned_start_time!=22* planned_start_time!=23* planned_start_time!=00* planned_start_time!=01* lat!=0.0) AND ($route_id$ agency_id=$agency_id$)
       | eventstats first(start_stop_lat) as start_stop_lat first(start_stop_lon) as start_stop_lon by route_id date 
