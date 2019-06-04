@@ -113,12 +113,37 @@
   </fieldset>
   <row>
     <panel>
+      <chart>
+        <title>Missing rides</title>
+        <search base="rsn_stats">
+          <query>table route_short_name missing_rides missing_no_few</query>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.showDataLabels">minmax</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Late rides</title>
+        <search base="rsn_stats">
+          <query>table route_short_name late6 late10 early</query>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.showDataLabels">minmax</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
       <input type="checkbox" token="split_rid">
         <label></label>
         <choice value="Split route_id?">Split route_id?</choice>
       </input>
       <table>
-        <search base="all_rides_stats">
+        <search base="all_rides_stats" id="rsn_stats">
           <query>
               | stats values(route_id) as route_id sum(gtfs_trips) as gtfs_trips sum(few_points) as few_points sum(late6) as late6 sum(late10) as late10 sum(late6_far) as late6_far sum(late10_far) as late10_far sum(early) as early sum(early_far) as early_far sum(earliest_late6) as earliest_late6 sum(earliest_late10) as earliest_late10 sum(earliest_late6_far) as earliest_late6_far sum(earliest_late10_far) as earliest_late10_far sum(count) as count by route_short_name
               | rename count as siri_rides
