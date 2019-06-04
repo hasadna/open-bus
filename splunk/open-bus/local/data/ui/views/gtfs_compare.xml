@@ -92,15 +92,20 @@
       <title>Number of trips by date</title>
       <chart>
         <search>
-          <query>index=route_stats $date$ agency_id=$agency_id$ $route_id$ $route_short_name$ (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) | eval row="קו ".route_short_name.";id=".route_id.";".start_stop_name."-&gt;".end_stop_name | makemv delim=";" all_start_time | chart sum(num_trips) over date by row useother=false limit=100</query>
+          <query>index=route_stats $date$ agency_id=$agency_id$ $route_id$ (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) | eval row="קו ".route_short_name.";id=".route_id.";".start_stop_name."-&gt;".end_stop_name | makemv delim=";" all_start_time | chart sum(num_trips) over date by row useother=false limit=100</query>
           <earliest>$time_setter.earliest$</earliest>
           <latest>$time_setter.latest$</latest>
         </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
         <option name="charting.axisTitleX.visibility">collapsed</option>
         <option name="charting.axisTitleY.visibility">collapsed</option>
         <option name="charting.axisTitleY2.visibility">collapsed</option>
         <option name="charting.chart">column</option>
+        <option name="charting.chart.showDataLabels">minmax</option>
+        <option name="charting.chart.stackMode">default</option>
         <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
         <option name="charting.legend.placement">none</option>
         <option name="refresh.display">progressbar</option>
         <option name="trellis.enabled">1</option>
