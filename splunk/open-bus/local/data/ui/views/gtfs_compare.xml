@@ -1,0 +1,131 @@
+<form theme="dark">
+  <label>GTFS Compare</label>
+  <fieldset submitButton="false" autoRun="true">
+    <input type="time" token="time_setter">
+      <label></label>
+      <default>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="multiselect" token="date" searchWhenChanged="true">
+      <label>Dates</label>
+      <fieldForLabel>date</fieldForLabel>
+      <fieldForValue>date</fieldForValue>
+      <search>
+        <query>| tstats count where index="route_stats" by date
+| sort - date</query>
+      </search>
+      <prefix>(</prefix>
+      <suffix>)</suffix>
+      <valuePrefix>date="</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+      <delimiter> OR </delimiter>
+      <choice value="*">All</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="agency_id" searchWhenChanged="true">
+      <label>Agency</label>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <fieldForLabel>desc</fieldForLabel>
+      <fieldForValue>agency_id</fieldForValue>
+      <search>
+        <query>| tstats sum(num_trips) as count where index=route_stats by agency_name agency_id | eval desc = agency_name." (".agency_id.")" | sort -count</query>
+        <earliest>0</earliest>
+        <latest></latest>
+      </search>
+      <choice value="*">All</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="stop_city" searchWhenChanged="true">
+      <label>Start/End City</label>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <fieldForLabel>stop_city</fieldForLabel>
+      <fieldForValue>stop_city</fieldForValue>
+      <search>
+        <query>| tstats count where index="route_stats" agency_id=$agency_id$ by start_stop_city | rename start_stop_city as stop_city 
+        | append [| tstats count where index="route_stats" agency_id=$agency_id$ by end_stop_city | rename end_stop_city as stop_city] 
+        | stats count by stop_city </query>
+        <earliest>$time_setter.earliest$</earliest>
+        <latest>$time_setter.latest$</latest>
+      </search>
+      <choice value="*">All</choice>
+      <default>*</default>
+    </input>
+    <input type="multiselect" token="route_short_name" searchWhenChanged="true">
+      <label>Route Short Name</label>
+      <fieldForLabel>route_short_name</fieldForLabel>
+      <fieldForValue>route_short_name</fieldForValue>
+      <search>
+        <query>| tstats count where index="route_stats" AND agency_id=$agency_id$ AND (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) by route_short_name</query>
+      </search>
+      <prefix>(</prefix>
+      <suffix>)</suffix>
+      <valuePrefix>route_short_name="</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+      <delimiter> OR </delimiter>
+      <choice value="*">All</choice>
+      <default>*</default>
+    </input>
+    <input type="multiselect" token="route_id" searchWhenChanged="true">
+      <label>Route (selects route_id)</label>
+      <fieldForLabel>description</fieldForLabel>
+      <fieldForValue>route_id</fieldForValue>
+      <search>
+        <query>| tstats count max(num_trips) as num_trips first(route_long_name) as route_long_name where index="route_stats" AND $route_short_name$ AND agency_id=$agency_id$ AND (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) by agency_name route_short_name route_id  | eval description = "מזהה ".route_id." - ".num_trips." נסיעות - ".route_long_name." - קו ".route_short_name | sort -num_trips</query>
+        <earliest>$time_setter.earliest$</earliest>
+        <latest>$time_setter.latest$</latest>
+      </search>
+      <prefix>(</prefix>
+      <suffix>)</suffix>
+      <valuePrefix>route_id="</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+      <delimiter> OR </delimiter>
+      <choice value="*">All</choice>
+      <default>*</default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>Number of trips by date</title>
+      <chart>
+        <search>
+          <query>index=route_stats $date$ agency_id=$agency_id$ $route_id$ $route_short_name$ (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) | eval row="קו ".route_short_name.";id=".route_id.";".start_stop_name."-&gt;".end_stop_name | makemv delim=";" all_start_time | chart sum(num_trips) over date by row useother=false</query>
+          <earliest>$time_setter.earliest$</earliest>
+          <latest>$time_setter.latest$</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">1</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">small</option>
+        <option name="trellis.splitBy">row</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>All trip start times by date</title>
+      <table>
+        <search>
+          <query>index=route_stats $date$ agency_id=$agency_id$ $route_id$ $route_short_name$ (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) | eval row=route_id.";".route_short_name.";".start_stop_name.";".end_stop_name | makemv delim=";" all_start_time | chart values(all_start_time) over row by date useother=false | rex field=row "(?&lt;route_id&gt;.*);(?&lt;route_short_name&gt;.*);(?&lt;start_stop_name&gt;.*);(?&lt;end_stop_name&gt;.*)" | fields - row | table route_id route_short_name start_stop_name end_stop_name *</query>
+          <earliest>$time_setter.earliest$</earliest>
+          <latest>$time_setter.latest$</latest>
+        </search>
+        <option name="count">50</option>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+        <drilldown>
+          <link target="_blank">/app/open-bus/siri_investigator?form.date=$click.name2$&amp;form.planned_start_time=$click.value2$&amp;form.route_id=$row.route_id$&amp;form.agency_id=$form.agency_id$&amp;form.route_short_name=$row.route_short_name$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+</form>
