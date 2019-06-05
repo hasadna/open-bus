@@ -2,7 +2,7 @@ import os
 import datetime
 import re
 from ftplib import FTP
-from .constants import *
+from constants import *
 
 
 RE_FTP_LINE = re.compile(

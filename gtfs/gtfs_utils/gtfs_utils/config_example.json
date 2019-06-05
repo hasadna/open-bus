@@ -1,0 +1,26 @@
+{
+  "files": {
+    "base_directory": "/home/travis/build/open-bus-files/",
+    "child_directories": {
+      "archive": "archive",
+      "gtfs_feeds": "gtfs_feeds",
+      "output": "gtfs_stats_hack",
+      "filtered_feeds": "filtered_feeds",
+      "logs": "logs"
+    },
+    "tariff_file_path": "archive/2019-03-07/Tariff.zip",
+    "output_file_name_regexp": "^(?P<date_str>[^_]+?)_(?P<type>\\w+)\\.pkl\\.gz"
+  },
+
+  "bucket_name": "s3.obus.hasadna.org.il",
+  "bucket_valid_file_name_regexp": "2019-03-07.zip",
+
+  "forward_fill": true,
+  "future_days_count": 0,
+
+  "display_download_progress_bar": false,
+  "display_size_on_progress_bar": false,
+
+  "delete_downloaded_gtfs_zip_files": false,
+  "write_filtered_feed": false
+}

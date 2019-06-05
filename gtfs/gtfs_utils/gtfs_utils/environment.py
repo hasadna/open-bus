@@ -1,15 +1,16 @@
 import os
-from gtfs_stats_conf import *
+from configuration import configuration
 
 
 def mkdir_if_not_exists(dir_path):
-    """ Create the directory if it does not exist """
+    """ Creates the directory if it does not exist """
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
 
+
 def init_conf():
-    """ Init directories from conf file """
-    if not os.path.exists(BASE_FOLDER):
-        raise ValueError("Base folder does not exist")
-    for dir_path in ALL_FOLDERS:
+    """ Initializes directories from configuration file """
+    if not os.path.exists(configuration.files.base_directory):
+        raise ValueError("Base directory does not exist")
+    for dir_path in configuration.files.full_paths.all():
         mkdir_if_not_exists(dir_path)

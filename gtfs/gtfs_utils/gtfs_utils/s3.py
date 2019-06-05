@@ -1,10 +1,11 @@
 import logging
+import re
 import pandas as pd
 import datetime
 from collections import defaultdict
-from gtfs_stats_conf import *
 from retry import retry
 from general_utils import parse_date
+from configuration import configuration
 
 
 @retry()
@@ -25,9 +26,9 @@ Download file from s3 bucket. Retry using decorator.
 
         return inner
 
-    if DOWNLOAD_PBAR:
+    if configuration.display_download_progress_bar:
         # TODO: this is an S3 anti-pattern, and is inefficient - so defaulting to not doing this
-        if SIZE_FOR_DOWNLOAD_PBAR:
+        if configuration.display_size_on_progress_bar:
             size = [obj.size for obj in bucket.objects.filter(Prefix=key, MaxKeys=1)][0]
         else:
             size = None
@@ -40,14 +41,14 @@ Download file from s3 bucket. Retry using decorator.
 
 def get_bucket_valid_files(bucket_objects):
     """
-Get list of valid files from bucket, as set by BUCKET_VALID_FILES_RE
+    Get list of valid files from bucket, as set by configuration.bucket_valid_file_name_regexp
     :param bucket_objects: collection of bucket objects
     :type bucket_objects: s3.Bucket.objectsCollection
     :return: list of valid file keys
     :rtype: list of str
     """
     return [obj.key for obj in bucket_objects
-            if re.match(BUCKET_VALID_FILES_RE, obj.key)]
+            if re.match(configuration.bucket_valid_file_name_regexp, obj.key)]
 
 
 def get_dates_without_output(valid_files, existing_output_files):
@@ -66,7 +67,7 @@ Get list of dates without output files (currently just route_stats is considered
                             if g[1] == 'route_stats']]
 
 
-def get_forward_fill_dict(valid_files, future_days=FUTURE_DAYS):
+def get_forward_fill_dict(valid_files, future_days=configuration.future_days_count):
     """
 get a dictionary mapping gtfs file names to a list of dates for forward fill by scanning for missing dates for files
     :param valid_files: list of valid file keys
@@ -89,7 +90,7 @@ get a dictionary mapping gtfs file names to a list of dates for forward fill by 
 
 
 def get_valid_file_dates_dict(bucket_objects, existing_output_files, forward_fill):
-    logging.info(f'BUCKET_VALID_FILES_RE={BUCKET_VALID_FILES_RE}')
+    logging.info(f'configuration.bucket_valid_file_name_regexp={configuration.bucket_valid_file_name_regexp}')
     bucket_valid_files = get_bucket_valid_files(bucket_objects)
     if forward_fill:
         logging.info(f'applying forward fill')

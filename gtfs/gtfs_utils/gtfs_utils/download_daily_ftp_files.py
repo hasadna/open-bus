@@ -1,7 +1,7 @@
 import datetime
 import os
 import re
-from . import ftp
+import ftp
 
 CONF = {
     'local_dir': 'C:\\dev\\ds\\open-bus-explore\\data\\archive\\',
