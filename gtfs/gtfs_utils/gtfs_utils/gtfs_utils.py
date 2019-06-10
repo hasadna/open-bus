@@ -64,41 +64,62 @@ def compute_trip_stats_partridge(feed, zones):
     -------
     DataFrame with the following columns:
 
-    - ``trip_id`` - blabla
-    - ``route_id`` - blabla
-    - ``route_short_name``
-    - ``route_short_name``
-    - ``agency_id``
-    - ``agency_name``
-    - ``route_long_name``
-    - ``route_type``
-    - ``direction_id``
-    - ``shape_id``
-    - ``num_stops`` - number of stops on trip
-    - ``start_time`` - first departure time of the trip
-    - ``end_time`` - last departure time of the trip
-    - ``start_stop_id`` - stop ID of the first stop of the trip
-    - ``end_stop_id`` - stop ID of the last stop of the trip
-    - ``start_stop_name`` - stop name of the first stop of the trip
-    - ``end_stop_name`` - stop name of the last stop of the trip
-    - ``start_stop_code`` - stop code of the first stop of the trip
+    - ``agency_id`` - Agency identifier, as specificed in `agency.txt` file.
+    - ``agency_name`` - The full name of the agency, as specificed in `agency.txt` file.
+    - ``all_stop_code`` -
+    - ``all_stop_desc_city`` -
+    - ``all_stop_id`` -
+    - ``all_stop_latlon`` -
+    - ``date`` -
+    - ``direction_id`` - Indicates the direction of travel for a trip, as specified in `trips.txt` file.
+    - ``distance`` - The full travel distance of the trip, which is the maximal \
+        `shape_dist_traveled`, as specified in `stop_times.txt` file.
+    - ``duration`` - Duration of the trip in hours
+    - ``end_stop_city`` -
     - ``end_stop_code`` - stop code of the last stop of the trip
-    - ``start_stop_lat`` - ``start_stop_lat`` of the first stop of the trip
-    - ``start_stop_lon`` - ``start_stop_lon`` of the first stop of the trip
+    - ``end_stop_desc`` -
+    - ``end_stop_id`` - stop ID of the last stop of the trip
     - ``end_stop_lat`` - ``end_stop_lat`` of the last stop of the trip
     - ``end_stop_lon`` - ``end_stop_lon`` of the last stop of the trip
-    - ``start_zone`` - zone name of the first stop of the trip
+    - ``end_stop_name`` - stop name of the last stop of the trip
+    - ``end_time`` - last departure time of the trip
     - ``end_zone`` - zone name of the last stop of the trip
-    - ``num_zones`` -  ``num_zones`` of the first stop of the trip
-    - ``num_zones_missing`` -  ``num_zones_missing`` of the first stop of the trip
-    - ``is_loop`` - 1 if the start and end stop are less than 400m apart and
-      0 otherwise
-    - ``distance`` - distance of the trip in ``feed.dist_units``;
-      contains all ``np.nan`` entries if ``feed.shapes is None``
-    - ``duration`` - duration of the trip in hours
-    - ``speed`` - distance/duration
+    - ``gtfs_file_name`` -
+    - ``is_loop`` - 1 if the start and end stop are less than 400m apart, otherwise 0
+    - ``num_stops`` - number of stops in trip
+    - ``num_zones`` -
+    - ``num_zones_missing`` -
+    - ``route_alternative`` -
+    - ``route_direction`` -
+    - ``route_id`` - Route identifier, as specified in `routes.txt` file.
+    - ``route_long_name`` - The full name of a route, as specified in `routes.txt` file.
+    - ``route_mkt`` -
+    - ``route_short_name`` - The short name of a route, as specified in `routes.txt` file.
+    - ``route_type`` - The type of transportation used on a route, as specified in \
+        `routes.txt`. In Israel, MOT uses:
+        * 0 for light train (Jerusalem Light Rail)
+        * 2 for train (Israel Railways)
+        * 3 for bus
+        * 715 for Flexible Service Line ("קו בשירות גמיש")
+    - ``shape_id`` - Shape identifier, as specified in `shapes.txt` file.
+    - ``speed`` - Average speed of the trip (calculated as `distance/duration`)
+    - ``start_stop_city`` -
+    - ``start_stop_code`` - stop code of the first stop of the trip
+    - ``start_stop_desc`` -
+    - ``start_stop_id`` - stop ID of the first stop of the trip
+    - ``start_stop_lat`` - ``start_stop_lat`` of the first stop of the trip
+    - ``start_stop_lon`` - ``start_stop_lon`` of the first stop of the trip
+    - ``start_stop_name`` - stop name of the first stop of the trip
+    - ``start_time`` - first departure time of the trip
+    - ``start_zone`` - zone name of the first stop of the trip
+    - ``trip_id`` - Trip identifier, as specified in `trips.txt` file.
 
-    TODO: this is not true here, we're only using shape_dist_traveled
+
+=======================================================
+
+    - ``num_zones`` - ``num_zones`` of the first stop of the trip
+    - ``num_zones_missing`` -  ``num_zones_missing`` of the first stop of the trip
+
     TODO: implement or drop from docs
     If ``feed.stop_times`` has a ``shape_dist_traveled`` column with at
     least one non-NaN value and ``compute_dist_from_shapes == False``,
@@ -117,15 +138,7 @@ def compute_trip_stats_partridge(feed, zones):
         * ``feed.routes``
         * ``feed.stop_times``
         * ``feed.shapes`` (optionally)
-        * Those used in :func:`.stops.build_geometry_by_stop`
-
-    - Calculating trip distances with ``compute_dist_from_shapes=True``
-      seems pretty accurate.  For example, calculating trip distances on
-      `this Portland feed
-      <https://transitfeeds.com/p/trimet/43/1400947517>`_
-      using ``compute_dist_from_shapes=False`` and
-      ``compute_dist_from_shapes=True``,
-      yields a difference of at most 0.83km from the original values.
+        * Those used in :func:`gtfstk.build_geometry_by_stop`
 
     """
     f = feed.trips
