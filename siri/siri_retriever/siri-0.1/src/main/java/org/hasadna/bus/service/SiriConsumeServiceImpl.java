@@ -44,6 +44,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
     private DatadogMeterRegistry registry;
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected final Logger responseLogger = LoggerFactory.getLogger("RESPONSE_LOGGER");
 
     final String SIRI_SERVICES_URL = "http://siri.motrealtime.co.il:8081/Siri/SiriServices";
 
@@ -98,11 +99,17 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         if (content == null) {
             return null;
         }
-        logger.debug("lineRef={}, stopCode={}, previewInterval={}", lineRef, stopCode, previewInterval);
-        logger.trace(" response={}", content);
+        try {
+            logger.debug("lineRef={}, stopCode={}, previewInterval={}", lineRef, stopCode, previewInterval);
+            //logger.trace(" response={}", content);
+            //responseLogger.warn("{},{}", lineRef, content.replace("\n", ""));
+        }
+        catch (Exception ex) {
+            // absorb
+        }
 
         content = SoapUtils.removeSoapEnvelope(content);
-        logger.trace(content);
+        //logger.trace(content);
 
         //unmarshall XML to object
         GetStopMonitoringServiceResponse response = unmarshalXml(content);

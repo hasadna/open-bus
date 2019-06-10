@@ -27,7 +27,7 @@
 
   </appender>
 
-  <!-- This file is machine readable -->
+  <!-- This file is the siri_rt_log! if you change, make sure it is still written correctly -->
   <appender name="FILE-SiriRealTimeData" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>${SIRI_OUTPUT_PATH}/siri_rt_data_v2.log</file>
     <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
@@ -49,13 +49,16 @@
   <logger name="SiriRealTimeData" level="info" additivity="false">
     <appender-ref ref="FILE-SiriRealTimeData"/>
   </logger>
-  <logger name="org.hasadna" level="info" additivity="false">
+  <logger name="RESPONSE_LOGGER" level="error" additivity="false">
     <appender-ref ref="FILE-debug"/>
-    <appender-ref ref="STDOUT"/>
+  </logger>
+  <logger name="org.hasadna" level="warn" additivity="false">
+    <appender-ref ref="FILE-debug"/>
+    <!--<appender-ref ref="STDOUT"/>-->
   </logger>
 
   <root level="info">
-    <appender-ref ref="STDOUT"/>
+    <appender-ref ref="FILE-debug"/>
   </root>
 
 </configuration>
