@@ -33,7 +33,7 @@ public class SiriPersistFileService implements SiriPersistService {
         sendToExternal(summary);
         logger.trace("          ...Done");
     }
-
+    
     private void sendToExternal(String str) {
         try {
             if (sendExternal && !StringUtils.isEmpty(str)) {
@@ -43,6 +43,7 @@ public class SiriPersistFileService implements SiriPersistService {
         catch (Exception ex) {
             logger.debug("absorbing ", ex);
         }
-
+        
     }
 }
+
