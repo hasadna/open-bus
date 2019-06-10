@@ -1,7 +1,7 @@
 import logging
 import os
 from datetime import datetime
-from gtfs_stats_conf import LOG_FOLDER
+from configuration import configuration
 
 
 def configure_logger():
@@ -10,7 +10,9 @@ def configure_logger():
 
     datetime_string = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     log_file_name = f'gtfs_stats_{datetime_string}.log'
-    file_handler = logging.FileHandler(os.path.join(LOG_FOLDER, log_file_name))
+    log_file_full_path = os.path.join(configuration.files.full_paths.logs,
+                                      log_file_name)
+    file_handler = logging.FileHandler(log_file_full_path)
 
     # create console handler with a higher log level
     console_handler = logging.StreamHandler()

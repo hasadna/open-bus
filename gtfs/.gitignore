@@ -207,3 +207,4 @@ dmypy.json
 .idea/**
 data/**
 gtfs_utils/tests/outputs/**
+config.json
