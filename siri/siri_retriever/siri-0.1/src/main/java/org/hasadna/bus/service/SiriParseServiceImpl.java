@@ -124,7 +124,7 @@ public class SiriParseServiceImpl implements SiriParseService {
                                         String licensePlate, BigDecimal lon, BigDecimal lat, Date departureTime,
                                         String operatorRef, String journeyRef, String responseTimestamp,
                                         String dataFrameRef, String stopPointRef, String vehicleAtStopStr) {
-        String s = MessageFormat.format("{10},[line {0} v {1} oad {12} ea {11}],{7},{8},{0},{9},{6},{1},{2},{3},{4},{5},{12},{13},{14},v2",
+        String s = MessageFormat.format("{10},[line {0} v {1} oad {15} ea {11}],{7},{8},{0},{9},{6},{1},{2},{3},{4},{5},{12},{13},{14},v2",
                 lineName, licensePlate,
                 formatDate(expectedArrivalTime),    // expectedArrivalTime should include both date and time - // <ns3:ExpectedArrivalTime>2019-04-01T21:14:00.000+03:00</ns3:ExpectedArrivalTime>
                 formatDate(recordedAt),             // recordedAt should include both date and time
@@ -132,7 +132,7 @@ public class SiriParseServiceImpl implements SiriParseService {
                 formatDate(departureTime),          // OriginAimedDeparture should include both date and time - // <ns3:OriginAimedDepartureTime>2019-04-01T20:00:00.000+03:00</ns3:OriginAimedDepartureTime>
                 operatorRef, lineRef, journeyRef, responseTimestamp,
                 formatTimeHHMM(expectedArrivalTime),    // ea as time only, for the free text part
-                dataFrameRef, stopPointRef, vehicleAtStopStr
+                dataFrameRef, stopPointRef, vehicleAtStopStr, formatTimeHHMM(departureTime)
         );
         return s ;
     }
