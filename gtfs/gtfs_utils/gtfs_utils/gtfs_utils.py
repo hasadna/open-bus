@@ -122,34 +122,8 @@ def compute_trip_stats_partridge(feed, zones, date_str, file):
     - ``start_time`` - First departure time of the trip
     - ``start_zone`` - Zone name of the first stop of the trip
     - ``trip_id`` - Trip identifier, as specified in `trips.txt` file.
-
-
-=======================================================
-
-    - ``num_zones`` - ``num_zones`` of the first stop of the trip
-    - ``num_zones_missing`` -  ``num_zones_missing`` of the first stop of the trip
-
-    TODO: implement or drop from docs
-    If ``feed.stop_times`` has a ``shape_dist_traveled`` column with at
-    least one non-NaN value and ``compute_dist_from_shapes == False``,
-    then use that column to compute the distance column.
-    Else if ``feed.shapes is not None``, then compute the distance
-    column using the shapes and Shapely.
-    Otherwise, set the distances to NaN.
-
-    If route IDs are given, then restrict to trips on those routes.
-
-    Notes
-    -----
-    Assume the following feed attributes are not ``None``:
-
-        * ``feed.trips``
-        * ``feed.routes``
-        * ``feed.stop_times``
-        * ``feed.shapes`` (optionally)
-        * Those used in :func:`gtfstk.build_geometry_by_stop`
-
     """
+
     f = feed.trips
     f = (f[['route_id', 'trip_id', 'direction_id', 'shape_id']]
          .merge(feed.routes[['route_id', 'route_short_name', 'route_long_name',
