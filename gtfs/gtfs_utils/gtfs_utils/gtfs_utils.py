@@ -53,47 +53,54 @@ def write_filtered_feed_by_date(zip_path, date, output_path):
     })
 
 
-def compute_trip_stats_partridge(feed, zones):
+def compute_trip_stats_partridge(feed, zones, date_str, file):
     """
-    Parameters
-    ----------
-    :param feed: partridge feed
+    :param feed: Partridge feed
     :param zones: DataFrame with stop_code to zone_name mapping
+    :param date: The original schedule date
+    :param gtfs_file_name: The original GTFS (zip) file name
+    :returns: A DataFrame with columns as described below
 
-    Returns
-    -------
-    DataFrame with the following columns:
+    Trip stats table has the following columns:
 
-    - ``agency_id`` - Agency identifier, as specificed in `agency.txt` file.
-    - ``agency_name`` - The full name of the agency, as specificed in `agency.txt` file.
-    - ``all_stop_code`` -
-    - ``all_stop_desc_city`` -
-    - ``all_stop_id`` -
-    - ``all_stop_latlon`` -
-    - ``date`` -
+    - ``agency_id`` - Agency identifier, as specified in `agency.txt` file.
+    - ``agency_name`` - The full name of the agency, as specified in `agency.txt` file.
+    - ``all_stop_code`` - All stop codes (as specified in `stops.txt` file), separated by semicolons.
+    - ``all_stop_desc_city`` - The city of the last stop of the trip (as described in `stop_desc` field in `stops.txt` \
+        file), separated by semicolons.
+    - ``all_stop_id`` - All stop identifiers (as specified in `stops.txt` file), separated by \
+        semicolons.
+    - ``all_stop_latlon`` - All stop waypoints (`stop_lat` and `stop_lon` as specified in `stops.txt` file), formatted \
+        as `lat,lon` and separated by semicolons.
+    - ``date`` - The original schedule date
     - ``direction_id`` - Indicates the direction of travel for a trip, as specified in `trips.txt` file.
     - ``distance`` - The full travel distance of the trip, which is the maximal \
         `shape_dist_traveled`, as specified in `stop_times.txt` file.
     - ``duration`` - Duration of the trip in hours
-    - ``end_stop_city`` -
-    - ``end_stop_code`` - stop code of the last stop of the trip
-    - ``end_stop_desc`` -
-    - ``end_stop_id`` - stop ID of the last stop of the trip
-    - ``end_stop_lat`` - ``end_stop_lat`` of the last stop of the trip
-    - ``end_stop_lon`` - ``end_stop_lon`` of the last stop of the trip
-    - ``end_stop_name`` - stop name of the last stop of the trip
-    - ``end_time`` - last departure time of the trip
-    - ``end_zone`` - zone name of the last stop of the trip
-    - ``gtfs_file_name`` -
+    - ``end_stop_city`` - The city of the last stop of the trip, as described in `stop_desc` field in `stops.txt` file.
+    - ``end_stop_code`` - Stop code of the last stop of the trip
+    - ``end_stop_desc`` - The description of the last stop of the trip, as described as `stop_desc` field in \
+        `stops.txt` file.
+    - ``end_stop_id`` - Stop ID of the last stop of the trip
+    - ``end_stop_lat`` - Latitude of the last stop of the trip
+    - ``end_stop_lon`` - Longitude of the last stop of the trip
+    - ``end_stop_name`` - Stop name of the last stop of the trip
+    - ``end_time`` - Last departure time of the trip
+    - ``end_zone`` - Zone name of the last stop of the trip
+    - ``gtfs_file_name`` - The original GTFS (zip) file name
     - ``is_loop`` - 1 if the start and end stop are less than 400m apart, otherwise 0
-    - ``num_stops`` - number of stops in trip
-    - ``num_zones`` -
-    - ``num_zones_missing`` -
-    - ``route_alternative`` -
-    - ``route_direction`` -
+    - ``num_stops`` - Number of stops in trip
+    - ``num_zones`` - Number of zones where the trip stops are. Zones are defined in the files in `Tariff.zip`.
+    - ``num_zones_missing`` - Number of stops whose identifier is missing from the files in `Tariff.zip`.
+    - ``route_alternative`` - A route's alternative identifier. Constructs a route identifier together \
+        with ``route_direction`` and ``route_mkt``.
+    - ``route_direction`` - A route's direction identifier. Constructs a route identifier together \
+        with ``route_alternative`` and ``route_mkt``.
     - ``route_id`` - Route identifier, as specified in `routes.txt` file.
     - ``route_long_name`` - The full name of a route, as specified in `routes.txt` file.
-    - ``route_mkt`` -
+    - ``route_mkt`` - MOT Line's 5-digit catalog number ("`מק"ט`"), a unique number at the line level, \
+        but not unique at the alternative level. Constructs a route identifier together \
+        with ``route_direction`` and ``route_alternative``.
     - ``route_short_name`` - The short name of a route, as specified in `routes.txt` file.
     - ``route_type`` - The type of transportation used on a route, as specified in \
         `routes.txt`. In Israel, MOT uses:
@@ -103,15 +110,17 @@ def compute_trip_stats_partridge(feed, zones):
         * 715 for Flexible Service Line ("קו בשירות גמיש")
     - ``shape_id`` - Shape identifier, as specified in `shapes.txt` file.
     - ``speed`` - Average speed of the trip (calculated as `distance/duration`)
-    - ``start_stop_city`` -
-    - ``start_stop_code`` - stop code of the first stop of the trip
-    - ``start_stop_desc`` -
-    - ``start_stop_id`` - stop ID of the first stop of the trip
-    - ``start_stop_lat`` - ``start_stop_lat`` of the first stop of the trip
-    - ``start_stop_lon`` - ``start_stop_lon`` of the first stop of the trip
-    - ``start_stop_name`` - stop name of the first stop of the trip
-    - ``start_time`` - first departure time of the trip
-    - ``start_zone`` - zone name of the first stop of the trip
+    - ``start_stop_city`` - The city of the first stop of the trip, as specified in `stop_desc` field in `stops.txt` \
+        file.
+    - ``start_stop_code`` - Stop code of the first stop of the trip
+    - ``start_stop_desc`` - The description of the first stop of the trip, as described as `stop_desc` field in \
+        `stops.txt` file.
+    - ``start_stop_id`` - Stop ID of the first stop of the trip
+    - ``start_stop_lat`` - Latitude of the first stop of the trip
+    - ``start_stop_lon`` - Longitude of the first stop of the trip
+    - ``start_stop_name`` - Stop name of the first stop of the trip
+    - ``start_time`` - First departure time of the trip
+    - ``start_zone`` - Zone name of the first stop of the trip
     - ``trip_id`` - Trip identifier, as specified in `trips.txt` file.
 
 
@@ -132,7 +141,7 @@ def compute_trip_stats_partridge(feed, zones):
 
     Notes
     -----
-    - Assume the following feed attributes are not ``None``:
+    Assume the following feed attributes are not ``None``:
 
         * ``feed.trips``
         * ``feed.routes``
@@ -150,9 +159,6 @@ def compute_trip_stats_partridge(feed, zones):
          .merge(feed.stops[['stop_id', 'stop_name', 'stop_lat', 'stop_lon', 'stop_code', 'stop_desc']])
          .merge(zones, how='left')
          .sort_values(['trip_id', 'stop_sequence'])
-         # .assign(departure_time=lambda x: x['departure_time'].map(
-         #    hp.timestr_to_seconds)
-         #       )
          )
 
     # parse route_desc
@@ -187,10 +193,17 @@ def compute_trip_stats_partridge(feed, zones):
         h[['start_time', 'end_time']].applymap(
             lambda x: gtfstk.helpers.timestr_to_seconds(x, inverse=True))
     )
+
+    h['date'] = date_str
+    h['date'] = pd.Categorical(h['date'])
+    h['gtfs_file_name'] = file
+
     return h
 
 
 def compute_route_stats_base_partridge(trip_stats_subset,
+                                       date_str,
+                                       file,
                                        headway_start_time='07:00:00',
                                        headway_end_time='19:00:00',
                                        *,
@@ -322,5 +335,10 @@ def compute_route_stats_base_partridge(trip_stats_subset,
            'num_zones', 'num_zones_missing',
            'all_stop_latlon', 'all_stop_code', 'all_stop_id', 'all_stop_desc_city', 'all_start_time', 'all_trip_id',
            ]]
+
+    g['date'] = date_str
+    g['date'] = pd.Categorical(g['date'])
+    g['gtfs_file_name'] = file
+
 
     return g
