@@ -18,21 +18,25 @@ matrix:
         - coverage run s3_wrapper_setup.py pytest
         - codecov
     - language: java
+      dist: trusty
       jdk: oraclejdk8
       script:
         - cd ./siri/siri_retriever/siri-0.1
         - ./mvnw install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
         - docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD}
         - docker build -t siri-collector .
-        - docker tag siri-collector openbus1/siri-collector:${TRAVIS_BRANCH}
-        - docker push openbus1/siri-collector:${TRAVIS_BRANCH}
+        - export DOCKER_TAG=$(sed 's/\//_/' <<< ${TRAVIS_BRANCH}) # Replacing a slash in branch name with an underscore
+        - docker tag siri-collector openbus1/siri-collector:${DOCKER_TAG}
+        - docker push openbus1/siri-collector:${DOCKER_TAG}
     - language: java
+      dist: trusty
       jdk: oraclejdk8
       script:
         - docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD}
         - cd ./siri/gtfs_reader
         - mvn install
         - docker build -t gtfs-collector .
-        - docker tag gtfs-collector openbus1/gtfs-collector:${TRAVIS_BRANCH}
-        - docker push openbus1/gtfs-collector:${TRAVIS_BRANCH}
+        - export DOCKER_TAG=$(sed 's/\//_/' <<< ${TRAVIS_BRANCH}) # Replacing a slash in branch name with an underscore
+        - docker tag gtfs-collector openbus1/gtfs-collector:${DOCKER_TAG}
+        - docker push openbus1/gtfs-collector:${DOCKER_TAG}
 
