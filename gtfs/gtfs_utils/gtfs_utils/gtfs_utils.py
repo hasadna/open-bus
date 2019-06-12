@@ -53,7 +53,7 @@ def write_filtered_feed_by_date(zip_path, date, output_path):
     })
 
 
-def compute_trip_stats_partridge(feed, zones, date_str, file):
+def compute_trip_stats(feed, zones, date_str, file):
     """
     :param feed: Partridge feed
     :param zones: DataFrame with stop_code to zone_name mapping

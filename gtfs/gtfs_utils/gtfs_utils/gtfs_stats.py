@@ -130,11 +130,11 @@ and route_stats).
         zones = gu.get_zones_df(tariff_path_to_use)
 
         logging.info(
-            f'starting compute_trip_stats_partridge for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
+            f'starting compute_trip_stats for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
             f'"{configuration.files.tariff_file_path}"')
-        ts = gu.compute_trip_stats_partridge(feed, zones, date_str, file)
+        ts = gu.compute_trip_stats(feed, zones, date_str, file)
         logging.debug(
-            f'finished compute_trip_stats_partridge for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
+            f'finished compute_trip_stats for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
             f'"{configuration.files.tariff_file_path}"')
 
         logging.info(f'saving trip stats result DF to gzipped pickle "{trip_stats_output_path}"')
