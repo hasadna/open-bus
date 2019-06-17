@@ -145,9 +145,9 @@ and route_stats).
         f'ts.shape={ts.shape}, dc_trip_id={ts.trip_id.nunique()}, dc_route_id={ts.route_id.nunique()}, '
         f'num_start_zones={ts.start_zone.nunique()}, num_agency={ts.agency_name.nunique()}')
 
-    logging.info(f'starting compute_route_stats_base_partridge from trip stats result')
-    rs = gu.compute_route_stats_base_partridge(ts, date_str, file)
-    logging.debug(f'finished compute_route_stats_base_partridge from trip stats result')
+    logging.info(f'starting compute_route_stats from trip stats result')
+    rs = gu.compute_route_stats(ts, date_str, file)
+    logging.debug(f'finished compute_route_stats from trip stats result')
 
     # TODO: log more stats
     logging.debug(

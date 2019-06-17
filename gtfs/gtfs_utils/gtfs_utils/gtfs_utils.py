@@ -53,7 +53,7 @@ def write_filtered_feed_by_date(zip_path, date, output_path):
     })
 
 
-def compute_trip_stats(feed, zones, date_str, file):
+def compute_trip_stats(feed, zones, date_str, gtfs_file_name):
     """
     :param feed: Partridge feed
     :param zones: DataFrame with stop_code to zone_name mapping
@@ -170,37 +170,33 @@ def compute_trip_stats(feed, zones, date_str, file):
 
     h['date'] = date_str
     h['date'] = pd.Categorical(h['date'])
-    h['gtfs_file_name'] = file
+    h['gtfs_file_name'] = gtfs_file_name
 
     return h
 
 
-def compute_route_stats_base_partridge(trip_stats_subset,
-                                       date_str,
-                                       file,
-                                       headway_start_time='07:00:00',
-                                       headway_end_time='19:00:00',
-                                       *,
-                                       split_directions=False):
+def compute_route_stats(trip_stats_subset: pd.DataFrame,
+                        date_str: bool,
+                        gtfs_file_name: str,
+                        headway_start_time: str = '07:00:00',
+                        headway_end_time: str = '19:00:00'):
     """
     Compute stats for the given subset of trips stats.
 
     Parameters
     ----------
-    trip_stats_subset : DataFrame
+    :param trip_stats_subset:
         Subset of the output of :func:`.trips.compute_trip_stats`
-    split_directions : boolean
+    :param split_directions:
         If ``True``, then separate the stats by trip direction (0 or 1);
         otherwise aggregate trips visiting from both directions.
-        Default: ``False``
-    headway_start_time : string
+    :param headway_start_time:
         HH:MM:SS time string indicating the start time for computing
         headway stats
-        Default: ``'07:00:00'``
-    headway_end_time : string
+    :param headway_end_time:
         HH:MM:SS time string indicating the end time for computing
         headway stats.
-        Default: ``'19:00:00'``
+    :returns: A DataFrame with columns as described below
 
     Returns
     -------
@@ -312,7 +308,7 @@ def compute_route_stats_base_partridge(trip_stats_subset,
 
     g['date'] = date_str
     g['date'] = pd.Categorical(g['date'])
-    g['gtfs_file_name'] = file
+    g['gtfs_file_name'] = gtfs_file_name
 
 
     return g
