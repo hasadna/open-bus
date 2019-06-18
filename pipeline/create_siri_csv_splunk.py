@@ -65,12 +65,14 @@ def create_trip_df_v2(path, drop=['desc'],
               .assign(route_id = lambda x: x.route_id.astype(int))
               .assign(lat = lambda x: x.lat.astype(float))
               .assign(lon = lambda x: x.lon.astype(float)))
-    if add_date:
-        df = (df.assign(date = lambda x: x.data_frame_ref))
     
     df[['date_recorded', 'time_recorded']] = df.time_recorded.str.split('T', expand=True)
     df[['predicted_end_date', 'predicted_end_time']] = df.predicted_end_time.str.split('T', expand=True)
     df[['planned_start_date', 'planned_start_time']] = df.planned_start_time.str.split('T', expand=True)
+
+    if add_date:
+        df = (df.assign(date = lambda x: x.planned_start_date))
+        
     df = df[["timestamp", "agency_id",
                   "route_id", "route_short_name", "service_id",
                   "planned_start_date", "planned_start_time", "bus_id", "predicted_end_date", "predicted_end_time",
