@@ -74,8 +74,8 @@ def compute_trip_stats(feed, zones, date_str, gtfs_file_name):
         as `lat,lon` and separated by semicolons.
     - ``date`` - The original schedule date
     - ``direction_id`` - Indicates the direction of travel for a trip, as specified in `trips.txt` file.
-    - ``distance`` - The full travel distance of the trip, which is the maximal \
-        `shape_dist_traveled`, as specified in `stop_times.txt` file.
+    - ``distance`` - The full travel distance of the trip in meters, which is the maximal `shape_dist_traveled`, as \
+        specified in `stop_times.txt` file.
     - ``duration`` - Duration of the trip in hours
     - ``end_stop_city`` - The city of the last stop of the trip, as described in `stop_desc` field in `stops.txt` file.
     - ``end_stop_code`` - Stop code of the last stop of the trip
@@ -85,7 +85,7 @@ def compute_trip_stats(feed, zones, date_str, gtfs_file_name):
     - ``end_stop_lat`` - Latitude of the last stop of the trip
     - ``end_stop_lon`` - Longitude of the last stop of the trip
     - ``end_stop_name`` - Stop name of the last stop of the trip
-    - ``end_time`` - Last departure time of the trip
+    - ``end_time`` - Departure time of the last stop of the trip
     - ``end_zone`` - Zone name of the last stop of the trip
     - ``gtfs_file_name`` - The original GTFS (zip) file name
     - ``is_loop`` - 1 if the start and end stop are less than 400m apart, otherwise 0
@@ -109,7 +109,7 @@ def compute_trip_stats(feed, zones, date_str, gtfs_file_name):
         * 3 for bus
         * 715 for Flexible Service Line ("קו בשירות גמיש")
     - ``shape_id`` - Shape identifier, as specified in `shapes.txt` file.
-    - ``speed`` - Average speed of the trip (calculated as `distance/duration`)
+    - ``speed`` - Average speed of the trip in meters per hour (calculated as `distance/duration`).
     - ``start_stop_city`` - The city of the first stop of the trip, as specified in `stop_desc` field in `stops.txt` \
         file.
     - ``start_stop_code`` - Stop code of the first stop of the trip
@@ -119,7 +119,7 @@ def compute_trip_stats(feed, zones, date_str, gtfs_file_name):
     - ``start_stop_lat`` - Latitude of the first stop of the trip
     - ``start_stop_lon`` - Longitude of the first stop of the trip
     - ``start_stop_name`` - Stop name of the first stop of the trip
-    - ``start_time`` - First departure time of the trip
+    - ``start_time`` - Departure time of the first stop of the trip
     - ``start_zone`` - Zone name of the first stop of the trip
     - ``trip_id`` - Trip identifier, as specified in `trips.txt` file.
     """
@@ -183,92 +183,82 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     """
     Compute stats for the given subset of trips stats.
 
-    Parameters
-    ----------
-    :param trip_stats_subset:
-        Subset of the output of :func:`.trips.compute_trip_stats`
-    :param split_directions:
-        If ``True``, then separate the stats by trip direction (0 or 1);
-        otherwise aggregate trips visiting from both directions.
-    :param headway_start_time:
-        HH:MM:SS time string indicating the start time for computing
-        headway stats
-    :param headway_end_time:
-        HH:MM:SS time string indicating the end time for computing
-        headway stats.
+    :param trip_stats_subset: Subset of the output of :func:`compute_trip_stats`
+    :param headway_start_time: HH:MM:SS time string indicating the start time for computing \
+    headway stats
+    :param headway_end_time: HH:MM:SS time string indicating the end time for computing headway \
+    stats
     :returns: A DataFrame with columns as described below
 
-    Returns
-    -------
-    DataFrame
-        Columns are
+    Route stats table has the following columns:
 
-        - ``route_id``
-        - ``route_short_name``
-        - ``agency_id``
-        - ``agency_name``
-        - ``route_long_name``
-        - ``route_type``
-        - ``direction_id`` - 1/0
-        - ``num_trips`` - number of trips on the route in the subset
-        - ``num_trip_starts`` - number of trips on the route with
-          nonnull start times
-        - ``num_trip_ends`` - number of trips on the route with nonnull
-          end times that end before 23:59:59
-        - ``is_loop`` - 1 if at least one of the trips on the route has
-          its ``is_loop`` field equal to 1; 0 otherwise
-        - ``is_bidirectional`` - 1 if the route has trips in both
-          directions; 0 otherwise
-        - ``start_time`` - start time of the earliest trip on the route
-        - ``end_time`` - end time of latest trip on the route
-        - ``max_headway`` - maximum of the durations (in minutes)
-          between trip starts on the route between
-          ``headway_start_time`` and ``headway_end_time`` on the given
-          dates
-        - ``min_headway`` - minimum of the durations (in minutes)
-          mentioned above
-        - ``mean_headway`` - mean of the durations (in minutes)
-          mentioned above
-        - ``peak_num_trips`` - maximum number of simultaneous trips in
-          service (for the given direction, or for both directions when
-          ``split_directions==False``)
-        - ``peak_start_time`` - start time of first longest period
-          during which the peak number of trips occurs
-        - ``peak_end_time`` - end time of first longest period during
-          which the peak number of trips occurs
-        - ``service_duration`` - total of the duration of each trip on
-          the route in the given subset of trips; measured in hours
-        - ``service_distance`` - total of the distance traveled by each
-          trip on the route in the given subset of trips; measured in
-          whatever distance units are present in ``trip_stats_subset``;
-          contains all ``np.nan`` entries if ``feed.shapes is None``
-        - ``service_speed`` - service_distance/service_duration;
-          measured in distance units per hour
-        - ``mean_trip_distance`` - service_distance/num_trips
-        - ``mean_trip_duration`` - service_duration/num_trips
-        - ``start_stop_id`` - ``start_stop_id`` of the first trip for the route
-        - ``end_stop_id`` - ``end_stop_id`` of the first trip for the route
-        - ``start_stop_lat`` - ``start_stop_lat`` of the first trip for the route
-        - ``start_stop_lon`` - ``start_stop_lon`` of the first trip for the route
-        - ``end_stop_lat`` - ``end_stop_lat`` of the first trip for the route
-        - ``end_stop_lon`` - ``end_stop_lon`` of the first trip for the route
-        - ``num_stops`` - ``num_stops`` of the first trip for the route
-        - ``start_zone`` - ``start_zone`` of the first trip for the route
-        - ``end_zone`` - ``end_zone`` of the first trip for the route
-        - ``num_zones`` -  ``num_zones`` of the first trip for the route
-        - ``num_zones_missing`` -  ``num_zones_missing`` of the first trip for the route
+    - ``agency_id`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``agency_name`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``all_start_time`` - All of the start times (formatted as HH:MM:SS) in which the trips in \
+        the route start, separated by semicolons
+    - ``all_stop_code`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``all_stop_desc_city`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``all_stop_id`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``all_stop_latlon`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``all_trip_id`` -All of the identifiers (``trip_id``, as specified in `trips.txt` file) of \
+        the trips in the route, separated by semicolons
+    - ``date`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``end_stop_city`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``end_stop_desc`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``end_stop_id`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``end_stop_lat`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``end_stop_lon`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``end_stop_name`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``end_time`` - Same as in :func:`gtfs_utils.compute_trip_stats`, referring to the last trip \
+    of the route
+    - ``end_zone`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``gtfs_file_name`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``is_bidirectional`` - 1 if the route has trips in both directions, otherwise 0
+    - ``is_loop`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``max_headway`` - The maximal duration (in minutes) between trip starts on the route between \
+        ``headway_start_time`` and ``headway_end_time``
+    - ``mean_headway`` - The mean duration (in minutes) between trip starts on the route between \
+        ``headway_start_time`` and ``headway_end_time``
+    - ``mean_trip_distance`` - The full travel distance of each trip on the route in meters, which \
+        is the maximal `shape_dist_traveled`, as specified in `stop_times.txt` file (calculated as \
+        `service_distance/num_trips`)
+    - ``mean_trip_duration`` - Duration of each trip on the route in hours (calculated as \
+        `service_duration/num_trips`)
+    - ``min_headway`` - The minimal duration (in minutes) between trip starts on the route between \
+        ``headway_start_time`` and ``headway_end_time``
+    - ``num_stops`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``num_trip_ends`` - Number of trips on the route in the subset with non-null end times before 23:59:59
+    - ``num_trip_starts`` - Number of trips on the route in the subset with non-null start times
+    - ``num_trips`` - Number of trips on the route in the subset
+    - ``num_zones`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``num_zones_missing`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``peak_end_time`` - End time of first longest period during which the peak number of trips \
+        (``peak_num_trips``) occurs
+    - ``peak_num_trips`` - Maximal number of simultaneous trips in the service (for a given direction)
+    - ``peak_start_time`` - Start time of first longest period during which the peak number of trips \
+        (``peak_num_trips``) occurs
+    - ``route_alternative`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``route_direction`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``route_id`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``route_long_name`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``route_mkt`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``route_short_name`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``route_type`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``service_distance`` - The full travel distance of all trips on the route in meters, which \
+        is the maximal `shape_dist_traveled`, as specified in `stop_times.txt` file.
+    - ``service_duration`` - Total duration of all trips on the route in hours
+    - ``service_speed`` - Average speed each trip on the route in km/h
+    - ``start_stop_city`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``start_stop_desc`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``start_stop_id`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``start_stop_lat`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``start_stop_lon`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``start_stop_name`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``start_time`` - Same as in :func:`gtfs_utils.compute_trip_stats`, referring to the first \
+     trip of the route
+    - ``start_zone`` -  Same as in :func:`gtfs_utils.compute_trip_stats`
 
-        TODO: actually implement split_directions
-        If not ``split_directions``, then remove the
-        direction_id column and compute each route's stats,
-        except for headways, using
-        its trips running in both directions.
-        In this case, (1) compute max headway by taking the max of the
-        max headways in both directions; (2) compute mean headway by
-        taking the weighted mean of the mean headways in both
-        directions.
-
-        If ``trip_stats_subset`` is empty, return an empty DataFrame.
+    If ``trip_stats_subset`` is empty, return an empty DataFrame.
 
     """
     f = trip_stats_subset.copy()
@@ -287,6 +277,7 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     time_cols = ['start_time', 'end_time', 'peak_start_time', 'peak_end_time']
     g[time_cols] = g[time_cols].applymap(lambda x: gtfstk.helpers.timestr_to_seconds(x, inverse=True))
 
+    # Convert m/h to km/h
     g['service_speed'] = g.service_speed / 1000
 
     g = g[['route_id', 'route_short_name', 'agency_id', 'agency_name',
