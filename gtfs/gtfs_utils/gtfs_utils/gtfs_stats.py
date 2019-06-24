@@ -130,16 +130,12 @@ and route_stats).
         zones = gu.get_zones_df(tariff_path_to_use)
 
         logging.info(
-            f'starting compute_trip_stats_partridge for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
+            f'starting compute_trip_stats for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
             f'"{configuration.files.tariff_file_path}"')
-        ts = gu.compute_trip_stats_partridge(feed, zones)
+        ts = gu.compute_trip_stats(feed, zones, date_str, file)
         logging.debug(
-            f'finished compute_trip_stats_partridge for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
+            f'finished compute_trip_stats for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
             f'"{configuration.files.tariff_file_path}"')
-        # TODO: log this
-        ts['date'] = date_str
-        ts['date'] = pd.Categorical(ts.date)
-        ts['gtfs_file_name'] = file
 
         logging.info(f'saving trip stats result DF to gzipped pickle "{trip_stats_output_path}"')
         ts.to_pickle(trip_stats_output_path, compression='gzip')
@@ -149,13 +145,9 @@ and route_stats).
         f'ts.shape={ts.shape}, dc_trip_id={ts.trip_id.nunique()}, dc_route_id={ts.route_id.nunique()}, '
         f'num_start_zones={ts.start_zone.nunique()}, num_agency={ts.agency_name.nunique()}')
 
-    logging.info(f'starting compute_route_stats_base_partridge from trip stats result')
-    rs = gu.compute_route_stats_base_partridge(ts)
-    logging.debug(f'finished compute_route_stats_base_partridge from trip stats result')
-    # TODO: log this
-    rs['date'] = date_str
-    rs['date'] = pd.Categorical(rs.date)
-    rs['gtfs_file_name'] = file
+    logging.info(f'starting compute_route_stats from trip stats result')
+    rs = gu.compute_route_stats(ts, date_str, file)
+    logging.debug(f'finished compute_route_stats from trip stats result')
 
     # TODO: log more stats
     logging.debug(
