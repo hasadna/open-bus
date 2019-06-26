@@ -1,14 +1,11 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""The setup script."""
 import io
-
 from setuptools import setup, find_packages
+from os.path import join, curdir
 
 # About dict to store version and package info
 about = dict()
-with io.open('gtfs_utils/__version__.py', 'r', encoding='utf-8') as f:
+with io.open(join(curdir, 'gtfs_utils', '__version__.py'), 'r', encoding='utf-8') as f:
     exec(f.read(), about)
 
 requirements = [
@@ -22,15 +19,12 @@ requirements = [
 
 setup_requirements = [
     'pytest-runner',
+    'sphinx==1.7.9',
+    'sphinx_rtd_theme==0.4.2',
 ]
 
 test_requirements = [
     'pytest',
-]
-
-docs_requirements = [
-    'sphinx==1.7.9',
-    'sphinx_rtd_theme==0.4.2',
 ]
 
 setup(
@@ -56,5 +50,4 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     setup_requires=setup_requirements,
-    extras_require=docs_requirements,
 )
