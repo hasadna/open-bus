@@ -6,6 +6,6 @@ formats: all
 
 python:
   version: 3.7
-   install:
-      - method: setuptools
-        path: gtfs/gtfs_utils
+  install:
+    - method: setuptools
+      path: gtfs/gtfs_utils
