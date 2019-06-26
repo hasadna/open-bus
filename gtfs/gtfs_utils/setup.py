@@ -28,15 +28,18 @@ test_requirements = [
     'pytest',
 ]
 
+docs_requirements = [
+    'sphinx==1.7.9',
+    'sphinx_rtd_theme==0.4.2',
+]
+
 setup(
     name='gtfs_utils',
     version=about['__version__'],
     description='gtfs_utils is python library for working with archives of'
                 'GTFS feeds using pandas DataFrames.',
-    #    long_description=readme + '\n\n' + history,
     author='Dan Bareket',
     author_email='dbareket@gmail.com',
-    #    url='https://github.com/remix/partridge',
     packages=find_packages(include=['.']),
     include_package_data=True,
     install_requires=requirements,
@@ -47,12 +50,11 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
     python_requires='>=3.7, <4',
     test_suite='tests',
     tests_require=test_requirements,
     setup_requires=setup_requirements,
+    extras_require=docs_requirements,
 )
