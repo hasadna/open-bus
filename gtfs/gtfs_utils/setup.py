@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import io
 from setuptools import setup, find_packages
-from os.path import join, realpath, dirname
+from os.path import join, abspath, dirname
 
 # About dict to store version and package info
 about = dict()
-with io.open(join(dirname(realpath(__file__)),
+with io.open(join(dirname(abspath(__file__)),
                   'gtfs_utils',
                   '__version__.py'), 'r', encoding='utf-8') as f:
     exec(f.read(), about)
