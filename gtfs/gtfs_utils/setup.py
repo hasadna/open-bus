@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 import io
 from setuptools import setup, find_packages
-from os.path import join, curdir
+from os.path import join, realpath, dirname
 
 # About dict to store version and package info
 about = dict()
-with io.open(join(curdir, 'gtfs_utils', '__version__.py'), 'r', encoding='utf-8') as f:
+with io.open(join(dirname(realpath(__file__)),
+                  'gtfs_utils',
+                  '__version__.py'), 'r', encoding='utf-8') as f:
     exec(f.read(), about)
 
 requirements = [
