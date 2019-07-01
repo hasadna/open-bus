@@ -3,9 +3,9 @@ import re
 import pandas as pd
 import datetime
 from collections import defaultdict
-from retry import retry
-from general_utils import parse_date
-from configuration import configuration
+from .retry import retry
+from .general_utils import parse_date
+from .configuration import configuration
 
 
 @retry()

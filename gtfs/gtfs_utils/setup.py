@@ -52,4 +52,10 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     setup_requires=setup_requirements,
+    entry_points={
+        'console_scripts': [
+            'run_gtfs_stats=gtfs_utils.gtfs_stats:main',
+            'download_daily_ftp_files=gtfs_utils.download_daily_ftp_files:main',
+        ],
+    },
 )
