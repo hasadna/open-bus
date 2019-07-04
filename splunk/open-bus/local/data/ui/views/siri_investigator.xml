@@ -34,7 +34,7 @@
       </search>
       <change>
         <condition>
-          <eval token="latest">strptime($value$, "%Y-%m-%d")+86400</eval>
+          <eval token="latest">strptime($value$, "%Y-%m-%d")+86400+60*60*2</eval>
           <eval token="earliest">strptime($value$, "%Y-%m-%d")</eval>
         </condition>
       </change>
@@ -235,6 +235,7 @@
         <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
         <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">sqmeters</option>
         <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">meters</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
         <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">kilometers</option>
         <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
         <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
@@ -244,8 +245,8 @@
         <option name="leaflet_maps_app.maps-plus.pathSplitInterval">90</option>
         <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
         <option name="leaflet_maps_app.maps-plus.permanentTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#c2a5cf</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#9970ab</option>
         <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
         <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
         <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
