@@ -146,3 +146,17 @@ export = none
 owner = danb
 version = 7.2.6
 modtime = 1559659790.403466000
+
+[views/stop_times]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.6
+modtime = 1562252848.255657000
+
+[views/openbus_monitor]
+access = read : [ admin ]
+export = none
+owner = danb
+version = 7.2.6
+modtime = 1562252749.079633000
