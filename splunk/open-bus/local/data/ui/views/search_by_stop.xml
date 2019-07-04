@@ -9,10 +9,10 @@
         <latest>now</latest>
       </default>
     </input>
-    <input type="dropdown" token="earliest" searchWhenChanged="true">
+    <input type="dropdown" token="date" searchWhenChanged="true">
       <label>date</label>
       <fieldForLabel>date_wday</fieldForLabel>
-      <fieldForValue>earliest</fieldForValue>
+      <fieldForValue>date</fieldForValue>
       <search>
         <query>| tstats count where index=siri by date | eval earliest = strptime(date, "%Y-%m-%d") | eval date_wday = date.", ".strftime(earliest, "%a") | sort - date</query>
         <earliest>$time_setter.earliest$</earliest>
@@ -20,8 +20,8 @@
       </search>
       <change>
         <condition>
-          <eval token="latest">$value$+86400</eval>
-          <eval token="date">strftime($value$, "%Y-%m-%d")</eval>
+          <eval token="latest">strptime($value$, "%Y-%m-%d")+86400</eval>
+          <eval token="earliest">strptime($value$, "%Y-%m-%d")</eval>
         </condition>
       </change>
     </input>
