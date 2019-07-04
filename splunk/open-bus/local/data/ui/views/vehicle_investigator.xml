@@ -1,8 +1,8 @@
 <form theme="dark">
   <label>Vehicle Investigator</label>
-  <search id="trips">
+  <search id="rides">
     <query>
-      (index=gtfs_stats OR (index=siri lat!=0 bus_id=$bus_id$)) agency_id=$agency_id$ [tstats count where index=siri date=$date$ bus_id=$bus_id$ by route_id | fields route_id] earliest=$earliest$ latest=$latest$ date=$date$ date_hour&gt;=$hour_min$ date_hour&lt;=$hour_max$ 
+      (index=route_stats OR (index=siri lat!=0 bus_id=$bus_id$)) agency_id=$agency_id$ [tstats count where index=siri date=$date$ bus_id=$bus_id$ by route_id | fields route_id] earliest=$earliest$ latest=$latest$ date=$date$ date_hour&gt;=$hour_min$ date_hour&lt;=$hour_max$ 
          | eventstats first(route_long_name) as route_long_name first(route_direction) as route_direction by route_id | convert dur2sec(time_recorded) | stats count min(time_recorded) as min_time_recorded  by planned_start_time route_short_name route_long_name | sort min_time_recorded | eval min_time_recorded = tostring(min_time_recorded, "duration")
     </query>
     <earliest>0</earliest>
@@ -16,10 +16,10 @@
         <latest>now</latest>
       </default>
     </input>
-    <input type="dropdown" token="earliest" searchWhenChanged="true">
+    <input type="dropdown" token="date" searchWhenChanged="true">
       <label>date</label>
       <fieldForLabel>date_wday</fieldForLabel>
-      <fieldForValue>earliest</fieldForValue>
+      <fieldForValue>date</fieldForValue>
       <search>
         <query>| tstats count where index=siri by date | eval earliest = strptime(date, "%Y-%m-%d") | eval date_wday = date.", ".strftime(earliest, "%a") | sort - date</query>
         <earliest>$time_setter.earliest$</earliest>
@@ -27,8 +27,8 @@
       </search>
       <change>
         <condition>
-          <eval token="latest">$value$+86400</eval>
-          <eval token="date">strftime($value$, "%Y-%m-%d")</eval>
+          <eval token="latest">strptime($value$, "%Y-%m-%d")+86400+60*60*2</eval>
+          <eval token="earliest">strptime($value$, "%Y-%m-%d")</eval>
         </condition>
       </change>
     </input>
@@ -60,9 +60,9 @@
   </fieldset>
   <row>
     <panel>
-      <title>Trips</title>
+      <title>Rides</title>
       <table>
-        <search base="trips"></search>
+        <search base="rides"></search>
         <option name="count">10</option>
         <option name="drilldown">none</option>
         <option name="refresh.display">progressbar</option>
@@ -84,7 +84,7 @@
          | eval latitude = coalesce(lat, start_stop_lat), longitude = coalesce(lon, start_stop_lon) 
          | eval planned_start_time=coalesce(planned_start_time, start_time) 
          | eval icon=case(sourcetype=="siri_csv", "bus", sourcetype=="route_stats", "home") 
-         |  eval trip_temp_id = if(sourcetype=="siri_csv", route_short_name." - ".planned_start_time, "Start Stop ".route_short_name." (".route_id.")") 
+         |  eval trip_temp_id = if(sourcetype=="siri_csv", route_short_name." (".route_id.") - ".planned_start_time, "Start Stop ".route_short_name." (".route_id.")") 
          | eval tooltip=if(isnull(time_recorded), trip_temp_id, time_recorded)
          | dedup tooltip trip_temp_id 
          | eval markerColor = if(sourcetype=="siri_csv", "blue", "red") 
@@ -150,7 +150,7 @@
         <option name="leaflet_maps_app.maps-plus.pathColorList">#D43C29,#0003F0,darkgreen,0xe2d400,darkred,#23A378</option>
         <option name="leaflet_maps_app.maps-plus.pathIdentifier">trip_temp_id</option>
         <option name="leaflet_maps_app.maps-plus.pathSplitInterval">90</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">1</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
         <option name="leaflet_maps_app.maps-plus.permanentTooltip">1</option>
         <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
         <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
