@@ -11,7 +11,8 @@ To use GTFS Stats script, run:
 
 .. code-block:: bash
 
-    python gtfs_utils/gtfs_stats.py
+    python setup.py install
+    run_gtfs_stats
 
 Configuration
 -------------
