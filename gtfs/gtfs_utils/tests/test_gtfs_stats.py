@@ -1,11 +1,8 @@
 import gzip
 import os
 import pickle
-import sys
-from os.path import dirname, join, abspath
-myPath = dirname(abspath(__file__))
-sys.path.insert(0, myPath + '/../gtfs_utils/')
-from gtfs_stats import handle_gtfs_date
+from os.path import dirname, join
+from ..gtfs_utils.gtfs_stats import handle_gtfs_date
 
 
 TEST_ASSETS_DIR = join(dirname(__file__), 'assets')

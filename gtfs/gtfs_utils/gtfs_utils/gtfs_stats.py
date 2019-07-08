@@ -16,11 +16,12 @@ from zipfile import BadZipFile
 from tqdm import tqdm
 from partridge import feed as ptg_feed
 from botocore.handlers import disable_signing
-import gtfs_utils as gu
-from environment import init_conf
-from s3 import get_valid_file_dates_dict, s3_download
-from logging_config import configure_logger
-from configuration import configuration
+from .gtfs_utils import write_filtered_feed_by_date, get_partridge_feed_by_date, get_zones_df, \
+    compute_route_stats, compute_trip_stats
+from .environment import init_conf
+from .s3 import get_valid_file_dates_dict, s3_download
+from .logging_config import configure_logger
+from .configuration import configuration
 
 
 def _get_existing_output_files(output_folder):
@@ -110,29 +111,29 @@ and route_stats).
                                              f'{date_str}.zip')
             logging.info(f'writing filtered gtfs feed for file "{gtfs_folder+file}" with date "{date}" in path '
                         f'{filtered_out_path}')
-            gu.write_filtered_feed_by_date(gtfs_folder + file, date, filtered_out_path)
+            write_filtered_feed_by_date(gtfs_folder + file, date, filtered_out_path)
             logging.info(f'reading filtered feed for file from path {filtered_out_path}')
             feed = ptg_feed(filtered_out_path)
         else:
             logging.info(f'creating daily partridge feed for file "{join(gtfs_folder, file)}" with date "{date}"')
             try:
-                feed = gu.get_partridge_feed_by_date(join(gtfs_folder, file), date)
+                feed = get_partridge_feed_by_date(join(gtfs_folder, file), date)
             except BadZipFile:
                 logging.error('Bad local zip file', exc_info=True)
                 downloaded = get_gtfs_file(file, gtfs_folder, bucket, force=True)
-                feed = gu.get_partridge_feed_by_date(join(gtfs_folder, file), date)
+                feed = get_partridge_feed_by_date(join(gtfs_folder, file), date)
 
         logging.debug(f'finished creating daily partridge feed for file "{join(gtfs_folder, file)}" with date "{date}"')
 
         # TODO: use Tariff.zip from s3
         tariff_path_to_use = get_closest_archive_path(date, 'Tariff.zip', archive_folder=archive_folder)
         logging.info(f'creating zones DF from "{tariff_path_to_use}"')
-        zones = gu.get_zones_df(tariff_path_to_use)
+        zones = get_zones_df(tariff_path_to_use)
 
         logging.info(
             f'starting compute_trip_stats for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
             f'"{configuration.files.tariff_file_path}"')
-        ts = gu.compute_trip_stats(feed, zones, date_str, file)
+        ts = compute_trip_stats(feed, zones, date_str, file)
         logging.debug(
             f'finished compute_trip_stats for file "{join(gtfs_folder, file)}" with date "{date}" and zones '
             f'"{configuration.files.tariff_file_path}"')
@@ -146,7 +147,7 @@ and route_stats).
         f'num_start_zones={ts.start_zone.nunique()}, num_agency={ts.agency_name.nunique()}')
 
     logging.info(f'starting compute_route_stats from trip stats result')
-    rs = gu.compute_route_stats(ts, date_str, file)
+    rs = compute_route_stats(ts, date_str, file)
     logging.debug(f'finished compute_route_stats from trip stats result')
 
     # TODO: log more stats
@@ -256,10 +257,6 @@ def main():
     configure_logger()
     logging.info(f'starting batch_stats_s3 with default config')
     batch_stats_s3(delete_downloaded_gtfs_zips=configuration.delete_downloaded_gtfs_zip_files)
-
-
-if __name__ == '__main__':
-    main()
 
 
 # ## What's next

@@ -1,7 +1,7 @@
 import logging
 import os
 from datetime import datetime
-from configuration import configuration
+from .configuration import configuration
 
 
 def configure_logger():
