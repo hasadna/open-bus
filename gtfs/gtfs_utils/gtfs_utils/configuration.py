@@ -1,4 +1,4 @@
-from dataclasses import dataclass, fields, is_dataclass, field
+from dataclasses import dataclass, fields, is_dataclass
 import json
 import os
 import re
@@ -55,10 +55,17 @@ class FilesConfiguration:
 
 
 @dataclass
-class Configuration:
-    files: FilesConfiguration = None
+class S3Configuration:
+    access_key_id: str = None
+    secret_access_key: str = None
+    s3_endpoint_url: str = None
     bucket_name: str = None
     bucket_valid_file_name_regexp: re.Pattern = None
+
+@dataclass
+class Configuration:
+    files: FilesConfiguration = None
+    s3: S3Configuration = None
     forward_fill: bool = True
     future_days_count: int = 0
     display_download_progress_bar: bool = True
