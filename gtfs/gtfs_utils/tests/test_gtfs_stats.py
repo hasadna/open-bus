@@ -30,7 +30,7 @@ def test_handle_gtfs_file():
     os.makedirs(TEST_OUTPUTS_DIR, exist_ok=True)
     handle_gtfs_date(date_str=TEST_FILE_DATE,
                      file=f'{TEST_FILE_DATE}.zip',
-                     bucket=None,
+                     crud=None,
                      output_folder=TEST_OUTPUTS_DIR,
                      gtfs_folder=join(TEST_ASSETS_DIR, 'gtfs'),
                      archive_folder=join(TEST_ASSETS_DIR, 'archive'))

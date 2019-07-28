@@ -5,11 +5,12 @@ import fnmatch
 import os
 import re
 import sys
+import logging
+import boto3
+import botocore.exceptions
 from types import MappingProxyType
 from typing import Callable, List, Tuple
 
-import boto3
-import botocore.exceptions
 
 _AWS = 'aws'
 _DIGITALOCEAN_PUBLIC = 'dig-public'
@@ -36,11 +37,18 @@ class S3Crud:
     def upload_one_file(self, local_file: str, cloud_key: str) -> None:
         self.client.upload_file(Filename=local_file, Key=cloud_key, Bucket=self.bucket_name)
 
-    def download_one_file(self, local_file: str, cloud_key: str) -> None:
-        self.client.download_file(Filename=local_file, Key=cloud_key, Bucket=self.bucket_name)
+    def download_one_file(self, local_file: str, cloud_key: str, callback: Callable = None) -> None:
+        logging.info(f'Downloading { cloud_key } into { local_file }')
+        self.client.download_file(Filename=local_file,
+                                  Key=cloud_key,
+                                  Bucket=self.bucket_name,
+                                  Callback=callback)
 
     def list_bucket_files(self, prefix_filter: str) -> List:
         return self.client.list_objects_v2(Bucket=self.bucket_name, Prefix=prefix_filter).get('Contents', [])
+
+    def get_file_size(self, file_key: str):
+        return self.client.head_object(Bucket=self.bucket_name, Key=file_key)['ContentLength']
 
     def is_key_exist(self, key_name: str) -> bool:
         try:
