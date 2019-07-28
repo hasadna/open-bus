@@ -72,7 +72,7 @@ Get list of dates without output files (currently just route_stats is considered
 
 def get_forward_fill_dict(valid_files, future_days=configuration.future_days_count):
     """
-get a dictionary mapping gtfs file names to a list of dates for forward fill by scanning for missing dates for files
+    Get a dictionary mapping gtfs file names to a list of dates for forward fill by scanning for missing dates for files
     :param valid_files: list of valid file keys
     :rtype: list of str
     :return dictionary mapping file names to dates

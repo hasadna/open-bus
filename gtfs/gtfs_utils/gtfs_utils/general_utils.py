@@ -10,7 +10,7 @@ Parse date from file name
     :rtype: tuple
     """
 
-    match = re.match('.*/(\d+-\d+-\d+).*\.\w+', 'gtfs/2019/03/07/2019-03-07T21-50-11_israel-public-transportation.zip')
+    match = re.match('.*/(\d+-\d+-\d+).*\.\w+', file_name)
     date_str = match.group(1)
     date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
     return date, date_str
