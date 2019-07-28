@@ -101,10 +101,10 @@ def _create_items_from_local_folder(is_folder: bool, local_path: str, key_name: 
     if not is_folder:
         return [(local_path, key_name)]
 
-    return[(os.path.join(local_path, file_name), '/'.join([key_name, file_name]))
-           for file_name
-           in os.listdir(local_path)
-           if fnmatch.fnmatch(file_name, filter_arg) and os.path.isfile(os.path.join(local_path, file_name))]
+    return sorted([(os.path.join(local_path, file_name), '/'.join([key_name, file_name]))
+                   for file_name
+                   in os.listdir(local_path)
+                   if fnmatch.fnmatch(file_name, filter_arg) and os.path.isfile(os.path.join(local_path, file_name))])
 
 
 def upload(crud: S3Crud, local_file: str, key_name: str, is_folder: bool, filter_arg: str) -> None:

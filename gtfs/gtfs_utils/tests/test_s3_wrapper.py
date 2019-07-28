@@ -2,6 +2,7 @@ import unittest
 import datetime
 from dateutil.tz import tzutc
 from types import MappingProxyType
+from os.path import dirname, join
 from ..gtfs_utils.s3_wrapper import parse_cli_arguments, _regex_filter, list_content, is_exist, \
     _create_items_from_local_folder, _DIGITALOCEAN_PRIVATE, make_crud_args, download, upload, _sizeof_fmt, S3Crud
 
@@ -199,13 +200,13 @@ class TestFoo(unittest.TestCase):
             _create_items_from_local_folder(True, 'NonExistPath', '')
 
     def test_create_items_from_local_folder_is_folder_True_given_path_is_not_folder(self):
-        file_path = 'tests/resources/test_folder_hierarchy/foo.txt'
+        file_path = join(dirname(__file__), 'resources', 'test_folder_hierarchy', 'foo.txt')
 
         with self.assertRaises(NotADirectoryError):
             _create_items_from_local_folder(True, file_path, 'foo')
 
     def test_create_items_from_local_folder_is_folder_True(self):
-        file_path = 'tests/resources/test_folder_hierarchy'
+        file_path = join(dirname(__file__), 'resources', 'test_folder_hierarchy')
         key_prefix = 'dfgdfgdfg'
         actual = _create_items_from_local_folder(True, file_path, key_prefix)
         print(actual)
@@ -214,7 +215,7 @@ class TestFoo(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_create_items_from_local_folder_is_folder_True_with_filtert1(self):
-        file_path = 'tests/resources/test_folder_hierarchy'
+        file_path = join(dirname(__file__), 'resources', 'test_folder_hierarchy')
         key_prefix = 'dfgdfgdfg'
         actual = _create_items_from_local_folder(True, file_path, key_prefix, "*.txt")
         print(actual)
@@ -223,7 +224,7 @@ class TestFoo(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_create_items_from_local_folder_is_folder_True_with_filtert2(self):
-        file_path = 'tests/resources/test_folder_hierarchy'
+        file_path = join(dirname(__file__), 'resources', 'test_folder_hierarchy')
         key_prefix = 'dfgdfgdfg'
         actual = _create_items_from_local_folder(True, file_path, key_prefix, "bar*")
         print(actual)
