@@ -222,15 +222,10 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
             logging.info(f'creating output folder {output_folder}')
             os.makedirs(output_folder)
 
-
-        aki = ''
-        sak = ''
-        eu = ''
-
-        crud = S3Crud(aws_access_key_id=aki,
-                      aws_secret_access_key=sak,
+        crud = S3Crud(aws_access_key_id=configuration.s3.access_key_id,
+                      aws_secret_access_key=configuration.s3.secret_access_key
                       bucket_name=bucket_name,
-                      endpoint_url=eu)
+                      endpoint_url=configuration.s3.s3_endpoint_url)
 
         logging.info(f'connected to S3 bucket {bucket_name}')
 
