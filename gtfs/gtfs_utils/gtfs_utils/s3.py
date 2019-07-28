@@ -102,7 +102,7 @@ get a dictionary mapping gtfs file names to a list of dates for forward fill by 
 def get_valid_file_dates_dict(crud, existing_output_files, forward_fill):
     logging.info(f'configuration.s3.bucket_valid_file_name_regexp={configuration.s3.bucket_valid_file_name_regexp}')
     bucket_valid_files = get_bucket_valid_files(crud)
-    logging.debug(f'bucket_valid_files: { bucket_valid_files }')
+    logging.debug(f'bucket_valid_files: {bucket_valid_files}')
 
     if forward_fill:
         logging.info(f'applying forward fill')

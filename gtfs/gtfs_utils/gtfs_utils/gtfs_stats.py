@@ -223,7 +223,7 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
             os.makedirs(output_folder)
 
         crud = S3Crud(aws_access_key_id=configuration.s3.access_key_id,
-                      aws_secret_access_key=configuration.s3.secret_access_key
+                      aws_secret_access_key=configuration.s3.secret_access_key,
                       bucket_name=bucket_name,
                       endpoint_url=configuration.s3.s3_endpoint_url)
 
