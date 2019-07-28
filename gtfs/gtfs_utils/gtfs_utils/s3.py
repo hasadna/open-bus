@@ -48,15 +48,12 @@ def get_bucket_valid_files(crud):
     :return: list of valid file keys
     :rtype: list of str
     """
-
-    return [obj['Key']
-            for obj
-            in list_content(crud, regex_argument=configuration.s3.bucket_valid_file_name_regexp)]
+    return [obj['Key'] for obj in list_content(crud, regex_argument=configuration.s3.bucket_valid_file_name_regexp)]
 
 
-def get_dates_without_output(valid_files, existing_output_files):
+def get_dates_without_output(valid_dates, existing_output_files):
     """
-Get list of dates without output files (currently just route_stats is considered)
+    Get list of dates without output files (currently just route_stats is considered)
     :param valid_files: list of valid file keys
     :rtype: list of str
     :param existing_output_files: list of 2-tuples as returned by _get_existing_output_files
@@ -64,8 +61,8 @@ Get list of dates without output files (currently just route_stats is considered
     :return: list of valid file keys for stat computation
     :rtype: list
     """
-    return [parse_date(file)[1] for file in valid_files
-            if file not in [g[0] + '.zip'
+    return [date for date in valid_dates
+            if date not in [g[0]
                             for g in existing_output_files
                             if g[1] == 'route_stats']]
 
@@ -83,9 +80,29 @@ def get_forward_fill_dict(valid_files, future_days=configuration.future_days_cou
     if not len(valid_files):
         return ffill
 
-    date_tuple_to_file = {parse_date(file): file for file in valid_files}
-    date_to_file = {key[0]: value for key, value in date_tuple_to_file.items()}
-    date_str_to_file = {key[1]: value for key, value in date_tuple_to_file.items()}
+    date_to_file = {}
+    date_str_to_file = {}
+
+    for file in valid_files:
+        current_file_datetime, current_file_date_str = parse_date(file)
+
+        if current_file_date_str in date_str_to_file:
+            # If there is already a file from this date
+            other_datetime_in_same_date = next((existing_datetime
+                                                for existing_datetime
+                                                in date_to_file.keys()
+                                                if existing_datetime.date() == current_file_datetime.date()))
+
+            if other_datetime_in_same_date > current_file_datetime:
+                # If the current file is newer than the already-existing one
+                del date_to_file[other_datetime_in_same_date]
+            else:
+                # If the current file is older than the already-existing one
+                continue
+
+        date_to_file[current_file_datetime] = file
+        date_str_to_file[current_file_date_str] = file
+
     existing_dates = pd.DatetimeIndex(date_to_file.keys())
     expected_dates = pd.DatetimeIndex(start=existing_dates.min(), end=existing_dates.max()+datetime.timedelta(days=future_days), freq='D')
     date_df = pd.Series(pd.NaT, expected_dates)
@@ -112,8 +129,7 @@ def get_valid_file_dates_dict(crud, existing_output_files, forward_fill):
 
         files_for_stats = defaultdict(list)
         for file in ffill_dict:
-            files_for_stats[file] = get_dates_without_output([date_str + '.zip' for date_str in ffill_dict[file]],
-                                                             existing_output_files)
+            files_for_stats[file] = get_dates_without_output(ffill_dict[file], existing_output_files)
 
     else:
         files_for_stats = defaultdict(list)
