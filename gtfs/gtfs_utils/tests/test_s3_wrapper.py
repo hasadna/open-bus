@@ -2,7 +2,7 @@ import unittest
 import datetime
 from dateutil.tz import tzutc
 from types import MappingProxyType
-from ..gtfs_utils.s3_wrapper import parse_cli_arguments, _, _regex_filter, list_content, is_exist, \
+from ..gtfs_utils.s3_wrapper import parse_cli_arguments, _regex_filter, list_content, is_exist, \
     _create_items_from_local_folder, _DIGITALOCEAN_PRIVATE, make_crud_args, download, upload, _sizeof_fmt, S3Crud
 
 
