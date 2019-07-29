@@ -196,8 +196,7 @@ Handle a single GTFS file. Download if necessary compute and save stats files (c
 def batch_stats_s3(bucket_name=configuration.s3.bucket_name,
                    output_folder=configuration.files.full_paths.output,
                    gtfs_folder=configuration.files.full_paths.gtfs_feeds,
-                   delete_downloaded_gtfs_zips=False,
-                   forward_fill=configuration.forward_fill):
+                   delete_downloaded_gtfs_zips=False):
     """
 Create daily trip_stats and route_stats DataFrame pickles, based on the files in an S3 bucket and
 their dates - `YYYY-mm-dd.zip`.
@@ -210,8 +209,6 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
     :type gtfs_folder: str
     :param delete_downloaded_gtfs_zips: whether to delete GTFS feed files that have been downloaded by the function.
     :type delete_downloaded_gtfs_zips: bool
-    :param forward_fill: flag for performing forward fill for missing dates using existing files
-    :type forward_fill: bool
     """
     try:
         existing_output_files = []
@@ -229,7 +226,7 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
 
         logging.info(f'connected to S3 bucket {bucket_name}')
 
-        file_dates_dict = get_valid_file_dates_dict(crud, existing_output_files, forward_fill)
+        file_dates_dict = get_valid_file_dates_dict(crud, existing_output_files)
         logging.debug(f'file_dates_dict={file_dates_dict}')
 
 

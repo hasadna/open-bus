@@ -20,7 +20,6 @@
     "bucket_valid_file_name_regexp": "gtfs/2019/03/07/2019-03-07T\\d+-\\d+-\\d+_israel-public-transportation.zip"
   },
 
-  "forward_fill": true,
   "future_days_count": 0,
 
   "display_download_progress_bar": false,

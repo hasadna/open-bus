@@ -118,25 +118,19 @@ def get_forward_fill_dict(valid_files, future_days=configuration.future_days_cou
     return ffill
 
 
-def get_valid_file_dates_dict(crud, existing_output_files, forward_fill):
+def get_valid_file_dates_dict(crud, existing_output_files):
     logging.info(f'configuration.s3.bucket_valid_file_name_regexp={configuration.s3.bucket_valid_file_name_regexp}')
     bucket_valid_files = get_bucket_valid_files(crud)
     logging.debug(f'bucket_valid_files: {bucket_valid_files}')
 
-    if forward_fill:
-        logging.info(f'applying forward fill')
-        ffill_dict = get_forward_fill_dict(bucket_valid_files)
-        logging.info(f'found {sum([len(l) for l in ffill_dict.values()]) - len(bucket_valid_files)} missing dates for '
-                    'forward fill.')
+    logging.info(f'applying forward fill')
+    ffill_dict = get_forward_fill_dict(bucket_valid_files)
+    logging.info(f'found {sum([len(l) for l in ffill_dict.values()]) - len(bucket_valid_files)} missing dates for '
+                'forward fill.')
 
-        files_for_stats = defaultdict(list)
-        for file in ffill_dict:
-            files_for_stats[file] = get_dates_without_output(ffill_dict[file], existing_output_files)
-
-    else:
-        files_for_stats = defaultdict(list)
-        for date in get_dates_without_output(bucket_valid_files, existing_output_files):
-            files_for_stats[date + '.zip'].append(date)
+    files_for_stats = defaultdict(list)
+    for file in ffill_dict:
+        files_for_stats[file] = get_dates_without_output(ffill_dict[file], existing_output_files)
 
     logging.info(f'found {len([key for key in files_for_stats if len(files_for_stats[key])>0])} GTFS files valid for '
                 'stats calculations in bucket')

@@ -66,7 +66,6 @@ class S3Configuration:
 class Configuration:
     files: FilesConfiguration = None
     s3: S3Configuration = None
-    forward_fill: bool = True
     future_days_count: int = 0
     display_download_progress_bar: bool = True
     display_size_on_progress_bar: bool = True
