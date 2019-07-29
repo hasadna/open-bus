@@ -60,12 +60,13 @@ class S3Configuration:
     secret_access_key: str = None
     s3_endpoint_url: str = None
     bucket_name: str = None
-    bucket_valid_file_name_regexp: re.Pattern = None
 
 @dataclass
 class Configuration:
     files: FilesConfiguration = None
     s3: S3Configuration = None
+    use_data_from_today: bool = True
+    date_range: List[str] = None
     future_days_count: int = 0
     display_download_progress_bar: bool = True
     display_size_on_progress_bar: bool = True
@@ -87,10 +88,15 @@ def dict_to_dataclass(data_dict: Dict, data_class: type) -> Dict:
         else:
             value = data_dict[field.name]
 
-        if not isinstance(value, field.type):
-            raise TypeError(f'Configuration field \'{field.name}\' '
-                            f'should be of type {field.type.__name__}, '
-                            f'but is actually of type {type(value).__name__}')
+        if isinstance(field.type, type):
+            if not isinstance(value, field.type):
+                raise TypeError(f'Configuration field \'{field.name}\' '
+                                f'should be of type {field.type.__name__}, '
+                                f'but is actually of type {type(value).__name__}')
+        elif not isinstance(value, field.type.__origin__):
+                raise TypeError(f'Configuration field \'{field.name}\' '
+                                f'should be of type {field.type.__origin__.__name__}, '
+                                f'but is actually of type {type(value).__name__}')
 
         setattr(data_class_instance, field.name, value)
 

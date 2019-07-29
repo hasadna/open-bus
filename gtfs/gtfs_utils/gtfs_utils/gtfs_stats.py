@@ -1,10 +1,10 @@
 # coding: utf-8
-
-# Using a mix of `partridge` and `gtfstk` with some of my own additions to 
+# Using a mix of `partridge` and `gtfstk` with some of my own additions to
 # create daily statistical DataFrames for trips, routes and stops. 
 # This will later become a module which we will run on our historical 
-# MoT GTFS archive and schedule for nightly runs. 
+# MoT GTFS archive and schedule for nightly runs.
 
+from typing import List
 import pandas as pd
 import datetime
 import os
@@ -193,6 +193,22 @@ Handle a single GTFS file. Download if necessary compute and save stats files (c
         logging.debug(f'keeping gtfs zip file "{join(gtfs_folder, file)}"')
 
 
+def get_dates_to_run_on(use_data_from_today: bool, date_range: List[str]):
+    if use_data_from_today:
+        return [datetime.datetime.now().date()]
+    else:
+        if len(date_range) != 2:
+            raise ValueError('date_range must be a 2-element list')
+
+        min_date, max_date = [datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+                              for date_str
+                              in date_range]
+        delta = max_date - min_date
+        return [min_date + datetime.timedelta(days=days_delta)
+                for days_delta
+                in range(delta.days + 1)]
+
+
 def batch_stats_s3(bucket_name=configuration.s3.bucket_name,
                    output_folder=configuration.files.full_paths.output,
                    gtfs_folder=configuration.files.full_paths.gtfs_feeds,
@@ -210,6 +226,9 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
     :param delete_downloaded_gtfs_zips: whether to delete GTFS feed files that have been downloaded by the function.
     :type delete_downloaded_gtfs_zips: bool
     """
+
+    dates_to_run_on = get_dates_to_run_on(configuration.use_data_from_today,
+                                          configuration.date_range)
     try:
         existing_output_files = []
         if os.path.exists(output_folder):
