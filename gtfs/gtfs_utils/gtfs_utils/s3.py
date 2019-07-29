@@ -48,9 +48,11 @@ def get_bucket_valid_files(crud):
     :return: list of valid file keys
     :rtype: list of str
     """
-    return [obj['Key'] for obj in list_content(crud,
-                                               prefix_filter='gtfs/2019/04/17/',
-                                               regex_argument=configuration.s3.bucket_valid_file_name_regexp)]
+    return [obj['Key']
+            for obj
+            in list_content(crud,
+                            prefix_filter=configuration.s3.bucket_valid_file_name_regexp.pattern.split('\\')[0],
+                            regex_argument=configuration.s3.bucket_valid_file_name_regexp)]
 
 
 def get_dates_without_output(valid_dates, existing_output_files):
