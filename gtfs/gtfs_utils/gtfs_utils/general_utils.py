@@ -1,16 +1,19 @@
 import datetime
-
+import re
 
 def parse_date(file_name):
     """
 Parse date from file name
-    :param file_name: file name in YYYY-mm-dd.zip format
+    :param file_name: file name
     :type file_name: str
-    :return: date object and date string
+    :return: datetime object and date string
     :rtype: tuple
     """
-    date_str = file_name.split('.')[0]
-    date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-    return date, date_str
+
+    match = re.match('.*/(\d+-\d+-\d+T\d+-\d+-\d+).*\.\w+', file_name)
+    datetime_str = match.group(1)
+    date_str = datetime_str.split('T')[0]
+    datetime_value = datetime.datetime.strptime(datetime_str, '%Y-%m-%dT%H-%M-%S')
+    return datetime_value, date_str
 
 

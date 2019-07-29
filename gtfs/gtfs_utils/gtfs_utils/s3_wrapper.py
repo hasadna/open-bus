@@ -5,11 +5,12 @@ import fnmatch
 import os
 import re
 import sys
+import logging
+import boto3
+import botocore.exceptions
 from types import MappingProxyType
 from typing import Callable, List, Tuple
 
-import boto3
-import botocore.exceptions
 
 _AWS = 'aws'
 _DIGITALOCEAN_PUBLIC = 'dig-public'
@@ -36,11 +37,18 @@ class S3Crud:
     def upload_one_file(self, local_file: str, cloud_key: str) -> None:
         self.client.upload_file(Filename=local_file, Key=cloud_key, Bucket=self.bucket_name)
 
-    def download_one_file(self, local_file: str, cloud_key: str) -> None:
-        self.client.download_file(Filename=local_file, Key=cloud_key, Bucket=self.bucket_name)
+    def download_one_file(self, local_file: str, cloud_key: str, callback: Callable = None) -> None:
+        logging.info(f'Downloading { cloud_key } into { local_file }')
+        self.client.download_file(Filename=local_file,
+                                  Key=cloud_key,
+                                  Bucket=self.bucket_name,
+                                  Callback=callback)
 
     def list_bucket_files(self, prefix_filter: str) -> List:
         return self.client.list_objects_v2(Bucket=self.bucket_name, Prefix=prefix_filter).get('Contents', [])
+
+    def get_file_size(self, file_key: str):
+        return self.client.head_object(Bucket=self.bucket_name, Key=file_key)['ContentLength']
 
     def is_key_exist(self, key_name: str) -> bool:
         try:
@@ -93,10 +101,10 @@ def _create_items_from_local_folder(is_folder: bool, local_path: str, key_name: 
     if not is_folder:
         return [(local_path, key_name)]
 
-    return[(os.path.join(local_path, file_name), '/'.join([key_name, file_name]))
-           for file_name
-           in os.listdir(local_path)
-           if fnmatch.fnmatch(file_name, filter_arg) and os.path.isfile(os.path.join(local_path, file_name))]
+    return sorted([(os.path.join(local_path, file_name), '/'.join([key_name, file_name]))
+                   for file_name
+                   in os.listdir(local_path)
+                   if fnmatch.fnmatch(file_name, filter_arg) and os.path.isfile(os.path.join(local_path, file_name))])
 
 
 def upload(crud: S3Crud, local_file: str, key_name: str, is_folder: bool, filter_arg: str) -> None:
