@@ -107,6 +107,7 @@ def get_forward_fill_dict(valid_files, future_days=configuration.future_days_cou
         date_to_file[current_file_datetime] = file
         date_str_to_file[current_file_date_str] = file
 
+    date_to_file = {datetime_value.date(): file for datetime_value, file in date_to_file.items()}
     existing_dates = pd.DatetimeIndex(date_to_file.keys())
     expected_dates = pd.DatetimeIndex(start=existing_dates.min(), end=existing_dates.max()+datetime.timedelta(days=future_days), freq='D')
     date_df = pd.Series(pd.NaT, expected_dates)
