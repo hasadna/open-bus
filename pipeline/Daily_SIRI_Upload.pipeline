@@ -1,0 +1,12 @@
+pipeline{
+   agent any
+ 
+    stages{
+        stage('triger'){
+            steps{
+                build job: 'Upload_SIRI_Logs_To_S3', parameters: [string(name: 'CURRENT_DATE', value: "${(new Date() -1).format('yyyy-MM-dd')}")]
+            }
+        }
+    }
+
+}
