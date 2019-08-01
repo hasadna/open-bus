@@ -48,9 +48,11 @@ def get_bucket_valid_files(crud):
     :return: list of valid file keys
     :rtype: list of str
     """
-    return [obj['Key'] for obj in list_content(crud,
-                                               prefix_filter='gtfs/2019/04/17/',
-                                               regex_argument=configuration.s3.bucket_valid_file_name_regexp)]
+    return [obj['Key']
+            for obj
+            in list_content(crud,
+                            prefix_filter=configuration.s3.bucket_valid_file_name_regexp.pattern.split('\\')[0],
+                            regex_argument=configuration.s3.bucket_valid_file_name_regexp)]
 
 
 def get_dates_without_output(valid_dates, existing_output_files):
@@ -105,6 +107,7 @@ def get_forward_fill_dict(valid_files, future_days=configuration.future_days_cou
         date_to_file[current_file_datetime] = file
         date_str_to_file[current_file_date_str] = file
 
+    date_to_file = {datetime_value.date(): file for datetime_value, file in date_to_file.items()}
     existing_dates = pd.DatetimeIndex(date_to_file.keys())
     expected_dates = pd.DatetimeIndex(start=existing_dates.min(), end=existing_dates.max()+datetime.timedelta(days=future_days), freq='D')
     date_df = pd.Series(pd.NaT, expected_dates)
