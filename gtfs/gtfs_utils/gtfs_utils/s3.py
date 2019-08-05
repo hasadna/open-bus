@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Tuple
 import datetime
 from collections import defaultdict
 from tqdm import tqdm
@@ -69,17 +69,18 @@ def get_dates_without_output(valid_dates, existing_output_files):
                             if g[1] == 'route_stats']]
 
 
-def get_latest_file_key(crud: S3Crud,
-                        mot_file_name: str,
-                        desired_date: datetime.datetime,
-                        past_days_to_try: int = 100) -> str:
+def get_latest_file(crud: S3Crud,
+                    mot_file_name: str,
+                    desired_date: datetime.datetime,
+                    past_days_to_try: int = 100) -> Tuple[datetime.date, str]:
     for i in range(past_days_to_try):
         date = desired_date - datetime.timedelta(i)
         bucket_files_in_date = get_bucket_file_keys_for_date(crud, mot_file_name, date)
 
         if len(bucket_files_in_date) > 0:
             bucket_files_in_date = sorted(bucket_files_in_date)
-            return bucket_files_in_date[-1]
+            date_and_key = (date, bucket_files_in_date[-1])
+            return date_and_key
 
 
 def get_valid_file_dates_dict(crud, existing_output_files):

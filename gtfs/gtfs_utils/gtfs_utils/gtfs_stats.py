@@ -4,23 +4,24 @@
 # This will later become a module which we will run on our historical 
 # MoT GTFS archive and schedule for nightly runs.
 
-from typing import List
 import pandas as pd
 import datetime
 import os
 import re
-from os.path import join
 import logging
+from os.path import join
+from typing import List
 from zipfile import BadZipFile
 from tqdm import tqdm
 from partridge import feed as ptg_feed
 from .gtfs_utils import write_filtered_feed_by_date, get_partridge_feed_by_date, get_zones_df, \
     compute_route_stats, compute_trip_stats
 from .environment import init_conf
-from .s3 import get_valid_file_dates_dict, s3_download
+from .s3 import s3_download, get_latest_file, get_dates_without_output
 from .logging_config import configure_logger
 from .configuration import configuration
 from .s3_wrapper import S3Crud
+from .constants import GTFS_FILE_NAME
 
 
 def _get_existing_output_files(output_folder):
@@ -31,7 +32,7 @@ Get existing output files in the given folder, in a list containing tuples of da
     :return: list of 2-tuples (date_str, output_file_type)
     :rtype: list
     """
-    return [(g[0], g[1]) for g in
+    return [(datetime.datetime.strptime(g[0], '%Y-%m-%d').date(), g[1]) for g in
             (re.match(configuration.files.output_file_name_regexp, file).groups()
              for file in os.listdir(output_folder))]
 
@@ -193,7 +194,7 @@ Handle a single GTFS file. Download if necessary compute and save stats files (c
         logging.debug(f'keeping gtfs zip file "{join(gtfs_folder, file)}"')
 
 
-def get_dates_to_run_on(use_data_from_today: bool, date_range: List[str]):
+def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> List[datetime.date]:
     if use_data_from_today:
         return [datetime.datetime.now().date()]
     else:
@@ -227,8 +228,10 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
     :type delete_downloaded_gtfs_zips: bool
     """
 
-    dates_to_run_on = get_dates_to_run_on(configuration.use_data_from_today,
-                                          configuration.date_range)
+    dates_to_analyze = get_dates_to_analyze(configuration.use_data_from_today,
+                                            configuration.date_range)
+    logging.debug(f'dates_to_analyze={dates_to_analyze}')
+
     try:
         existing_output_files = []
         if os.path.exists(output_folder):
@@ -242,15 +245,24 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
                       aws_secret_access_key=configuration.s3.secret_access_key,
                       bucket_name=bucket_name,
                       endpoint_url=configuration.s3.s3_endpoint_url)
-
         logging.info(f'connected to S3 bucket {bucket_name}')
 
-        file_dates_dict = get_valid_file_dates_dict(crud, existing_output_files)
-        logging.debug(f'file_dates_dict={file_dates_dict}')
+        files_mapping = {}
+        all_files = []
 
+        files_to_download = [GTFS_FILE_NAME]
+        for desired_date in dates_to_analyze:
+            for mot_file_name in files_to_download:
+                if desired_date not in files_mapping:
+                    files_mapping[desired_date] = {}
 
-        non_empty_file_dates = {key: value for key, value in file_dates_dict.items() if len(file_dates_dict[key]) > 0}
-        with tqdm(non_empty_file_dates, postfix='initializing', unit='file', desc='files') as t:
+                date_and_key = get_latest_file(crud, mot_file_name, desired_date)
+                files_mapping[desired_date][mot_file_name] = date_and_key
+                all_files.append(date_and_key)
+
+        dates_without_output = get_dates_without_output(dates_to_analyze, existing_output_files)
+
+        with tqdm(dates_without_output, postfix='initializing', unit='file', desc='files') as t:
             for file in t:
                 t.set_postfix_str(file)
                 handle_gtfs_file(file,
