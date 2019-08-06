@@ -14,50 +14,17 @@ from typing import List
 from zipfile import BadZipFile
 from tqdm import tqdm
 from partridge import feed as ptg_feed
+
+from gtfs_utils.gtfs_utils.files import _get_existing_output_files, get_dates_without_output
 from .gtfs_utils import write_filtered_feed_by_date, get_partridge_feed_by_date, get_zones_df, \
     compute_route_stats, compute_trip_stats
 from .environment import init_conf
-from .s3 import s3_download, get_latest_file, get_dates_without_output
+from .s3 import get_latest_file, get_gtfs_file
 from .logging_config import configure_logger
 from .configuration import configuration
 from .s3_wrapper import S3Crud
 from .constants import GTFS_FILE_NAME
 
-
-def _get_existing_output_files(output_folder):
-    """
-Get existing output files in the given folder, in a list containing tuples of dates and output types.
-    :param output_folder: a folder to check for
-    :type output_folder:
-    :return: list of 2-tuples (date_str, output_file_type)
-    :rtype: list
-    """
-    return [(datetime.datetime.strptime(g[0], '%Y-%m-%d').date(), g[1]) for g in
-            (re.match(configuration.files.output_file_name_regexp, file).groups()
-             for file in os.listdir(output_folder))]
-
-
-def get_gtfs_file(remote_file: str,
-                  local_file_full_path: str,
-                  crud: S3Crud,
-                  force: bool = False) -> bool:
-    """
-    :param remote_file: gtfs remote file key (as in S3)
-    :param local_file_full_path: gtfs local file full path (typically /your/gtfs/dir/YYYY-mm-dd.zip)
-    :param crud: S3Crud object
-    :param force: force download or not
-    :return: whether file was downloaded or not
-    """
-
-    if not force and os.path.exists(local_file_full_path):
-        logging.info(f'Found local file "{local_file_full_path}"')
-        return False
-
-    logging.info(f'Starting file download with retries (key="{remote_file}", local path="{local_file_full_path}")')
-    s3_download(crud, remote_file, local_file_full_path)
-    logging.debug(f'Finished file download (key="{remote_file}", local path="{local_file_full_path}")')
-    return True
-    # TODO: log file size
 
 
 def get_closest_archive_path(date,

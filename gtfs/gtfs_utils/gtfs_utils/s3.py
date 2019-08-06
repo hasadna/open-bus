@@ -1,7 +1,7 @@
 import logging
-from typing import List, Tuple
 import datetime
-from collections import defaultdict
+import os.path
+from typing import List, Tuple
 from tqdm import tqdm
 from .s3_wrapper import list_content, S3Crud
 from .retry import retry
@@ -53,20 +53,6 @@ def get_bucket_file_keys_for_date(crud: S3Crud,
     return [obj['Key'] for obj in list_content(crud, prefix_filter=prefix, regex_argument=regexp)]
 
 
-def get_dates_without_output(valid_dates, existing_output_files):
-    """
-    Get list of dates without output files (currently just route_stats is considered)
-    :param valid_files: list of valid file keys
-    :rtype: list of str
-    :param existing_output_files: list of 2-tuples as returned by _get_existing_output_files
-    :type existing_output_files: list
-    :return: list of valid file keys for stat computation
-    :rtype: list
-    """
-    return [date for date in valid_dates
-            if date not in [g[0]
-                            for g in existing_output_files
-                            if g[1] == 'route_stats']]
 
 
 def get_latest_file(crud: S3Crud,
@@ -83,21 +69,24 @@ def get_latest_file(crud: S3Crud,
             return date_and_key
 
 
-def get_valid_file_dates_dict(crud, existing_output_files):
-    logging.info(f'configuration.s3.bucket_valid_file_name_regexp={configuration.s3.bucket_valid_file_name_regexp}')
-    bucket_valid_files = get_bucket_valid_files(crud)
-    logging.debug(f'bucket_valid_files: {bucket_valid_files}')
+def get_gtfs_file(remote_file: str,
+                  local_file_full_path: str,
+                  crud: S3Crud,
+                  force: bool = False) -> bool:
+    """
+    :param remote_file: gtfs remote file key (as in S3)
+    :param local_file_full_path: gtfs local file full path (typically /your/gtfs/dir/YYYY-mm-dd.zip)
+    :param crud: S3Crud object
+    :param force: force download or not
+    :return: whether file was downloaded or not
+    """
 
-    logging.info(f'applying forward fill')
-    ffill_dict = get_forward_fill_dict(bucket_valid_files)
-    logging.info(f'found {sum([len(l) for l in ffill_dict.values()]) - len(bucket_valid_files)} missing dates for '
-                'forward fill.')
+    if not force and os.path.exists(local_file_full_path):
+        logging.info(f'Found local file "{local_file_full_path}"')
+        return False
 
-    files_for_stats = defaultdict(list)
-    for file in ffill_dict:
-        files_for_stats[file] = get_dates_without_output(ffill_dict[file], existing_output_files)
-
-    logging.info(f'found {len([key for key in files_for_stats if len(files_for_stats[key])>0])} GTFS files valid for '
-                'stats calculations in bucket')
-    logging.debug(f'Files: { {key: value for key, value in files_for_stats.items() if len(files_for_stats[key])>0} }')
-    return files_for_stats
+    logging.info(f'Starting file download with retries (key="{remote_file}", local path="{local_file_full_path}")')
+    s3_download(crud, remote_file, local_file_full_path)
+    logging.debug(f'Finished file download (key="{remote_file}", local path="{local_file_full_path}")')
+    return True
+    # TODO: log file size
