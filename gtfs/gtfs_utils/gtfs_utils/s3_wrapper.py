@@ -39,6 +39,7 @@ class S3Crud:
 
     def download_one_file(self, local_file: str, cloud_key: str, callback: Callable = None) -> None:
         logging.info(f'Downloading { cloud_key } into { local_file }')
+        os.makedirs(os.path.split(local_file)[0], exist_ok=True)
         self.client.download_file(Filename=local_file,
                                   Key=cloud_key,
                                   Bucket=self.bucket_name,

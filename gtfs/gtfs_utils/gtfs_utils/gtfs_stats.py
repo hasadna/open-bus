@@ -9,7 +9,7 @@ import datetime
 import os
 import re
 import logging
-from os.path import join
+from os.path import join, split
 from typing import List
 from zipfile import BadZipFile
 from tqdm import tqdm
@@ -261,6 +261,14 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
                 all_files.append(date_and_key)
 
         dates_without_output = get_dates_without_output(dates_to_analyze, existing_output_files)
+
+        with tqdm(all_files, unit='file', desc='Downloading') as progress_bar:
+            for date, remote_file_key in all_files:
+                local_file_name = split(remote_file_key)[-1]
+                progress_bar.set_postfix_str(local_file_name)
+                local_file_full_path = join(gtfs_folder, date.strftime('%Y-%m-%d'), local_file_name)
+                get_gtfs_file(remote_file_key, local_file_full_path, crud)
+                progress_bar.update()
 
         with tqdm(dates_without_output, postfix='initializing', unit='file', desc='files') as t:
             for file in t:
