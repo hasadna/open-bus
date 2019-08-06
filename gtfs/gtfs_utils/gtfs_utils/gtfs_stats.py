@@ -127,40 +127,6 @@ and route_stats).
     return downloaded
 
 
-def handle_gtfs_file(file,
-                     crud,
-                     stats_dates,
-                     output_folder=configuration.files.full_paths.output,
-                     gtfs_folder=configuration.files.full_paths.gtfs_feeds,
-                     delete_downloaded_gtfs_zips=False):
-    """
-Handle a single GTFS file. Download if necessary compute and save stats files (currently trip_stats and route_stats).
-    :param file: gtfs file name (currently only YYYY-mm-dd.zip)
-    :type file: str
-    :param bucket: s3 boto bucket object
-    :type bucket: boto3.resources.factory.s3.Bucket
-    :param output_folder: local path to write output files to
-    :type output_folder: str
-    :param gtfs_folder: local path containing GTFS feeds
-    :type gtfs_folder: str
-    :param delete_downloaded_gtfs_zips: whether to delete GTFS feed files that have been downloaded by the function.
-    :type delete_downloaded_gtfs_zips: bool
-    """
-
-    downloaded = False
-    with tqdm(stats_dates, postfix='initializing', unit='date', desc='dates', leave=False) as t:
-        for date_str in t:
-            t.set_postfix_str(date_str)
-            downloaded = handle_gtfs_date(date_str, file, crud, output_folder=output_folder,
-                                          gtfs_folder=gtfs_folder)
-
-    if delete_downloaded_gtfs_zips and downloaded:
-        logging.info(f'deleting gtfs zip file "{join(gtfs_folder, file)}"')
-        os.remove(join(gtfs_folder, file))
-    else:
-        logging.debug(f'keeping gtfs zip file "{join(gtfs_folder, file)}"')
-
-
 def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> List[datetime.date]:
     if use_data_from_today:
         return [datetime.datetime.now().date()]
@@ -208,6 +174,8 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
             logging.info(f'creating output folder {output_folder}')
             os.makedirs(output_folder)
 
+        dates_without_output = get_dates_without_output(dates_to_analyze, existing_output_files)
+
         crud = S3Crud(aws_access_key_id=configuration.s3.access_key_id,
                       aws_secret_access_key=configuration.s3.secret_access_key,
                       bucket_name=bucket_name,
@@ -216,10 +184,10 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
 
         files_mapping = {}
         all_files = []
+        file_types_to_download = [GTFS_FILE_NAME]
 
-        files_to_download = [GTFS_FILE_NAME]
-        for desired_date in dates_to_analyze:
-            for mot_file_name in files_to_download:
+        for desired_date in dates_without_output:
+            for mot_file_name in file_types_to_download:
                 if desired_date not in files_mapping:
                     files_mapping[desired_date] = {}
 
@@ -227,16 +195,24 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
                 files_mapping[desired_date][mot_file_name] = date_and_key
                 all_files.append(date_and_key)
 
-        dates_without_output = get_dates_without_output(dates_to_analyze, existing_output_files)
 
+        logging.info(f'Starting files download, downloading {len(all_files)} files')
         with tqdm(all_files, unit='file', desc='Downloading') as progress_bar:
-            for date, remote_file_key in all_files:
+            for date, remote_file_key in progress_bar:
                 local_file_name = split(remote_file_key)[-1]
                 progress_bar.set_postfix_str(local_file_name)
                 local_file_full_path = join(gtfs_folder, date.strftime('%Y-%m-%d'), local_file_name)
                 get_gtfs_file(remote_file_key, local_file_full_path, crud)
-                progress_bar.update()
+        logging.info(f'Finished files download')
 
+        logging.info(f'Starting analyzing files for {len(dates_without_output)} dates')
+        with tqdm(dates_without_output, unit='date', desc='Analyzing') as progress_bar:
+            for current_date in progress_bar:
+                # TODO calc stuff for current_date with files in files_mapping[current_date]
+                pass
+        logging.info(f'Finished analyzing files')
+
+        """
         with tqdm(dates_without_output, postfix='initializing', unit='file', desc='files') as t:
             for file in t:
                 t.set_postfix_str(file)
@@ -250,6 +226,7 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
         logging.info(f'starting synchronous gtfs file download and stats computation from s3 bucket {bucket_name}')
 
         logging.info(f'finished synchronous gtfs file download and stats computation from s3 bucket {bucket_name}')
+        """
     except:
         logging.error('Failed', exc_info=True)
 
@@ -261,10 +238,7 @@ def main():
     batch_stats_s3(delete_downloaded_gtfs_zips=configuration.delete_downloaded_gtfs_zip_files)
 
 
-# ## What's next
-# 
 # TODO List
-# 
 # 1. add a function for handling today's file only (download from ftp)
 # 1. remove zone and extra route details from trip_stats
 #   1. add them by merging to route_stats
@@ -276,7 +250,4 @@ def main():
 #   1. add ids to every record - process, file
 # 1. run older files with older tariff file
 # 1. write tests
-# 1. add split_directions
 # 1. add time between stops - max, min, mean (using delta)
-# 1. add day and night headways and num_trips (maybe noon also)
-# 1. mean_headway doesn't mean much when num_trips low (maybe num_trips cutoffs will be enough)
