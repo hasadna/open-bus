@@ -143,8 +143,7 @@ def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> Li
                 in range(delta.days + 1)]
 
 
-def batch_stats_s3(bucket_name=configuration.s3.bucket_name,
-                   output_folder=configuration.files.full_paths.output,
+def batch_stats_s3(output_folder=configuration.files.full_paths.output,
                    gtfs_folder=configuration.files.full_paths.gtfs_feeds,
                    delete_downloaded_gtfs_zips=False):
     """
@@ -176,11 +175,8 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
 
         dates_without_output = get_dates_without_output(dates_to_analyze, existing_output_files)
 
-        crud = S3Crud(aws_access_key_id=configuration.s3.access_key_id,
-                      aws_secret_access_key=configuration.s3.secret_access_key,
-                      bucket_name=bucket_name,
-                      endpoint_url=configuration.s3.s3_endpoint_url)
-        logging.info(f'connected to S3 bucket {bucket_name}')
+        crud = S3Crud.from_configuration(configuration.s3)
+        logging.info(f'Connected to S3 bucket {configuration.s3.bucket_name}')
 
         files_mapping = {}
         all_files = []
@@ -214,6 +210,10 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
                                  output_folder=output_folder,
                                  gtfs_folder=gtfs_folder)
         logging.info(f'Finished analyzing files')
+
+        if delete_downloaded_gtfs_zips:
+            # TODO remove GTFS zip files
+            pass
     except:
         logging.error('Failed', exc_info=True)
 

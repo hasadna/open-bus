@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 import argparse
 import fnmatch
 import os
@@ -10,7 +9,7 @@ import boto3
 import botocore.exceptions
 from types import MappingProxyType
 from typing import Callable, List, Tuple
-
+from .configuration import S3Configuration
 
 _AWS = 'aws'
 _DIGITALOCEAN_PUBLIC = 'dig-public'
@@ -33,6 +32,14 @@ class S3Crud:
         conn_args.pop('bucket_name')
 
         self.client = boto3.session.Session().client('s3', **conn_args)
+
+    @classmethod
+    def from_configuration(cls, s3_configuration: S3Configuration):
+        return cls(aws_access_key_id=s3_configuration.access_key_id,
+                   aws_secret_access_key=s3_configuration.secret_access_key,
+                   bucket_name=s3_configuration.bucket_name,
+                   endpoint_url=s3_configuration.s3_endpoint_url)
+
 
     def upload_one_file(self, local_file: str, cloud_key: str) -> None:
         self.client.upload_file(Filename=local_file, Key=cloud_key, Bucket=self.bucket_name)
