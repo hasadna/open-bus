@@ -208,25 +208,12 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
         logging.info(f'Starting analyzing files for {len(dates_without_output)} dates')
         with tqdm(dates_without_output, unit='date', desc='Analyzing') as progress_bar:
             for current_date in progress_bar:
-                # TODO calc stuff for current_date with files in files_mapping[current_date]
-                pass
-        logging.info(f'Finished analyzing files')
-
-        """
-        with tqdm(dates_without_output, postfix='initializing', unit='file', desc='files') as t:
-            for file in t:
-                t.set_postfix_str(file)
-                handle_gtfs_file(file,
+                handle_gtfs_date(current_date.strftime('%Y-%m-%d'),
+                                 files_mapping[current_date][GTFS_FILE_NAME],
                                  crud,
                                  output_folder=output_folder,
-                                 gtfs_folder=gtfs_folder,
-                                 delete_downloaded_gtfs_zips=delete_downloaded_gtfs_zips,
-                                 stats_dates=file_dates_dict[file])
-
-        logging.info(f'starting synchronous gtfs file download and stats computation from s3 bucket {bucket_name}')
-
-        logging.info(f'finished synchronous gtfs file download and stats computation from s3 bucket {bucket_name}')
-        """
+                                 gtfs_folder=gtfs_folder)
+        logging.info(f'Finished analyzing files')
     except:
         logging.error('Failed', exc_info=True)
 
