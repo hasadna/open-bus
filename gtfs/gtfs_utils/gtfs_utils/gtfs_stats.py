@@ -113,11 +113,13 @@ and route_stats).
     logging.info(f'Creating zones DF from {tariff_path_to_use}')
     zones = get_zones_df(tariff_path_to_use)
 
-    ts = compute_trip_stats(feed, zones, date, gtfs_file_full_path)
+    gtfs_file_base_name = basename(gtfs_file_full_path)
+
+    ts = compute_trip_stats(feed, zones, date, gtfs_file_base_name)
     save_trip_stats(ts, trip_stats_output_path)
     log_trip_stats(ts)
 
-    rs = compute_route_stats(ts, date, gtfs_file_full_path)
+    rs = compute_route_stats(ts, date, gtfs_file_base_name)
     save_route_stats(rs, route_stats_output_path)
     log_route_stats(rs)
 
@@ -136,6 +138,14 @@ def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> Li
         return [min_date + datetime.timedelta(days=days_delta)
                 for days_delta
                 in range(delta.days + 1)]
+
+
+def remote_key_to_local_path(date: datetime.date, remote_key: str) -> str:
+    local_file_name = split(remote_key)[-1]
+    local_full_path = join(configuration.files.full_paths.gtfs_feeds,
+                           date.strftime('%Y-%m-%d'),
+                           local_file_name)
+    return local_full_path
 
 
 def batch_stats_s3(output_folder=configuration.files.full_paths.output,
@@ -174,26 +184,24 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
         logging.info(f'Connected to S3 bucket {configuration.s3.bucket_name}')
 
         file_types_to_download = [GTFS_FILE_NAME]
-        files_mapping = {}
+        remote_files_mapping = {}
         all_files = []
         all_local_full_paths = []
 
         for desired_date in dates_without_output:
             for mot_file_name in file_types_to_download:
-                if desired_date not in files_mapping:
-                    files_mapping[desired_date] = {}
+                if desired_date not in remote_files_mapping:
+                    remote_files_mapping[desired_date] = {}
 
                 date_and_key = get_latest_file(crud, mot_file_name, desired_date)
-                files_mapping[desired_date][mot_file_name] = date_and_key
+                remote_files_mapping[desired_date][mot_file_name] = date_and_key
                 all_files.append(date_and_key)
-
 
         logging.info(f'Starting files download, downloading {len(all_files)} files')
         with tqdm(all_files, unit='file', desc='Downloading') as progress_bar:
             for date, remote_file_key in progress_bar:
-                local_file_name = split(remote_file_key)[-1]
-                progress_bar.set_postfix_str(local_file_name)
-                local_file_full_path = join(gtfs_folder, date.strftime('%Y-%m-%d'), local_file_name)
+                progress_bar.set_postfix_str(remote_file_key)
+                local_file_full_path = remote_key_to_local_path(date, remote_file_key)
                 get_gtfs_file(remote_file_key, local_file_full_path, crud)
                 all_local_full_paths.append(local_file_full_path)
         logging.info(f'Finished files download')
@@ -201,10 +209,10 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
         logging.info(f'Starting analyzing files for {len(dates_without_output)} dates')
         with tqdm(dates_without_output, unit='date', desc='Analyzing') as progress_bar:
             for current_date in progress_bar:
-                handle_gtfs_date(current_date.strftime('%Y-%m-%d'),
-                                 files_mapping[current_date][GTFS_FILE_NAME],
-                                 output_folder=output_folder,
-                                 gtfs_folder=gtfs_folder)
+                _, remote_key = remote_files_mapping[current_date][GTFS_FILE_NAME]
+                progress_bar.set_postfix_str(remote_key)
+                local_file_full_path = remote_key_to_local_path(current_date, remote_key)
+                handle_gtfs_date(current_date, local_file_full_path, output_folder=output_folder)
         logging.info(f'Finished analyzing files')
 
         if delete_downloaded_gtfs_zips:

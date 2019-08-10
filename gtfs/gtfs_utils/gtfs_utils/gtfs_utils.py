@@ -48,7 +48,7 @@ def write_filtered_feed_by_date(zip_path: str, date: datetime.date, output_path:
     ptg.writers.extract_feed(zip_path, output_path, get_partridge_filter_for_date(zip_path, date))
 
 
-def compute_trip_stats(feed, zones, date_str, gtfs_file_name):
+def compute_trip_stats(feed, zones, date: datetime.date, gtfs_file_name: str):
     """
     :param feed: Partridge feed
     :param zones: DataFrame with stop_code to zone_name mapping
@@ -119,7 +119,7 @@ def compute_trip_stats(feed, zones, date_str, gtfs_file_name):
     - ``trip_id`` - Trip identifier, as specified in `trips.txt` file.
     """
 
-    logging.info(f'Starting compute_trip_stats for {date_str} from {gtfs_file_name}')
+    logging.info(f'Starting compute_trip_stats for {date} from {gtfs_file_name}')
 
     f = feed.trips
     f = (f[['route_id', 'trip_id', 'direction_id', 'shape_id']]
@@ -151,7 +151,6 @@ def compute_trip_stats(feed, zones, date_str, gtfs_file_name):
     sd = f.stop_desc.str.extract(STOP_DESC_RE).apply(lambda x: x.str.strip())
     f = pd.concat([f, sd], axis=1)
 
-
     g = f.groupby('trip_id')
     aggregation = generate_trip_stats_aggregation(feed)
     h = g.apply(aggregation)
@@ -165,11 +164,11 @@ def compute_trip_stats(feed, zones, date_str, gtfs_file_name):
             lambda x: gtfstk.helpers.timestr_to_seconds(x, inverse=True))
     )
 
-    h['date'] = date_str
+    h['date'] = date
     h['date'] = pd.Categorical(h['date'])
     h['gtfs_file_name'] = gtfs_file_name
 
-    logging.debug(f'finished compute_trip_stats for {date_str} from {gtfs_file_name}')
+    logging.debug(f'finished compute_trip_stats for {date} from {gtfs_file_name}')
 
     return h
 
