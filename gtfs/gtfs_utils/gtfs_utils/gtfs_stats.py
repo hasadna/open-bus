@@ -8,7 +8,7 @@ import pandas as pd
 import datetime
 import os
 import logging
-from os.path import join, split, dirname
+from os.path import join, split, dirname, basename
 from typing import List
 from zipfile import BadZipFile
 from tqdm import tqdm
@@ -35,11 +35,29 @@ def get_closest_archive_path(date,
     return join(configuration.files.baseDirectory, configuration.files.tariff_file_path)
 
 
-def handle_gtfs_date(date_str,
-                     remote_file,
-                     crud,
+def prepare_partridge_feed(date: datetime.date,
+                           gtfs_file_full_path: str,
+                           filtered_feeds_directory=configuration.files.full_paths.filtered_feeds_directory):
+
+    if configuration.write_filtered_feed:
+        filtered_gtfs_path = join(filtered_feeds_directory, basename(gtfs_file_full_path))
+
+        logging.info(f'Filtering gtfs feed for {date} from {gtfs_file_full_path} into {filtered_gtfs_path}')
+        write_filtered_feed_by_date(gtfs_file_full_path, date, filtered_gtfs_path)
+
+        logging.info(f'Reading filtered feed for file from path {filtered_gtfs_path}')
+        feed = ptg_feed(filtered_gtfs_path)
+    else:
+        logging.info(f'Creating daily partridge feed for {date} from {gtfs_file_full_path}')
+        feed = get_partridge_feed_by_date(gtfs_file_full_path, date)
+
+    logging.debug(f'Finished creating daily partridge feed for {date} from {gtfs_file_full_path}')
+    return feed
+
+
+def handle_gtfs_date(date: datetime.date,
+                     gtfs_file_full_path: str,
                      output_folder=configuration.files.full_paths.output,
-                     gtfs_folder=configuration.files.full_paths.gtfs_feeds,
                      archive_folder=configuration.files.full_paths.archive):
     """
 Handle a single date for a single GTFS file. Download if necessary compute and save stats files (currently trip_stats
@@ -55,52 +73,24 @@ and route_stats).
     :param gtfs_folder: local path containing GTFS feeds
     :type gtfs_folder: str
     """
-    date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-    local_file_path = f'{date_str}.zip'
-    local_file_full_path = join(gtfs_folder, local_file_path)
 
-    downloaded = False
-
+    date_str = date.strftime('%Y-%m-%d')
     trip_stats_output_path = join(output_folder, date_str + '_trip_stats.pkl.gz')
+
     if os.path.exists(trip_stats_output_path):
-        logging.info(f'found trip stats result DF gzipped pickle "{trip_stats_output_path}"')
+        logging.info(f'Found trip stats result DF gzipped pickle "{trip_stats_output_path}"')
         ts = pd.read_pickle(trip_stats_output_path, compression='gzip')
     else:
-        downloaded = get_gtfs_file(remote_file, local_file_full_path, crud)
 
-        if configuration.write_filtered_feed:
-            filtered_out_path = os.path.join(configuration.files.full_paths.filtered_feeds_directory,
-                                             f'{date_str}.zip')
-            logging.info(f'writing filtered gtfs feed for file "{local_file_full_path}" with date "{date}" in path '
-                        f'{filtered_out_path}')
-            write_filtered_feed_by_date(local_file_full_path, date, filtered_out_path)
-            logging.info(f'reading filtered feed for file from path {filtered_out_path}')
-            feed = ptg_feed(filtered_out_path)
-        else:
-            logging.info(f'creating daily partridge feed for file "{local_file_full_path}" with date "{date}"')
-            try:
-                feed = get_partridge_feed_by_date(local_file_full_path, date)
-            except BadZipFile:
-                logging.error('Bad local zip file', exc_info=True)
-                downloaded = get_gtfs_file(remote_file, local_file_full_path, crud, force=True)
-                feed = get_partridge_feed_by_date(local_file_full_path, date)
-
-        logging.debug(f'finished creating daily partridge feed for file "{local_file_full_path}" with date "{date}"')
-
+        feed = prepare_partridge_feed(date, gtfs_file_full_path)
         # TODO: use Tariff.zip from s3
         tariff_path_to_use = get_closest_archive_path(date, 'Tariff.zip', archive_folder=archive_folder)
-        logging.info(f'creating zones DF from "{tariff_path_to_use}"')
+        logging.info(f'Creating zones DF from {tariff_path_to_use}')
         zones = get_zones_df(tariff_path_to_use)
 
-        logging.info(
-            f'starting compute_trip_stats for file "{local_file_full_path}" with date "{date}" and zones '
-            f'"{configuration.files.tariff_file_path}"')
-        ts = compute_trip_stats(feed, zones, date_str, local_file_path)
-        logging.debug(
-            f'finished compute_trip_stats for file "{local_file_full_path}" with date "{date}" and zones '
-            f'"{configuration.files.tariff_file_path}"')
+        ts = compute_trip_stats(feed, zones, date_str, gtfs_file_full_path)
 
-        logging.info(f'saving trip stats result DF to gzipped pickle "{trip_stats_output_path}"')
+        logging.info(f'saving trip stats result DF to gzipped pickle {trip_stats_output_path}')
         ts.to_pickle(trip_stats_output_path, compression='gzip')
 
     # TODO: log more stats
@@ -109,7 +99,7 @@ and route_stats).
         f'num_start_zones={ts.start_zone.nunique()}, num_agency={ts.agency_name.nunique()}')
 
     logging.info(f'starting compute_route_stats from trip stats result')
-    rs = compute_route_stats(ts, date_str, local_file_path)
+    rs = compute_route_stats(ts, date_str, gtfs_file_full_path)
     logging.debug(f'finished compute_route_stats from trip stats result')
 
     # TODO: log more stats
@@ -120,8 +110,6 @@ and route_stats).
     route_stats_output_path = join(output_folder, date_str + '_route_stats.pkl.gz')
     logging.info(f'saving route stats result DF to gzipped pickle "{route_stats_output_path}"')
     rs.to_pickle(route_stats_output_path, compression='gzip')
-
-    return downloaded
 
 
 def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> List[datetime.date]:
@@ -165,7 +153,7 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
         existing_output_files = []
         if os.path.exists(output_folder):
             existing_output_files = _get_existing_output_files(output_folder)
-            logging.info(f'found {len(existing_output_files)} output files in output folder {output_folder}')
+            logging.info(f'Found {len(existing_output_files)} output files in output folder {output_folder}')
         else:
             logging.info(f'creating output folder {output_folder}')
             os.makedirs(output_folder)
@@ -205,7 +193,6 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
             for current_date in progress_bar:
                 handle_gtfs_date(current_date.strftime('%Y-%m-%d'),
                                  files_mapping[current_date][GTFS_FILE_NAME],
-                                 crud,
                                  output_folder=output_folder,
                                  gtfs_folder=gtfs_folder)
         logging.info(f'Finished analyzing files')

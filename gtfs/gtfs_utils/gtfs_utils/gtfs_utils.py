@@ -1,3 +1,5 @@
+import datetime
+import logging
 import pandas as pd
 import partridge as ptg
 import zipfile
@@ -28,29 +30,22 @@ def get_zones_df(local_tariff_zip_path):
     return zones
 
 
-def get_partridge_feed_by_date(zip_path, date):
-    service_ids_by_date = ptg.read_service_ids_by_date(zip_path)  # , encoding='utf-8')
-    service_ids = service_ids_by_date[date]
+def get_partridge_filter_for_date(zip_path: str, date: datetime.date):
+    service_ids = ptg.read_service_ids_by_date(zip_path)[date]
 
-    feed = ptg.feed(zip_path, view={
+    return {
         'trips.txt': {
             'service_id': service_ids,
         },
-    },
-                    # encoding='utf-8' # CUSTOM VERSION, NOT YET PUSHED
-                    )
-    return feed
+    }
 
 
-def write_filtered_feed_by_date(zip_path, date, output_path):
-    service_ids_by_date = ptg.read_service_ids_by_date(zip_path)  # , encoding='utf-8')
-    service_ids = service_ids_by_date[date]
+def get_partridge_feed_by_date(zip_path: str, date: datetime.date):
+    return ptg.feed(zip_path, view=get_partridge_filter_for_date(zip_path, date))
 
-    ptg.writers.extract_feed(zip_path, output_path, {
-        'trips.txt': {
-            'service_id': service_ids,
-        },
-    })
+
+def write_filtered_feed_by_date(zip_path: str, date: datetime.date, output_path: str):
+    ptg.writers.extract_feed(zip_path, output_path, get_partridge_filter_for_date(zip_path, date))
 
 
 def compute_trip_stats(feed, zones, date_str, gtfs_file_name):
@@ -124,6 +119,8 @@ def compute_trip_stats(feed, zones, date_str, gtfs_file_name):
     - ``trip_id`` - Trip identifier, as specified in `trips.txt` file.
     """
 
+    logging.info(f'Starting compute_trip_stats for {date_str} from {gtfs_file_name}')
+
     f = feed.trips
     f = (f[['route_id', 'trip_id', 'direction_id', 'shape_id']]
          .merge(feed.routes[['route_id', 'route_short_name', 'route_long_name',
@@ -171,6 +168,8 @@ def compute_trip_stats(feed, zones, date_str, gtfs_file_name):
     h['date'] = date_str
     h['date'] = pd.Categorical(h['date'])
     h['gtfs_file_name'] = gtfs_file_name
+
+    logging.debug(f'finished compute_trip_stats for {date_str} from {gtfs_file_name}')
 
     return h
 
