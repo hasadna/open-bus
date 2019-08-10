@@ -9,7 +9,7 @@ import datetime
 import os
 import logging
 from os.path import join, split, dirname, basename
-from typing import List
+from typing import List, Dict
 from zipfile import BadZipFile
 from tqdm import tqdm
 from partridge import feed as ptg_feed
@@ -21,7 +21,7 @@ from .s3 import get_latest_file, get_gtfs_file
 from .logging_config import configure_logger
 from .configuration import configuration
 from .s3_wrapper import S3Crud
-from .constants import GTFS_FILE_NAME
+from .constants import GTFS_FILE_NAME, TARIFF_FILE_NAME
 
 
 def get_closest_archive_path(date,
@@ -84,7 +84,7 @@ def save_route_stats(rs: pd.DataFrame, output_path: str):
 
 
 def handle_gtfs_date(date: datetime.date,
-                     gtfs_file_full_path: str,
+                     local_full_paths: Dict[str, str],
                      output_folder=configuration.files.full_paths.output,
                      archive_folder=configuration.files.full_paths.archive):
     """
@@ -106,14 +106,13 @@ and route_stats).
     trip_stats_output_path = join(output_folder, date_str + '_trip_stats.pkl.gz')
     route_stats_output_path = join(output_folder, date_str + '_route_stats.pkl.gz')
 
-    feed = prepare_partridge_feed(date, gtfs_file_full_path)
+    feed = prepare_partridge_feed(date, local_full_paths[GTFS_FILE_NAME])
 
-    # TODO: use Tariff.zip from s3
-    tariff_path_to_use = get_closest_archive_path(date, 'Tariff.zip', archive_folder=archive_folder)
+    tariff_path_to_use = local_full_paths[TARIFF_FILE_NAME]
     logging.info(f'Creating zones DF from {tariff_path_to_use}')
     zones = get_zones_df(tariff_path_to_use)
 
-    gtfs_file_base_name = basename(gtfs_file_full_path)
+    gtfs_file_base_name = basename(local_full_paths[GTFS_FILE_NAME])
 
     ts = compute_trip_stats(feed, zones, date, gtfs_file_base_name)
     save_trip_stats(ts, trip_stats_output_path)
@@ -183,7 +182,7 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
         crud = S3Crud.from_configuration(configuration.s3)
         logging.info(f'Connected to S3 bucket {configuration.s3.bucket_name}')
 
-        file_types_to_download = [GTFS_FILE_NAME]
+        file_types_to_download = [GTFS_FILE_NAME, TARIFF_FILE_NAME]
         remote_files_mapping = {}
         all_files = []
         all_local_full_paths = []
@@ -209,20 +208,23 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
         logging.info(f'Starting analyzing files for {len(dates_without_output)} dates')
         with tqdm(dates_without_output, unit='date', desc='Analyzing') as progress_bar:
             for current_date in progress_bar:
-                _, remote_key = remote_files_mapping[current_date][GTFS_FILE_NAME]
-                progress_bar.set_postfix_str(remote_key)
-                local_file_full_path = remote_key_to_local_path(current_date, remote_key)
-                handle_gtfs_date(current_date, local_file_full_path, output_folder=output_folder)
+                progress_bar.set_postfix_str(current_date)
+                local_full_paths = {
+                    mot_file_name: remote_key_to_local_path(current_date, remote_key)
+                    for mot_file_name, (_, remote_key)
+                    in remote_files_mapping[current_date].items()
+                }
+                handle_gtfs_date(current_date, local_full_paths, output_folder=output_folder)
         logging.info(f'Finished analyzing files')
 
         if delete_downloaded_gtfs_zips:
-            logging.info(f'Starting downloaded files removal')
+            logging.info(f'Starting removing downloaded files')
             with tqdm(all_local_full_paths, unit='file', desc='Removing') as progress_bar:
                 for local_full_path in progress_bar:
                     os.remove(local_full_path)
                     if len(os.listdir(dirname(local_full_path))) == 0:
                         os.removedirs(dirname(local_full_path))
-            logging.info(f'Finished downloaded files removal')
+            logging.info(f'Finished removing downloaded files')
     except:
         logging.error('Failed', exc_info=True)
 
