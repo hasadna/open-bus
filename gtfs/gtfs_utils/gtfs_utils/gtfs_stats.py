@@ -37,7 +37,7 @@ def get_closest_archive_path(date,
 
 def prepare_partridge_feed(date: datetime.date,
                            gtfs_file_full_path: str,
-                           filtered_feeds_directory=configuration.files.full_paths.filtered_feeds_directory):
+                           filtered_feeds_directory=configuration.files.full_paths.filtered_feeds):
 
     if configuration.write_filtered_feed:
         filtered_gtfs_path = join(filtered_feeds_directory, basename(gtfs_file_full_path))
@@ -73,6 +73,15 @@ def log_route_stats(rs: pd.DataFrame):
     logging.debug(f'num_agency={rs.agency_name.nunique()}')
 
 
+def save_trip_stats(ts: pd.DataFrame, output_path: str):
+    logging.info(f'Saving trip stats result DF to gzipped pickle {output_path}')
+    ts.to_pickle(output_path, compression='gzip')
+
+
+def save_route_stats(rs: pd.DataFrame, output_path: str):
+    logging.info(f'Saving route stats result DF to gzipped pickle {output_path}')
+    rs.to_pickle(output_path, compression='gzip')
+
 
 def handle_gtfs_date(date: datetime.date,
                      gtfs_file_full_path: str,
@@ -97,28 +106,20 @@ and route_stats).
     trip_stats_output_path = join(output_folder, date_str + '_trip_stats.pkl.gz')
     route_stats_output_path = join(output_folder, date_str + '_route_stats.pkl.gz')
 
-    if os.path.exists(trip_stats_output_path):
-        logging.info(f'Found trip stats result DF gzipped pickle "{trip_stats_output_path}"')
-        ts = pd.read_pickle(trip_stats_output_path, compression='gzip')
-    else:
-        feed = prepare_partridge_feed(date, gtfs_file_full_path)
+    feed = prepare_partridge_feed(date, gtfs_file_full_path)
 
-        # TODO: use Tariff.zip from s3
-        tariff_path_to_use = get_closest_archive_path(date, 'Tariff.zip', archive_folder=archive_folder)
-        logging.info(f'Creating zones DF from {tariff_path_to_use}')
-        zones = get_zones_df(tariff_path_to_use)
+    # TODO: use Tariff.zip from s3
+    tariff_path_to_use = get_closest_archive_path(date, 'Tariff.zip', archive_folder=archive_folder)
+    logging.info(f'Creating zones DF from {tariff_path_to_use}')
+    zones = get_zones_df(tariff_path_to_use)
 
-        ts = compute_trip_stats(feed, zones, date, gtfs_file_full_path)
-
-        logging.info(f'Saving trip stats result DF to gzipped pickle {trip_stats_output_path}')
-        ts.to_pickle(trip_stats_output_path, compression='gzip')
-
+    ts = compute_trip_stats(feed, zones, date, gtfs_file_full_path)
+    save_trip_stats(ts, trip_stats_output_path)
     log_trip_stats(ts)
-    rs = compute_route_stats(ts, date, gtfs_file_full_path)
-    log_route_stats(rs)
 
-    logging.info(f'Saving route stats result DF to gzipped pickle {route_stats_output_path}')
-    rs.to_pickle(route_stats_output_path, compression='gzip')
+    rs = compute_route_stats(ts, date, gtfs_file_full_path)
+    save_route_stats(rs, route_stats_output_path)
+    log_route_stats(rs)
 
 
 def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> List[datetime.date]:
