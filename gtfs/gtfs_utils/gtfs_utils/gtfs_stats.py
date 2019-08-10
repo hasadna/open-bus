@@ -7,15 +7,13 @@
 import pandas as pd
 import datetime
 import os
-import re
 import logging
-from os.path import join, split
+from os.path import join, split, dirname
 from typing import List
 from zipfile import BadZipFile
 from tqdm import tqdm
 from partridge import feed as ptg_feed
-
-from gtfs_utils.gtfs_utils.files import _get_existing_output_files, get_dates_without_output
+from .files import _get_existing_output_files, get_dates_without_output
 from .gtfs_utils import write_filtered_feed_by_date, get_partridge_feed_by_date, get_zones_df, \
     compute_route_stats, compute_trip_stats
 from .environment import init_conf
@@ -24,7 +22,6 @@ from .logging_config import configure_logger
 from .configuration import configuration
 from .s3_wrapper import S3Crud
 from .constants import GTFS_FILE_NAME
-
 
 
 def get_closest_archive_path(date,
@@ -178,9 +175,10 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
         crud = S3Crud.from_configuration(configuration.s3)
         logging.info(f'Connected to S3 bucket {configuration.s3.bucket_name}')
 
+        file_types_to_download = [GTFS_FILE_NAME]
         files_mapping = {}
         all_files = []
-        file_types_to_download = [GTFS_FILE_NAME]
+        all_local_full_paths = []
 
         for desired_date in dates_without_output:
             for mot_file_name in file_types_to_download:
@@ -199,6 +197,7 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
                 progress_bar.set_postfix_str(local_file_name)
                 local_file_full_path = join(gtfs_folder, date.strftime('%Y-%m-%d'), local_file_name)
                 get_gtfs_file(remote_file_key, local_file_full_path, crud)
+                all_local_full_paths.append(local_file_full_path)
         logging.info(f'Finished files download')
 
         logging.info(f'Starting analyzing files for {len(dates_without_output)} dates')
@@ -212,8 +211,13 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
         logging.info(f'Finished analyzing files')
 
         if delete_downloaded_gtfs_zips:
-            # TODO remove GTFS zip files
-            pass
+            logging.info(f'Starting downloaded files removal')
+            with tqdm(all_local_full_paths, unit='file', desc='Removing') as progress_bar:
+                for local_full_path in progress_bar:
+                    os.remove(local_full_path)
+                    if len(os.listdir(dirname(local_full_path))) == 0:
+                        os.removedirs(dirname(local_full_path))
+            logging.info(f'Finished downloaded files removal')
     except:
         logging.error('Failed', exc_info=True)
 
