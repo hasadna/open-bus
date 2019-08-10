@@ -55,6 +55,25 @@ def prepare_partridge_feed(date: datetime.date,
     return feed
 
 
+def log_trip_stats(ts: pd.DataFrame):
+    # TODO: log more stats
+    logging.debug(f'ts.shape={ts.shape}')
+    logging.debug(f'dc_trip_id={ts.trip_id.nunique()}')
+    logging.debug(f'dc_route_id={ts.route_id.nunique()}')
+    logging.debug(f'num_start_zones={ts.start_zone.nunique()}')
+    logging.debug(f'num_agency={ts.agency_name.nunique()}')
+
+
+def log_route_stats(rs: pd.DataFrame):
+    # TODO: log more stats
+    logging.debug(f'rs.shape={rs.shape}')
+    logging.debug(f'num_trips_sum={rs.num_trips.sum()}')
+    logging.debug(f'dc_route_id={rs.route_id.nunique()}')
+    logging.debug(f'num_start_zones={rs.start_zone.nunique()}')
+    logging.debug(f'num_agency={rs.agency_name.nunique()}')
+
+
+
 def handle_gtfs_date(date: datetime.date,
                      gtfs_file_full_path: str,
                      output_folder=configuration.files.full_paths.output,
@@ -76,39 +95,29 @@ and route_stats).
 
     date_str = date.strftime('%Y-%m-%d')
     trip_stats_output_path = join(output_folder, date_str + '_trip_stats.pkl.gz')
+    route_stats_output_path = join(output_folder, date_str + '_route_stats.pkl.gz')
 
     if os.path.exists(trip_stats_output_path):
         logging.info(f'Found trip stats result DF gzipped pickle "{trip_stats_output_path}"')
         ts = pd.read_pickle(trip_stats_output_path, compression='gzip')
     else:
-
         feed = prepare_partridge_feed(date, gtfs_file_full_path)
+
         # TODO: use Tariff.zip from s3
         tariff_path_to_use = get_closest_archive_path(date, 'Tariff.zip', archive_folder=archive_folder)
         logging.info(f'Creating zones DF from {tariff_path_to_use}')
         zones = get_zones_df(tariff_path_to_use)
 
-        ts = compute_trip_stats(feed, zones, date_str, gtfs_file_full_path)
+        ts = compute_trip_stats(feed, zones, date, gtfs_file_full_path)
 
-        logging.info(f'saving trip stats result DF to gzipped pickle {trip_stats_output_path}')
+        logging.info(f'Saving trip stats result DF to gzipped pickle {trip_stats_output_path}')
         ts.to_pickle(trip_stats_output_path, compression='gzip')
 
-    # TODO: log more stats
-    logging.debug(
-        f'ts.shape={ts.shape}, dc_trip_id={ts.trip_id.nunique()}, dc_route_id={ts.route_id.nunique()}, '
-        f'num_start_zones={ts.start_zone.nunique()}, num_agency={ts.agency_name.nunique()}')
+    log_trip_stats(ts)
+    rs = compute_route_stats(ts, date, gtfs_file_full_path)
+    log_route_stats(rs)
 
-    logging.info(f'starting compute_route_stats from trip stats result')
-    rs = compute_route_stats(ts, date_str, gtfs_file_full_path)
-    logging.debug(f'finished compute_route_stats from trip stats result')
-
-    # TODO: log more stats
-    logging.debug(
-        f'rs.shape={rs.shape}, num_trips_sum={rs.num_trips.sum()}, dc_route_id={rs.route_id.nunique()}, '
-        f'num_start_zones={rs.start_zone.nunique()}, num_agency={rs.agency_name.nunique()}')
-
-    route_stats_output_path = join(output_folder, date_str + '_route_stats.pkl.gz')
-    logging.info(f'saving route stats result DF to gzipped pickle "{route_stats_output_path}"')
+    logging.info(f'Saving route stats result DF to gzipped pickle {route_stats_output_path}')
     rs.to_pickle(route_stats_output_path, compression='gzip')
 
 

@@ -260,6 +260,9 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     If ``trip_stats_subset`` is empty, return an empty DataFrame.
 
     """
+
+    logging.info(f'Starting compute_route_stats from trip stats result')
+
     f = trip_stats_subset.copy()
     f[['start_time', 'end_time']] = f[['start_time', 'end_time']].applymap(gtfstk.helpers.timestr_to_seconds)
 
@@ -300,5 +303,6 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     g['date'] = pd.Categorical(g['date'])
     g['gtfs_file_name'] = gtfs_file_name
 
+    logging.debug(f'Finished compute_route_stats from trip stats result')
 
     return g
