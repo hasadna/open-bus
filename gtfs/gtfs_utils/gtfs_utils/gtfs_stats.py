@@ -10,10 +10,9 @@ import os
 import logging
 from os.path import join, split, dirname, basename
 from typing import List, Dict
-from zipfile import BadZipFile
 from tqdm import tqdm
 from partridge import feed as ptg_feed
-from .files import _get_existing_output_files, get_dates_without_output
+from .files import get_dates_without_output
 from .gtfs_utils import write_filtered_feed_by_date, get_partridge_feed_by_date, get_zones_df, \
     compute_route_stats, compute_trip_stats
 from .environment import init_conf
@@ -22,17 +21,6 @@ from .logging_config import configure_logger
 from .configuration import configuration
 from .s3_wrapper import S3Crud
 from .constants import GTFS_FILE_NAME, TARIFF_FILE_NAME
-
-
-def get_closest_archive_path(date,
-                             file_name,
-                             archive_folder=configuration.files.full_paths.archive):
-    for i in range(100):
-        date_str = datetime.datetime.strftime(date - datetime.timedelta(i), '%Y-%m-%d')
-        tariff_path_to_try = join(archive_folder, date_str, file_name)
-        if os.path.exists(tariff_path_to_try):
-            return tariff_path_to_try
-    return join(configuration.files.baseDirectory, configuration.files.tariff_file_path)
 
 
 def prepare_partridge_feed(date: datetime.date,
@@ -83,23 +71,15 @@ def save_route_stats(rs: pd.DataFrame, output_path: str):
     rs.to_pickle(output_path, compression='gzip')
 
 
-def handle_gtfs_date(date: datetime.date,
-                     local_full_paths: Dict[str, str],
-                     output_folder=configuration.files.full_paths.output,
-                     archive_folder=configuration.files.full_paths.archive):
+def analyze_gtfs_date(date: datetime.date,
+                      local_full_paths: Dict[str, str],
+                      output_folder=configuration.files.full_paths.output):
     """
-Handle a single date for a single GTFS file. Download if necessary compute and save stats files (currently trip_stats
-and route_stats).
-    :param date_str: %Y-%m-%d
-    :type date_str: str
-    :param file: gtfs file name (currently only YYYY-mm-dd.zip)
-    :type file: str
-    :param bucket: s3 boto bucket object
-    :type bucket: boto3.resources.factory.s3.Bucket
+    Handles analysis of a single date for GTFS. Computes and saves stats files (currently trip_stats
+    and route_stats).
+    :param date: the analyzed date
+    :param local_full_paths: a dict where keys are the required MOT file names, and values are full local paths
     :param output_folder: local path to write output files to
-    :type output_folder: str
-    :param gtfs_folder: local path containing GTFS feeds
-    :type gtfs_folder: str
     """
 
     date_str = date.strftime('%Y-%m-%d')
@@ -207,7 +187,7 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
                     for mot_file_name, (_, remote_key)
                     in remote_files_mapping[current_date].items()
                 }
-                handle_gtfs_date(current_date, local_full_paths, output_folder=output_folder)
+                analyze_gtfs_date(current_date, local_full_paths, output_folder=output_folder)
         logging.info(f'Finished analyzing files')
 
         if delete_downloaded_gtfs_zips:

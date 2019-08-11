@@ -2,7 +2,7 @@ import gzip
 import os
 import pickle
 from os.path import dirname, join
-from ..gtfs_utils.gtfs_stats import handle_gtfs_date
+from ..gtfs_utils.gtfs_stats import analyze_gtfs_date
 
 
 TEST_ASSETS_DIR = join(dirname(__file__), 'assets')
@@ -29,12 +29,12 @@ def _load_gzipped_pickles(filename, expected_dir, actual_dir):
 
 def test_handle_gtfs_file():
     os.makedirs(TEST_OUTPUTS_DIR, exist_ok=True)
-    handle_gtfs_date(date_str=TEST_FILE_DATE,
-                     remote_file=TEST_INPUT_FILE_KEY,
-                     crud=None,
-                     output_folder=TEST_OUTPUTS_DIR,
-                     gtfs_folder=join(TEST_ASSETS_DIR, 'gtfs'),
-                     archive_folder=join(TEST_ASSETS_DIR, 'archive'))
+    analyze_gtfs_date(date_str=TEST_FILE_DATE,
+                      remote_file=TEST_INPUT_FILE_KEY,
+                      crud=None,
+                      output_folder=TEST_OUTPUTS_DIR,
+                      gtfs_folder=join(TEST_ASSETS_DIR, 'gtfs'),
+                      archive_folder=join(TEST_ASSETS_DIR, 'archive'))
 
 
     for file_name in OUTPUT_FILE_NAMES:
