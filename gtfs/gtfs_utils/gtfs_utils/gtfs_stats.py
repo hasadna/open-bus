@@ -16,7 +16,7 @@ from .files import get_dates_without_output
 from .gtfs_utils import write_filtered_feed_by_date, get_partridge_feed_by_date, get_zones_df, \
     compute_route_stats, compute_trip_stats
 from .environment import init_conf
-from .s3 import get_latest_file, get_gtfs_file
+from .s3 import get_latest_file, fetch_remote_file
 from .logging_config import configure_logger
 from .configuration import configuration
 from .s3_wrapper import S3Crud
@@ -174,7 +174,7 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
             for date, remote_file_key in progress_bar:
                 progress_bar.set_postfix_str(remote_file_key)
                 local_file_full_path = remote_key_to_local_path(date, remote_file_key)
-                get_gtfs_file(remote_file_key, local_file_full_path, crud)
+                fetch_remote_file(remote_file_key, local_file_full_path, crud)
                 all_local_full_paths.append(local_file_full_path)
         logging.info(f'Finished files download')
 

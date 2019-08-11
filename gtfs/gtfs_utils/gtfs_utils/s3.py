@@ -69,13 +69,13 @@ def get_latest_file(crud: S3Crud,
             return date_and_key
 
 
-def get_gtfs_file(remote_file: str,
-                  local_file_full_path: str,
-                  crud: S3Crud,
-                  force: bool = False) -> bool:
+def fetch_remote_file(remote_file_key: str,
+                      local_file_full_path: str,
+                      crud: S3Crud,
+                      force: bool = False) -> bool:
     """
-    :param remote_file: gtfs remote file key (as in S3)
-    :param local_file_full_path: gtfs local file full path (typically /your/gtfs/dir/YYYY-mm-dd.zip)
+    :param remote_file_key: gtfs remote file key (in S3)
+    :param local_file_full_path: gtfs local file full path
     :param crud: S3Crud object
     :param force: force download or not
     :return: whether file was downloaded or not
@@ -85,8 +85,8 @@ def get_gtfs_file(remote_file: str,
         logging.info(f'Found local file "{local_file_full_path}"')
         return False
 
-    logging.info(f'Starting file download with retries (key="{remote_file}", local path="{local_file_full_path}")')
-    s3_download(crud, remote_file, local_file_full_path)
-    logging.debug(f'Finished file download (key="{remote_file}", local path="{local_file_full_path}")')
+    logging.info(f'Starting file download with retries (key="{remote_file_key}", local path="{local_file_full_path}")')
+    s3_download(crud, remote_file_key, local_file_full_path)
+    logging.debug(f'Finished file download (key="{remote_file_key}", local path="{local_file_full_path}")')
     return True
     # TODO: log file size
