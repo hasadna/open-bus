@@ -169,22 +169,15 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
     logging.debug(f'dates_to_analyze={dates_to_analyze}')
 
     try:
-        existing_output_files = []
-        if os.path.exists(output_folder):
-            existing_output_files = _get_existing_output_files(output_folder)
-            logging.info(f'Found {len(existing_output_files)} output files in output folder {output_folder}')
-        else:
-            logging.info(f'creating output folder {output_folder}')
-            os.makedirs(output_folder)
-
-        dates_without_output = get_dates_without_output(dates_to_analyze, existing_output_files)
+        os.makedirs(output_folder, exist_ok=True)
+        dates_without_output = get_dates_without_output(dates_to_analyze, output_folder)
 
         crud = S3Crud.from_configuration(configuration.s3)
         logging.info(f'Connected to S3 bucket {configuration.s3.bucket_name}')
 
         file_types_to_download = [GTFS_FILE_NAME, TARIFF_FILE_NAME]
         remote_files_mapping = {}
-        all_files = []
+        all_remote_files = []
         all_local_full_paths = []
 
         for desired_date in dates_without_output:
@@ -194,10 +187,10 @@ Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
 
                 date_and_key = get_latest_file(crud, mot_file_name, desired_date)
                 remote_files_mapping[desired_date][mot_file_name] = date_and_key
-                all_files.append(date_and_key)
+                all_remote_files.append(date_and_key)
 
-        logging.info(f'Starting files download, downloading {len(all_files)} files')
-        with tqdm(all_files, unit='file', desc='Downloading') as progress_bar:
+        logging.info(f'Starting files download, downloading {len(all_remote_files)} files')
+        with tqdm(all_remote_files, unit='file', desc='Downloading') as progress_bar:
             for date, remote_file_key in progress_bar:
                 progress_bar.set_postfix_str(remote_file_key)
                 local_file_full_path = remote_key_to_local_path(date, remote_file_key)
