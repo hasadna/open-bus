@@ -1,17 +1,24 @@
+import datetime
 import gzip
 import os
 import pickle
 from os.path import dirname, join
+from ..gtfs_utils.constants import GTFS_FILE_NAME, TARIFF_FILE_NAME
 from ..gtfs_utils.gtfs_stats import analyze_gtfs_date
 
 
 TEST_ASSETS_DIR = join(dirname(__file__), 'assets')
 TEST_OUTPUTS_DIR = join(dirname(__file__), 'outputs')
-TEST_FILE_DATE = '2019-03-07'
+TEST_FILE_DATE = datetime.datetime(2019, 3, 7).date()
+TEST_FILE_DATE_STR = TEST_FILE_DATE.strftime('%Y-%m-%d')
 TEST_INPUT_FILE_KEY = f'gtfs/2019/03/07/2019-03-07T01-28-07_israel-public-transportation.zip'
+INPUT_LOCAL_FULL_PATHS = {
+    GTFS_FILE_NAME: join(TEST_ASSETS_DIR, 'inputs', '2019-03-07-israel-public-transportation.zip'),
+    TARIFF_FILE_NAME: join(TEST_ASSETS_DIR, 'inputs', '2019-03-07-Tariff.zip')
+}
 OUTPUT_FILE_NAMES = [
-    f'{TEST_FILE_DATE}_route_stats.pkl.gz',
-    f'{TEST_FILE_DATE}_trip_stats.pkl.gz'
+    f'{TEST_FILE_DATE_STR}_route_stats.pkl.gz',
+    f'{TEST_FILE_DATE_STR}_trip_stats.pkl.gz'
 ]
 
 
@@ -27,14 +34,11 @@ def _load_gzipped_pickles(filename, expected_dir, actual_dir):
     return expected_pickle, actual_pickle
 
 
-def test_handle_gtfs_file():
+def test_analyze_gtfs_date():
     os.makedirs(TEST_OUTPUTS_DIR, exist_ok=True)
-    analyze_gtfs_date(date_str=TEST_FILE_DATE,
-                      remote_file=TEST_INPUT_FILE_KEY,
-                      crud=None,
-                      output_folder=TEST_OUTPUTS_DIR,
-                      gtfs_folder=join(TEST_ASSETS_DIR, 'gtfs'),
-                      archive_folder=join(TEST_ASSETS_DIR, 'archive'))
+    analyze_gtfs_date(date=TEST_FILE_DATE,
+                      local_full_paths=INPUT_LOCAL_FULL_PATHS,
+                      output_folder=TEST_OUTPUTS_DIR)
 
 
     for file_name in OUTPUT_FILE_NAMES:
