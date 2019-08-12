@@ -44,8 +44,10 @@ def get_bucket_file_keys_for_date(crud: S3Crud,
                                   date: datetime.datetime) -> List[str]:
     """
     Get list of files from bucket that fit the given MOT file name and are from the given date
+    :param crud: S3Crud object
+    :param mot_file_name: Original name of the file from MOT
+    :param date: Date to use as original file date when searching
     :return: list of file keys
-    :rtype: list of str
     """
     prefix = datetime.datetime.strftime(date, 'gtfs/%Y/%m/%d/%Y-%m-%d')
     regexp = f'{prefix}.*{mot_file_name}'

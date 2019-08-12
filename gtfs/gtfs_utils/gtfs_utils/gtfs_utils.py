@@ -48,9 +48,12 @@ def write_filtered_feed_by_date(zip_path: str, date: datetime.date, output_path:
     ptg.writers.extract_feed(zip_path, output_path, get_partridge_filter_for_date(zip_path, date))
 
 
-def compute_trip_stats(feed, zones, date: datetime.date, gtfs_file_name: str):
+def compute_trip_stats(feed: ptg.feed,
+                       zones: pd.DataFrame,
+                       date: datetime.date,
+                       gtfs_file_name: str) -> pd.DataFrame:
     """
-    :param feed: Partridge feed
+    :param feed: Partridge feed for the specific date
     :param zones: DataFrame with stop_code to zone_name mapping
     :param date: The original schedule date
     :param gtfs_file_name: The original GTFS (zip) file name
@@ -174,14 +177,16 @@ def compute_trip_stats(feed, zones, date: datetime.date, gtfs_file_name: str):
 
 
 def compute_route_stats(trip_stats_subset: pd.DataFrame,
-                        date_str: bool,
+                        date: datetime.date,
                         gtfs_file_name: str,
                         headway_start_time: str = '07:00:00',
-                        headway_end_time: str = '19:00:00'):
+                        headway_end_time: str = '19:00:00') -> pd.DataFrame:
     """
     Compute stats for the given subset of trips stats.
 
     :param trip_stats_subset: Subset of the output of :func:`compute_trip_stats`
+    :param date: The original schedule date
+    :param gtfs_file_name: The original GTFS (zip) file name
     :param headway_start_time: HH:MM:SS time string indicating the start time for computing \
     headway stats
     :param headway_end_time: HH:MM:SS time string indicating the end time for computing headway \
@@ -298,7 +303,7 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
            'all_stop_latlon', 'all_stop_code', 'all_stop_id', 'all_stop_desc_city', 'all_start_time', 'all_trip_id',
            ]]
 
-    g['date'] = date_str
+    g['date'] = date
     g['date'] = pd.Categorical(g['date'])
     g['gtfs_file_name'] = gtfs_file_name
 

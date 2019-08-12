@@ -127,21 +127,14 @@ def remote_key_to_local_path(date: datetime.date, remote_key: str) -> str:
     return local_full_path
 
 
-def batch_stats_s3(output_folder=configuration.files.full_paths.output,
-                   gtfs_folder=configuration.files.full_paths.gtfs_feeds,
-                   delete_downloaded_gtfs_zips=False):
+def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
+                   delete_downloaded_gtfs_zips: bool = False):
     """
-Create daily trip_stats and route_stats DataFrame pickles, based on the files in an S3 bucket and
-their dates - `YYYY-mm-dd.zip`.
-Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
-    :param bucket_name: name of s3 bucket with GTFS feeds
-    :type bucket_name: str
+    Create daily trip_stats and route_stats DataFrame pickles, based on the files in an S3 bucket
+    and their dates.
+    Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
     :param output_folder: local path to write output files to
-    :type output_folder: str
-    :param gtfs_folder: local path containing GTFS feeds
-    :type gtfs_folder: str
-    :param delete_downloaded_gtfs_zips: whether to delete GTFS feed files that have been downloaded by the function.
-    :type delete_downloaded_gtfs_zips: bool
+    :param delete_downloaded_gtfs_zips: Whether to delete GTFS feed files that have been downloaded by the function.
     """
 
     dates_to_analyze = get_dates_to_analyze(configuration.use_data_from_today,
