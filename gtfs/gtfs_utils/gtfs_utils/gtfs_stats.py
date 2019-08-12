@@ -176,8 +176,8 @@ def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
             for current_date in progress_bar:
                 progress_bar.set_postfix_str(current_date)
                 local_full_paths = {
-                    mot_file_name: remote_key_to_local_path(current_date, remote_key)
-                    for mot_file_name, (_, remote_key)
+                    mot_file_name: remote_key_to_local_path(date, remote_key)
+                    for mot_file_name, (date, remote_key)
                     in remote_files_mapping[current_date].items()
                 }
                 analyze_gtfs_date(current_date, local_full_paths, output_folder=output_folder)
