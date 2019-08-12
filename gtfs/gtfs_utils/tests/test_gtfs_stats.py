@@ -23,12 +23,13 @@ OUTPUT_FILE_NAMES = [
 
 
 def _load_gzipped_pickles(filename, expected_dir, actual_dir):
-    print(join(expected_dir, filename))
-    print(join(actual_dir, filename))
-    with gzip.open(join(expected_dir, filename), 'rb') as f:
+    expected_file = join(expected_dir, filename)
+    actual_file = join(actual_dir, filename)
+
+    with gzip.open(expected_file, 'rb') as f:
         expected_pickle = pickle.load(f)
 
-    with gzip.open(join(actual_dir, filename), 'rb') as f:
+    with gzip.open(actual_file, 'rb') as f:
         actual_pickle = pickle.load(f)
 
     return expected_pickle, actual_pickle
