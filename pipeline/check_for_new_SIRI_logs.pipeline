@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+    parameters { 
+        string(name: 'LOGS_FILENAME_FILTER', defaultValue: "siri_rt_data_v2.2019-07-31.0*.log.gz", description: 'file name format represent log files') 
+        string(name: 'GIT_VERSION', defaultValue: "master", description: 'openbus repo version to checkout to') 
+    }
+    stages {
+        stage('Checkout OpenBus'){
+            steps{
+                git branch: "${GIT_VERSION}", url: 'https://github.com/hasadna/open-bus.git'
+                sh 'mkdir logs'
+            }
+        }
+        stage('check for new files'){
+            steps{
+            
+               withCredentials([string(credentialsId: 'siri_client_host', variable: 'hostname'), 
+               sshUserPrivateKey(credentialsId: 'client-ssh', keyFileVariable: '', passphraseVariable: '', usernameVariable: 'username')]) {
+                    
+                    sshagent(['client-ssh']) {
+                        script{
+                        res = sh label: '', returnStdout: true, script: 'ssh -oStrictHostKeyChecking=no -l ${username} ${hostname} ls /home/${username}/logs/archived/${LOGS_FILENAME_FILTER} | wc -w'.trim()
+                        if (res.toInteger()!=0){
+                            echo "New logs exists. Trigering a job for process them"
+                            build job: 'SIRI_logs_ETL', parameters: [string(name: 'LOGS_FILENAME_FILTER', value: "${LOGS_FILENAME_FILTER}"), string(name: 'GIT_VERSION', value: "${GIT_VERSION}")], wait: false
+                        } else { 
+                            echo "Nothing new. Finishing."}
+                        }
+                    }
+                } 
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo 'One way or another, I have finished'
+            deleteDir()
+        }
+    }
+}

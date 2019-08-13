@@ -1,0 +1,94 @@
+pipeline {
+    agent any
+    parameters { 
+        string(name: 'LOGS_FILENAME_FILTER', defaultValue: "siri_rt_data_v2.2019-08-12*.log.gz", description: 'file name format represent log files') 
+        string(name: 'GIT_VERSION', defaultValue: "master", description: 'openbus repo version to checkout to') 
+    }
+    stages {
+        stage('Checkout OpenBus'){
+            steps{
+                sh 'mkdir logs'
+            }
+        }
+        stage('Extract'){
+            steps{
+               withCredentials([string(credentialsId: 'siri_client_host', variable: 'hostname'), 
+               sshUserPrivateKey(credentialsId: 'client-ssh', keyFileVariable: '', passphraseVariable: '', usernameVariable: 'username')]) {
+                    sshagent(['client-ssh']) {
+                        sh "scp -oStrictHostKeyChecking=no ${username}@${hostname}:~/logs/archived/${LOGS_FILENAME_FILTER} ./logs/"
+                        sh "ls ./logs/"
+                    }
+                } 
+            
+                stash includes: 'logs/', name: 'logs', useDefaultExcludes: false
+            }
+        }
+        stage('Transform'){
+            agent {
+                docker { 
+                    image 'avivsela10/open-bus-python-env:0.2' 
+                    //args '-u root'
+                }
+            }
+            steps{
+                git branch: "${GIT_VERSION}", url: 'https://github.com/hasadna/open-bus.git'
+                unstash 'logs'
+                sh 'if [ -d "splunk_logs" ]; then rm -Rf splunk_logs; fi'
+                sh 'mkdir splunk_logs'
+				echo 'executing dan script'
+				sh "ls -la"              
+				sh 'python3 ./pipeline/create_siri_csv_splunk.py ./logs ./splunk_logs'
+				//sh 'chown --recursive jenkins:jenkins splunk_logs'
+			    sh 'ls -la ./splunk_logs'
+			    stash includes: 'splunk_logs/', name: 'splunk_logs', useDefaultExcludes: false
+			    deleteDir()
+			}
+        }
+        
+        stage('Load'){
+             agent {
+                docker { 
+                    image 'avivsela10/open-bus-python-env:0.2' 
+                    args '-u root'
+                }
+            }
+             environment {
+               TODAY = new Date().format("yyyy/MM/dd")
+           }
+        steps{
+            git branch: "${GIT_VERSION}", url: 'https://github.com/hasadna/open-bus.git'
+            unstash 'logs'
+            unstash 'splunk_logs'
+            withCredentials([usernamePassword(credentialsId: 'digitalocean_s3', passwordVariable: 'mypass', usernameVariable: 'mykey')]) {
+                dir('./splunk_logs') {
+                    sh 'ls -la'
+                    sh "python3 ../gtfs/gtfs_utils/gtfs_utils/s3_wrapper.py upload -aki ${mykey} -sak ${mypass} -lf . -bn obus-do1 -k SiriForSplunk/${TODAY} -pf '*' -f --access-preset dig-public"
+                }
+                    
+                dir('./logs') {
+                    sh 'ls -la'
+                    sh "python3 ../gtfs/gtfs_utils/gtfs_utils/s3_wrapper.py upload -aki ${mykey} -sak ${mypass} -lf . -bn obus-do1 -k siri_logs/${TODAY} -pf '*' -f --access-preset dig-public"
+                }
+            }
+        }
+    }
+    
+    stage('Move Files to Folder'){
+            steps{
+               withCredentials([string(credentialsId: 'siri_client_host', variable: 'hostname'), 
+               sshUserPrivateKey(credentialsId: 'client-ssh', keyFileVariable: '', passphraseVariable: '', usernameVariable: 'username')]) {
+                    sshagent(['client-ssh']) {
+                        sh "ssh -oStrictHostKeyChecking=no ${username}@${hostname} 'mv ~/logs/archived/${LOGS_FILENAME_FILTER} ~/logs/archived/uploaded_by_jenkins/'"
+                    }
+                } 
+            }
+        }
+    }
+    post {
+        always {
+            echo 'One way or another, I have finished'
+            deleteDir()
+            cleanWs()
+        }
+    }
+}
