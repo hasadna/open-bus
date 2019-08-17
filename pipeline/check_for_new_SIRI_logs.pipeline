@@ -1,7 +1,7 @@
 pipeline {
     agent any
     parameters { 
-        string(name: 'LOGS_FILENAME_FILTER', defaultValue: "siri_rt_data_v2.2019-07-31.0*.log.gz", description: 'file name format represent log files') 
+        string(name: 'LOGS_FILENAME_FILTER', defaultValue: "siri_rt_data_v2.*.log.gz", description: 'file name format represent log files') 
         string(name: 'GIT_VERSION', defaultValue: "master", description: 'openbus repo version to checkout to') 
     }
     stages {
