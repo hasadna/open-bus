@@ -22,7 +22,7 @@ pipeline {
                         res = sh label: '', returnStdout: true, script: 'ssh -oStrictHostKeyChecking=no -l ${username} ${hostname} ls /home/${username}/logs/archived/${LOGS_FILENAME_FILTER} | wc -w'.trim()
                         if (res.toInteger()!=0){
                             echo "New logs exists. Trigering a job for process them"
-                            build job: 'SIRI_logs_ETL', parameters: [string(name: 'LOGS_FILENAME_FILTER', value: "${LOGS_FILENAME_FILTER}"), string(name: 'GIT_VERSION', value: '${GIT_VERSION}')], wait: false
+                            build job: 'SIRI_logs_ETL', parameters: [string(name: 'LOGS_FILENAME_FILTER', value: "${LOGS_FILENAME_FILTER}"), string(name: 'GIT_VERSION', value: "${GIT_VERSION}")], wait: false
                         } else { 
                             echo "Nothing new. Finishing."}
                         }
