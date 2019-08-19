@@ -11,7 +11,6 @@ CONFIGURATION_FILE_PATH  = os.path.join(os.path.dirname(__file__), 'config.json'
 
 @dataclass
 class ChildDirectories:
-    archive: str = None
     gtfs_feeds: str = None
     output: str = None
     filtered_feeds: str = None
@@ -20,7 +19,6 @@ class ChildDirectories:
 
 @dataclass
 class FullPaths:
-    archive: str = None
     gtfs_feeds: str = None
     output: str = None
     filtered_feeds: str = None
@@ -38,7 +36,6 @@ class FullPaths:
 class FilesConfiguration:
     base_directory: str = None
     child_directories: ChildDirectories = None
-    tariff_file_path: str = None
     output_file_name_regexp: str = None
 
     def __init__(self):

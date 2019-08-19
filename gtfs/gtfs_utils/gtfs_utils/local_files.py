@@ -1,10 +1,8 @@
 import datetime
 import re
-import os
 from os import listdir
-from os.path import split, join
+from os.path import split, join, exists
 from typing import Tuple, List
-
 from .configuration import configuration
 
 
@@ -14,7 +12,7 @@ def _get_existing_output_files(output_folder: str) -> List[Tuple[datetime.date, 
     :param output_folder: a folder to check for
     :return: list of 2-tuples (date, output_file_type)
     """
-    if not os.path.exists(output_folder):
+    if not exists(output_folder):
         return []
 
     return [(datetime.datetime.strptime(g[0], '%Y-%m-%d').date(), g[1])

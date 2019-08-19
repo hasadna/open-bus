@@ -1,5 +1,5 @@
 import logging
-
+import pandas as pd
 
 def save_trip_stats(ts: pd.DataFrame, output_path: str):
     logging.info(f'Saving trip stats result DF to gzipped pickle {output_path}')

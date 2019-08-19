@@ -2,13 +2,11 @@
   "files": {
     "base_directory": "/home/travis/build/open-bus-files/",
     "child_directories": {
-      "archive": "archive",
       "gtfs_feeds": "gtfs_feeds",
       "output": "gtfs_stats_hack",
       "filtered_feeds": "filtered_feeds",
       "logs": "logs"
     },
-    "tariff_file_path": "archive/2019-03-07/Tariff.zip",
     "output_file_name_regexp": "^(?P<date_str>[^_]+?)_(?P<type>\\w+)\\.pkl\\.gz"
   },
 
