@@ -20,7 +20,7 @@ pipeline {
                     }
                 } 
             
-                stash includes: 'logs/', name: 'logs', useDefaultExcludes: false
+                stash includes: 'logs/', name: 'siri_logs', useDefaultExcludes: false
             }
         }
         stage('Transform'){
@@ -32,7 +32,7 @@ pipeline {
             }
             steps{
                 git branch: "${GIT_VERSION}", url: 'https://github.com/hasadna/open-bus.git'
-                unstash 'logs'
+                unstash 'siri_logs'
                 sh 'if [ -d "splunk_logs" ]; then rm -Rf splunk_logs; fi'
                 sh 'mkdir splunk_logs'
 				echo 'executing dan script'
@@ -57,7 +57,7 @@ pipeline {
            }
         steps{
             git branch: "${GIT_VERSION}", url: 'https://github.com/hasadna/open-bus.git'
-            unstash 'logs'
+            unstash 'siri_logs'
             unstash 'splunk_logs'
             withCredentials([usernamePassword(credentialsId: 'digitalocean_s3', passwordVariable: 'mypass', usernameVariable: 'mykey')]) {
                 dir('./splunk_logs') {
