@@ -16,9 +16,11 @@
     "access_key_id": "Your S3 access key ID",
     "secret_access_key": "Your S3 secret access key",
     "s3_endpoint_url": "https://ams3.digitaloceanspaces.com",
-    "bucket_name": "obus-do2",
-    "bucket_valid_file_name_regexp": "gtfs/2019/03/07/2019-03-07T\\d+-\\d+-\\d+_israel-public-transportation.zip"
+    "bucket_name": "obus-do2"
   },
+
+  "use_data_from_today": false,
+  "date_range": ["2019-03-07", "2019-03-07"],
 
   "future_days_count": 0,
 

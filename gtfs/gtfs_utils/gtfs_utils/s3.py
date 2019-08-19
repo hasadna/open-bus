@@ -1,11 +1,10 @@
 import logging
-import pandas as pd
 import datetime
-from collections import defaultdict
+import os.path
+from typing import List, Tuple
 from tqdm import tqdm
 from .s3_wrapper import list_content, S3Crud
 from .retry import retry
-from .general_utils import parse_date
 from .configuration import configuration
 
 
@@ -40,102 +39,56 @@ Download file from s3 bucket. Retry using decorator.
         crud.download_one_file(output_path, key)
 
 
-def get_bucket_valid_files(crud):
+def get_bucket_file_keys_for_date(crud: S3Crud,
+                                  mot_file_name: str,
+                                  date: datetime.datetime) -> List[str]:
     """
-    Get list of valid files from bucket, as set by configuration.s3.bucket_valid_file_name_regexp
-    :param bucket_objects: collection of bucket objects
-    :type bucket_objects: s3.Bucket.objectsCollection
-    :return: list of valid file keys
-    :rtype: list of str
+    Get list of files from bucket that fit the given MOT file name and are from the given date
+    :param crud: S3Crud object
+    :param mot_file_name: Original name of the file from MOT
+    :param date: Date to use as original file date when searching
+    :return: list of file keys
     """
-    return [obj['Key']
-            for obj
-            in list_content(crud,
-                            prefix_filter=configuration.s3.bucket_valid_file_name_regexp.pattern.split('\\')[0],
-                            regex_argument=configuration.s3.bucket_valid_file_name_regexp)]
+    prefix = datetime.datetime.strftime(date, 'gtfs/%Y/%m/%d/%Y-%m-%d')
+    regexp = f'{prefix}.*{mot_file_name}'
+
+    return [obj['Key'] for obj in list_content(crud, prefix_filter=prefix, regex_argument=regexp)]
 
 
-def get_dates_without_output(valid_dates, existing_output_files):
+
+
+def get_latest_file(crud: S3Crud,
+                    mot_file_name: str,
+                    desired_date: datetime.datetime,
+                    past_days_to_try: int = 100) -> Tuple[datetime.date, str]:
+    for i in range(past_days_to_try):
+        date = desired_date - datetime.timedelta(i)
+        bucket_files_in_date = get_bucket_file_keys_for_date(crud, mot_file_name, date)
+
+        if len(bucket_files_in_date) > 0:
+            bucket_files_in_date = sorted(bucket_files_in_date)
+            date_and_key = (date, bucket_files_in_date[-1])
+            return date_and_key
+
+
+def fetch_remote_file(remote_file_key: str,
+                      local_file_full_path: str,
+                      crud: S3Crud,
+                      force: bool = False) -> bool:
     """
-    Get list of dates without output files (currently just route_stats is considered)
-    :param valid_files: list of valid file keys
-    :rtype: list of str
-    :param existing_output_files: list of 2-tuples as returned by _get_existing_output_files
-    :type existing_output_files: list
-    :return: list of valid file keys for stat computation
-    :rtype: list
+    :param remote_file_key: gtfs remote file key (in S3)
+    :param local_file_full_path: gtfs local file full path
+    :param crud: S3Crud object
+    :param force: force download or not
+    :return: whether file was downloaded or not
     """
-    return [date for date in valid_dates
-            if date not in [g[0]
-                            for g in existing_output_files
-                            if g[1] == 'route_stats']]
 
+    if not force and os.path.exists(local_file_full_path):
+        logging.info(f'Found local file "{local_file_full_path}"')
+        return False
 
-def get_forward_fill_dict(valid_files, future_days=configuration.future_days_count):
-    """
-    Get a dictionary mapping gtfs file names to a list of dates for forward fill by scanning for missing dates for files
-    :param valid_files: list of valid file keys
-    :rtype: list of str
-    :return dictionary mapping file names to dates
-    :rtype defaultdict of lists (defaults to empty list)
-    """
-    ffill = defaultdict(list)
-
-    if not len(valid_files):
-        return ffill
-
-    date_to_file = {}
-    date_str_to_file = {}
-
-    for file in valid_files:
-        current_file_datetime, current_file_date_str = parse_date(file)
-
-        if current_file_date_str in date_str_to_file:
-            # If there is already a file from this date
-            other_datetime_in_same_date = next((existing_datetime
-                                                for existing_datetime
-                                                in date_to_file.keys()
-                                                if existing_datetime.date() == current_file_datetime.date()))
-
-            if other_datetime_in_same_date > current_file_datetime:
-                # If the current file is newer than the already-existing one
-                del date_to_file[other_datetime_in_same_date]
-            else:
-                # If the current file is older than the already-existing one
-                continue
-
-        date_to_file[current_file_datetime] = file
-        date_str_to_file[current_file_date_str] = file
-
-    date_to_file = {datetime_value.date(): file for datetime_value, file in date_to_file.items()}
-    existing_dates = pd.DatetimeIndex(date_to_file.keys())
-    expected_dates = pd.DatetimeIndex(start=existing_dates.min(), end=existing_dates.max()+datetime.timedelta(days=future_days), freq='D')
-    date_df = pd.Series(pd.NaT, expected_dates)
-    date_df[existing_dates] = existing_dates
-    date_df = date_df.fillna(method='ffill', limit=59)
-    # TODO: remove dates that aren't in the 59 day gap
-    # BUG: will act unexpectedly if more than 59 day gap
-    for file_date, stats_date in zip(date_df.dt.strftime('%Y-%m-%d'), date_df.index.strftime('%Y-%m-%d')):
-        ffill[date_str_to_file[file_date]].append(stats_date)
-
-    return ffill
-
-
-def get_valid_file_dates_dict(crud, existing_output_files):
-    logging.info(f'configuration.s3.bucket_valid_file_name_regexp={configuration.s3.bucket_valid_file_name_regexp}')
-    bucket_valid_files = get_bucket_valid_files(crud)
-    logging.debug(f'bucket_valid_files: {bucket_valid_files}')
-
-    logging.info(f'applying forward fill')
-    ffill_dict = get_forward_fill_dict(bucket_valid_files)
-    logging.info(f'found {sum([len(l) for l in ffill_dict.values()]) - len(bucket_valid_files)} missing dates for '
-                'forward fill.')
-
-    files_for_stats = defaultdict(list)
-    for file in ffill_dict:
-        files_for_stats[file] = get_dates_without_output(ffill_dict[file], existing_output_files)
-
-    logging.info(f'found {len([key for key in files_for_stats if len(files_for_stats[key])>0])} GTFS files valid for '
-                'stats calculations in bucket')
-    logging.debug(f'Files: { {key: value for key, value in files_for_stats.items() if len(files_for_stats[key])>0} }')
-    return files_for_stats
+    logging.info(f'Starting file download with retries (key="{remote_file_key}", local path="{local_file_full_path}")')
+    s3_download(crud, remote_file_key, local_file_full_path)
+    logging.debug(f'Finished file download (key="{remote_file_key}", local path="{local_file_full_path}")')
+    return True
+    # TODO: log file size

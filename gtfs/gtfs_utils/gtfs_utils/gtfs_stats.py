@@ -1,249 +1,196 @@
 # coding: utf-8
-
-# Using a mix of `partridge` and `gtfstk` with some of my own additions to 
+# Using a mix of `partridge` and `gtfstk` with some of my own additions to
 # create daily statistical DataFrames for trips, routes and stops. 
 # This will later become a module which we will run on our historical 
-# MoT GTFS archive and schedule for nightly runs. 
+# MoT GTFS archive and schedule for nightly runs.
 
 import pandas as pd
 import datetime
 import os
-import re
-from os.path import join
 import logging
-from zipfile import BadZipFile
+from os.path import join, split, dirname, basename
+from typing import List, Dict
 from tqdm import tqdm
 from partridge import feed as ptg_feed
+from .files import get_dates_without_output
 from .gtfs_utils import write_filtered_feed_by_date, get_partridge_feed_by_date, get_zones_df, \
     compute_route_stats, compute_trip_stats
 from .environment import init_conf
-from .s3 import get_valid_file_dates_dict, s3_download
+from .s3 import get_latest_file, fetch_remote_file
 from .logging_config import configure_logger
 from .configuration import configuration
 from .s3_wrapper import S3Crud
+from .constants import GTFS_FILE_NAME, TARIFF_FILE_NAME
 
 
-def _get_existing_output_files(output_folder):
+def prepare_partridge_feed(date: datetime.date,
+                           gtfs_file_full_path: str,
+                           filtered_feeds_directory=configuration.files.full_paths.filtered_feeds):
+
+    if configuration.write_filtered_feed:
+        filtered_gtfs_path = join(filtered_feeds_directory, basename(gtfs_file_full_path))
+
+        logging.info(f'Filtering gtfs feed for {date} from {gtfs_file_full_path} into {filtered_gtfs_path}')
+        write_filtered_feed_by_date(gtfs_file_full_path, date, filtered_gtfs_path)
+
+        logging.info(f'Reading filtered feed for file from path {filtered_gtfs_path}')
+        feed = ptg_feed(filtered_gtfs_path)
+    else:
+        logging.info(f'Creating daily partridge feed for {date} from {gtfs_file_full_path}')
+        feed = get_partridge_feed_by_date(gtfs_file_full_path, date)
+
+    logging.debug(f'Finished creating daily partridge feed for {date} from {gtfs_file_full_path}')
+    return feed
+
+
+def log_trip_stats(ts: pd.DataFrame):
+    # TODO: log more stats
+    logging.debug(f'ts.shape={ts.shape}')
+    logging.debug(f'dc_trip_id={ts.trip_id.nunique()}')
+    logging.debug(f'dc_route_id={ts.route_id.nunique()}')
+    logging.debug(f'num_start_zones={ts.start_zone.nunique()}')
+    logging.debug(f'num_agency={ts.agency_name.nunique()}')
+
+
+def log_route_stats(rs: pd.DataFrame):
+    # TODO: log more stats
+    logging.debug(f'rs.shape={rs.shape}')
+    logging.debug(f'num_trips_sum={rs.num_trips.sum()}')
+    logging.debug(f'dc_route_id={rs.route_id.nunique()}')
+    logging.debug(f'num_start_zones={rs.start_zone.nunique()}')
+    logging.debug(f'num_agency={rs.agency_name.nunique()}')
+
+
+def save_trip_stats(ts: pd.DataFrame, output_path: str):
+    logging.info(f'Saving trip stats result DF to gzipped pickle {output_path}')
+    ts.to_pickle(output_path, compression='gzip')
+
+
+def save_route_stats(rs: pd.DataFrame, output_path: str):
+    logging.info(f'Saving route stats result DF to gzipped pickle {output_path}')
+    rs.to_pickle(output_path, compression='gzip')
+
+
+def analyze_gtfs_date(date: datetime.date,
+                      local_full_paths: Dict[str, str],
+                      output_folder=configuration.files.full_paths.output):
     """
-Get existing output files in the given folder, in a list containing tuples of dates and output types.
-    :param output_folder: a folder to check for
-    :type output_folder:
-    :return: list of 2-tuples (date_str, output_file_type)
-    :rtype: list
-    """
-    return [(g[0], g[1]) for g in
-            (re.match(configuration.files.output_file_name_regexp, file).groups()
-             for file in os.listdir(output_folder))]
-
-
-def get_gtfs_file(remote_file: str,
-                  local_file_full_path: str,
-                  crud: S3Crud,
-                  force: bool = False) -> bool:
-    """
-    :param remote_file: gtfs remote file key (as in S3)
-    :param local_file_full_path: gtfs local file full path (typically /your/gtfs/dir/YYYY-mm-dd.zip)
-    :param crud: S3Crud object
-    :param force: force download or not
-    :return: whether file was downloaded or not
-    """
-
-    if not force and os.path.exists(local_file_full_path):
-        logging.info(f'Found local file "{local_file_full_path}"')
-        return False
-
-    logging.info(f'Starting file download with retries (key="{remote_file}", local path="{local_file_full_path}")')
-    s3_download(crud, remote_file, local_file_full_path)
-    logging.debug(f'Finished file download (key="{remote_file}", local path="{local_file_full_path}")')
-    return True
-    # TODO: log file size
-
-
-def get_closest_archive_path(date,
-                             file_name,
-                             archive_folder=configuration.files.full_paths.archive):
-    for i in range(100):
-        date_str = datetime.datetime.strftime(date - datetime.timedelta(i), '%Y-%m-%d')
-        tariff_path_to_try = join(archive_folder, date_str, file_name)
-        if os.path.exists(tariff_path_to_try):
-            return tariff_path_to_try
-    return join(configuration.files.baseDirectory, configuration.files.tariff_file_path)
-
-
-def handle_gtfs_date(date_str,
-                     remote_file,
-                     crud,
-                     output_folder=configuration.files.full_paths.output,
-                     gtfs_folder=configuration.files.full_paths.gtfs_feeds,
-                     archive_folder=configuration.files.full_paths.archive):
-    """
-Handle a single date for a single GTFS file. Download if necessary compute and save stats files (currently trip_stats
-and route_stats).
-    :param date_str: %Y-%m-%d
-    :type date_str: str
-    :param file: gtfs file name (currently only YYYY-mm-dd.zip)
-    :type file: str
-    :param bucket: s3 boto bucket object
-    :type bucket: boto3.resources.factory.s3.Bucket
+    Handles analysis of a single date for GTFS. Computes and saves stats files (currently trip_stats
+    and route_stats).
+    :param date: the analyzed date
+    :param local_full_paths: a dict where keys are the required MOT file names, and values are full local paths
     :param output_folder: local path to write output files to
-    :type output_folder: str
-    :param gtfs_folder: local path containing GTFS feeds
-    :type gtfs_folder: str
     """
-    date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-    local_file_path = f'{date_str}.zip'
-    local_file_full_path = join(gtfs_folder, local_file_path)
 
-    downloaded = False
-
+    date_str = date.strftime('%Y-%m-%d')
     trip_stats_output_path = join(output_folder, date_str + '_trip_stats.pkl.gz')
-    if os.path.exists(trip_stats_output_path):
-        logging.info(f'found trip stats result DF gzipped pickle "{trip_stats_output_path}"')
-        ts = pd.read_pickle(trip_stats_output_path, compression='gzip')
-    else:
-        downloaded = get_gtfs_file(remote_file, local_file_full_path, crud)
-
-        if configuration.write_filtered_feed:
-            filtered_out_path = os.path.join(configuration.files.full_paths.filtered_feeds_directory,
-                                             f'{date_str}.zip')
-            logging.info(f'writing filtered gtfs feed for file "{local_file_full_path}" with date "{date}" in path '
-                        f'{filtered_out_path}')
-            write_filtered_feed_by_date(local_file_full_path, date, filtered_out_path)
-            logging.info(f'reading filtered feed for file from path {filtered_out_path}')
-            feed = ptg_feed(filtered_out_path)
-        else:
-            logging.info(f'creating daily partridge feed for file "{local_file_full_path}" with date "{date}"')
-            try:
-                feed = get_partridge_feed_by_date(local_file_full_path, date)
-            except BadZipFile:
-                logging.error('Bad local zip file', exc_info=True)
-                downloaded = get_gtfs_file(remote_file, local_file_full_path, crud, force=True)
-                feed = get_partridge_feed_by_date(local_file_full_path, date)
-
-        logging.debug(f'finished creating daily partridge feed for file "{local_file_full_path}" with date "{date}"')
-
-        # TODO: use Tariff.zip from s3
-        tariff_path_to_use = get_closest_archive_path(date, 'Tariff.zip', archive_folder=archive_folder)
-        logging.info(f'creating zones DF from "{tariff_path_to_use}"')
-        zones = get_zones_df(tariff_path_to_use)
-
-        logging.info(
-            f'starting compute_trip_stats for file "{local_file_full_path}" with date "{date}" and zones '
-            f'"{configuration.files.tariff_file_path}"')
-        ts = compute_trip_stats(feed, zones, date_str, local_file_path)
-        logging.debug(
-            f'finished compute_trip_stats for file "{local_file_full_path}" with date "{date}" and zones '
-            f'"{configuration.files.tariff_file_path}"')
-
-        logging.info(f'saving trip stats result DF to gzipped pickle "{trip_stats_output_path}"')
-        ts.to_pickle(trip_stats_output_path, compression='gzip')
-
-    # TODO: log more stats
-    logging.debug(
-        f'ts.shape={ts.shape}, dc_trip_id={ts.trip_id.nunique()}, dc_route_id={ts.route_id.nunique()}, '
-        f'num_start_zones={ts.start_zone.nunique()}, num_agency={ts.agency_name.nunique()}')
-
-    logging.info(f'starting compute_route_stats from trip stats result')
-    rs = compute_route_stats(ts, date_str, local_file_path)
-    logging.debug(f'finished compute_route_stats from trip stats result')
-
-    # TODO: log more stats
-    logging.debug(
-        f'rs.shape={rs.shape}, num_trips_sum={rs.num_trips.sum()}, dc_route_id={rs.route_id.nunique()}, '
-        f'num_start_zones={rs.start_zone.nunique()}, num_agency={rs.agency_name.nunique()}')
-
     route_stats_output_path = join(output_folder, date_str + '_route_stats.pkl.gz')
-    logging.info(f'saving route stats result DF to gzipped pickle "{route_stats_output_path}"')
-    rs.to_pickle(route_stats_output_path, compression='gzip')
 
-    return downloaded
+    feed = prepare_partridge_feed(date, local_full_paths[GTFS_FILE_NAME])
+
+    tariff_path_to_use = local_full_paths[TARIFF_FILE_NAME]
+    logging.info(f'Creating zones DF from {tariff_path_to_use}')
+    zones = get_zones_df(tariff_path_to_use)
+
+    gtfs_file_base_name = basename(local_full_paths[GTFS_FILE_NAME])
+
+    ts = compute_trip_stats(feed, zones, date, gtfs_file_base_name)
+    save_trip_stats(ts, trip_stats_output_path)
+    log_trip_stats(ts)
+
+    rs = compute_route_stats(ts, date, gtfs_file_base_name)
+    save_route_stats(rs, route_stats_output_path)
+    log_route_stats(rs)
 
 
-def handle_gtfs_file(file,
-                     crud,
-                     stats_dates,
-                     output_folder=configuration.files.full_paths.output,
-                     gtfs_folder=configuration.files.full_paths.gtfs_feeds,
-                     delete_downloaded_gtfs_zips=False):
-    """
-Handle a single GTFS file. Download if necessary compute and save stats files (currently trip_stats and route_stats).
-    :param file: gtfs file name (currently only YYYY-mm-dd.zip)
-    :type file: str
-    :param bucket: s3 boto bucket object
-    :type bucket: boto3.resources.factory.s3.Bucket
-    :param output_folder: local path to write output files to
-    :type output_folder: str
-    :param gtfs_folder: local path containing GTFS feeds
-    :type gtfs_folder: str
-    :param delete_downloaded_gtfs_zips: whether to delete GTFS feed files that have been downloaded by the function.
-    :type delete_downloaded_gtfs_zips: bool
-    """
-
-    downloaded = False
-    with tqdm(stats_dates, postfix='initializing', unit='date', desc='dates', leave=False) as t:
-        for date_str in t:
-            t.set_postfix_str(date_str)
-            downloaded = handle_gtfs_date(date_str, file, crud, output_folder=output_folder,
-                                          gtfs_folder=gtfs_folder)
-
-    if delete_downloaded_gtfs_zips and downloaded:
-        logging.info(f'deleting gtfs zip file "{join(gtfs_folder, file)}"')
-        os.remove(join(gtfs_folder, file))
+def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> List[datetime.date]:
+    if use_data_from_today:
+        return [datetime.datetime.now().date()]
     else:
-        logging.debug(f'keeping gtfs zip file "{join(gtfs_folder, file)}"')
+        if len(date_range) != 2:
+            raise ValueError('date_range must be a 2-element list')
+
+        min_date, max_date = [datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+                              for date_str
+                              in date_range]
+        delta = max_date - min_date
+        return [min_date + datetime.timedelta(days=days_delta)
+                for days_delta
+                in range(delta.days + 1)]
 
 
-def batch_stats_s3(bucket_name=configuration.s3.bucket_name,
-                   output_folder=configuration.files.full_paths.output,
-                   gtfs_folder=configuration.files.full_paths.gtfs_feeds,
-                   delete_downloaded_gtfs_zips=False):
+def remote_key_to_local_path(date: datetime.date, remote_key: str) -> str:
+    local_file_name = split(remote_key)[-1]
+    local_full_path = join(configuration.files.full_paths.gtfs_feeds,
+                           date.strftime('%Y-%m-%d'),
+                           local_file_name)
+    return local_full_path
+
+
+def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
+                   delete_downloaded_gtfs_zips: bool = False):
     """
-Create daily trip_stats and route_stats DataFrame pickles, based on the files in an S3 bucket and
-their dates - `YYYY-mm-dd.zip`.
-Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
-    :param bucket_name: name of s3 bucket with GTFS feeds
-    :type bucket_name: str
+    Create daily trip_stats and route_stats DataFrame pickles, based on the files in an S3 bucket
+    and their dates.
+    Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
     :param output_folder: local path to write output files to
-    :type output_folder: str
-    :param gtfs_folder: local path containing GTFS feeds
-    :type gtfs_folder: str
-    :param delete_downloaded_gtfs_zips: whether to delete GTFS feed files that have been downloaded by the function.
-    :type delete_downloaded_gtfs_zips: bool
+    :param delete_downloaded_gtfs_zips: Whether to delete GTFS feed files that have been downloaded by the function.
     """
+
+    dates_to_analyze = get_dates_to_analyze(configuration.use_data_from_today,
+                                            configuration.date_range)
+    logging.debug(f'dates_to_analyze={dates_to_analyze}')
+
     try:
-        existing_output_files = []
-        if os.path.exists(output_folder):
-            existing_output_files = _get_existing_output_files(output_folder)
-            logging.info(f'found {len(existing_output_files)} output files in output folder {output_folder}')
-        else:
-            logging.info(f'creating output folder {output_folder}')
-            os.makedirs(output_folder)
+        os.makedirs(output_folder, exist_ok=True)
+        dates_without_output = get_dates_without_output(dates_to_analyze, output_folder)
 
-        crud = S3Crud(aws_access_key_id=configuration.s3.access_key_id,
-                      aws_secret_access_key=configuration.s3.secret_access_key,
-                      bucket_name=bucket_name,
-                      endpoint_url=configuration.s3.s3_endpoint_url)
+        crud = S3Crud.from_configuration(configuration.s3)
+        logging.info(f'Connected to S3 bucket {configuration.s3.bucket_name}')
 
-        logging.info(f'connected to S3 bucket {bucket_name}')
+        file_types_to_download = [GTFS_FILE_NAME, TARIFF_FILE_NAME]
+        remote_files_mapping = {}
+        all_remote_files = []
+        all_local_full_paths = []
 
-        file_dates_dict = get_valid_file_dates_dict(crud, existing_output_files)
-        logging.debug(f'file_dates_dict={file_dates_dict}')
+        for desired_date in dates_without_output:
+            for mot_file_name in file_types_to_download:
+                if desired_date not in remote_files_mapping:
+                    remote_files_mapping[desired_date] = {}
 
+                date_and_key = get_latest_file(crud, mot_file_name, desired_date)
+                remote_files_mapping[desired_date][mot_file_name] = date_and_key
+                all_remote_files.append(date_and_key)
 
-        non_empty_file_dates = {key: value for key, value in file_dates_dict.items() if len(file_dates_dict[key]) > 0}
-        with tqdm(non_empty_file_dates, postfix='initializing', unit='file', desc='files') as t:
-            for file in t:
-                t.set_postfix_str(file)
-                handle_gtfs_file(file,
-                                 crud,
-                                 output_folder=output_folder,
-                                 gtfs_folder=gtfs_folder,
-                                 delete_downloaded_gtfs_zips=delete_downloaded_gtfs_zips,
-                                 stats_dates=file_dates_dict[file])
+        logging.info(f'Starting files download, downloading {len(all_remote_files)} files')
+        with tqdm(all_remote_files, unit='file', desc='Downloading') as progress_bar:
+            for date, remote_file_key in progress_bar:
+                progress_bar.set_postfix_str(remote_file_key)
+                local_file_full_path = remote_key_to_local_path(date, remote_file_key)
+                fetch_remote_file(remote_file_key, local_file_full_path, crud)
+                all_local_full_paths.append(local_file_full_path)
+        logging.info(f'Finished files download')
 
-        logging.info(f'starting synchronous gtfs file download and stats computation from s3 bucket {bucket_name}')
+        logging.info(f'Starting analyzing files for {len(dates_without_output)} dates')
+        with tqdm(dates_without_output, unit='date', desc='Analyzing') as progress_bar:
+            for current_date in progress_bar:
+                progress_bar.set_postfix_str(current_date)
+                local_full_paths = {
+                    mot_file_name: remote_key_to_local_path(date, remote_key)
+                    for mot_file_name, (date, remote_key)
+                    in remote_files_mapping[current_date].items()
+                }
+                analyze_gtfs_date(current_date, local_full_paths, output_folder=output_folder)
+        logging.info(f'Finished analyzing files')
 
-        logging.info(f'finished synchronous gtfs file download and stats computation from s3 bucket {bucket_name}')
+        if delete_downloaded_gtfs_zips:
+            logging.info(f'Starting removing downloaded files')
+            with tqdm(all_local_full_paths, unit='file', desc='Removing') as progress_bar:
+                for local_full_path in progress_bar:
+                    os.remove(local_full_path)
+                    if len(os.listdir(dirname(local_full_path))) == 0:
+                        os.removedirs(dirname(local_full_path))
+            logging.info(f'Finished removing downloaded files')
     except:
         logging.error('Failed', exc_info=True)
 
@@ -255,10 +202,7 @@ def main():
     batch_stats_s3(delete_downloaded_gtfs_zips=configuration.delete_downloaded_gtfs_zip_files)
 
 
-# ## What's next
-# 
 # TODO List
-# 
 # 1. add a function for handling today's file only (download from ftp)
 # 1. remove zone and extra route details from trip_stats
 #   1. add them by merging to route_stats
@@ -270,7 +214,4 @@ def main():
 #   1. add ids to every record - process, file
 # 1. run older files with older tariff file
 # 1. write tests
-# 1. add split_directions
 # 1. add time between stops - max, min, mean (using delta)
-# 1. add day and night headways and num_trips (maybe noon also)
-# 1. mean_headway doesn't mean much when num_trips low (maybe num_trips cutoffs will be enough)
