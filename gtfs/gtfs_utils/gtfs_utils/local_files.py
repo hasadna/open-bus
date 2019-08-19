@@ -2,6 +2,7 @@ import datetime
 import re
 import os
 from os import listdir
+from os.path import split, join
 from typing import Tuple, List
 
 from .configuration import configuration
@@ -38,3 +39,11 @@ def get_dates_without_output(dates: List[datetime.date], output_folder: str) -> 
                             for g
                             in existing_output_files
                             if g[1] == 'route_stats']]
+
+
+def remote_key_to_local_path(date: datetime.date, remote_key: str) -> str:
+    local_file_name = split(remote_key)[-1]
+    local_full_path = join(configuration.files.full_paths.gtfs_feeds,
+                           date.strftime('%Y-%m-%d'),
+                           local_file_name)
+    return local_full_path

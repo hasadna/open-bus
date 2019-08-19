@@ -252,7 +252,6 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     f = trip_stats_subset.copy()
     f[['start_time', 'end_time']] = f[['start_time', 'end_time']].applymap(gtfstk.helpers.timestr_to_seconds)
 
-
     aggregation = generate_route_stats_aggregation(headway_start_time, headway_end_time)
     g = f.groupby('route_id').apply(aggregation).reset_index()
 
