@@ -1,4 +1,4 @@
 Trip Stats
 ==========
 
-.. autofunction:: gtfs_utils.compute_trip_stats
+.. autofunction:: gtfs_utils.core_computations.compute_trip_stats

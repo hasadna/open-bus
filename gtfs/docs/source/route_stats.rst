@@ -1,4 +1,4 @@
 Route Stats
 ===========
 
-.. autofunction:: gtfs_utils.compute_route_stats
+.. autofunction:: gtfs_utils.core_computations.compute_route_stats
