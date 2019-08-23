@@ -32,7 +32,8 @@ pipeline {
             }
             steps{
                 git branch: "${GIT_VERSION}", url: 'https://github.com/hasadna/open-bus.git'
-                unstash 'siri_logs'
+                sh 'if [ -d "logs" ]; then rm -Rf logs; fi'
+		unstash 'siri_logs'
                 sh 'if [ -d "splunk_logs" ]; then rm -Rf splunk_logs; fi'
                 sh 'mkdir splunk_logs'
 				echo 'executing dan script'
