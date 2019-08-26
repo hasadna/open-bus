@@ -1,0 +1,13 @@
+.route-viewer {
+  height: 90%;
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.map {
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+}
