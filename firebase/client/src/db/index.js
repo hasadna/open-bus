@@ -1,6 +1,7 @@
 // TMP FIX for data timezone bug
 import addHours from "date-fns/addHours";
 import subHours from "date-fns/subHours";
+const JERUSALEM_TIMEZONE_OFFSET = 3;
 
 export function fetchAgenciesAndRides(date) {
     const firestore = window.firebase.firestore();
@@ -24,19 +25,21 @@ export function fetchRideData(routeId, dateTime) {
     const firestore = window.firebase.firestore();
 
     // TMP FIX: addHours for the data timezone bug
-    const queryDateTime = addHours(dateTime, 3);
+    const queryDateTime = addHours(dateTime, JERUSALEM_TIMEZONE_OFFSET);
 
     const query = firestore.collection("siri_rides")
         .where("route_id", "==", routeId)
         .where("planned_start_datetime", "==", queryDateTime);
     return query.get()
         .then(extractDocs)
-        .then(convertRideDataPointsToDates);
+        .then(convertRideDataPointsDates);
 }
 
-function convertRideDataPointsToDates(docs) {
-    // TMP FIX: addHours/subHours for the data timezone bug
-    const fixDate = (timestamp) => subHours(timestamp.toDate(), 3);
+function convertRideDataPointsDates(docs) {
+    /* TMP FIX: addHours/subHours for the data timezone bug
+     * (When fixed, just do timestamp.toDate() to convert firebase's Timestamp
+     * to js Date) */
+    const fixDate = (timestamp) => subHours(timestamp.toDate(), JERUSALEM_TIMEZONE_OFFSET);
     
     for (const doc of docs) {
         for (const point of doc.points) {

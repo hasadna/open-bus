@@ -42,9 +42,8 @@ function renderPoint(point) {
 }
 
 function renderMap(data) {
-    const center = [data.points[0].point.latitude, data.points[0].point.longitude];
     return (
-        <Map className="map" center={center} zoom={13}>
+        <Map className="map">
             <TileLayer
                 attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
