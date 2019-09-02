@@ -55,8 +55,6 @@ def get_bucket_file_keys_for_date(crud: S3Crud,
     return [obj['Key'] for obj in list_content(crud, prefix_filter=prefix, regex_argument=regexp)]
 
 
-
-
 def get_latest_file(crud: S3Crud,
                     mot_file_name: str,
                     desired_date: datetime.datetime,

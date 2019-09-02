@@ -1,9 +1,8 @@
 import datetime
 import re
-import os
 from os import listdir
+from os.path import split, join, exists
 from typing import Tuple, List
-
 from .configuration import configuration
 
 
@@ -13,7 +12,7 @@ def _get_existing_output_files(output_folder: str) -> List[Tuple[datetime.date, 
     :param output_folder: a folder to check for
     :return: list of 2-tuples (date, output_file_type)
     """
-    if not os.path.exists(output_folder):
+    if not exists(output_folder):
         return []
 
     return [(datetime.datetime.strptime(g[0], '%Y-%m-%d').date(), g[1])
@@ -38,3 +37,11 @@ def get_dates_without_output(dates: List[datetime.date], output_folder: str) -> 
                             for g
                             in existing_output_files
                             if g[1] == 'route_stats']]
+
+
+def remote_key_to_local_path(date: datetime.date, remote_key: str) -> str:
+    local_file_name = split(remote_key)[-1]
+    local_full_path = join(configuration.files.full_paths.gtfs_feeds,
+                           date.strftime('%Y-%m-%d'),
+                           local_file_name)
+    return local_full_path

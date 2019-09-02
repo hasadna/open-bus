@@ -8,39 +8,19 @@ import pandas as pd
 import datetime
 import os
 import logging
-from os.path import join, split, dirname, basename
+from os.path import join, dirname, basename
 from typing import List, Dict
 from tqdm import tqdm
-from partridge import feed as ptg_feed
-from .files import get_dates_without_output
-from .gtfs_utils import write_filtered_feed_by_date, get_partridge_feed_by_date, get_zones_df, \
-    compute_route_stats, compute_trip_stats
+from .output import save_trip_stats, save_route_stats
+from .partridge_helper import prepare_partridge_feed
+from .local_files import get_dates_without_output, remote_key_to_local_path
+from .core_computations import get_zones_df, compute_route_stats, compute_trip_stats
 from .environment import init_conf
 from .s3 import get_latest_file, fetch_remote_file
 from .logging_config import configure_logger
 from .configuration import configuration
 from .s3_wrapper import S3Crud
 from .constants import GTFS_FILE_NAME, TARIFF_FILE_NAME
-
-
-def prepare_partridge_feed(date: datetime.date,
-                           gtfs_file_full_path: str,
-                           filtered_feeds_directory=configuration.files.full_paths.filtered_feeds):
-
-    if configuration.write_filtered_feed:
-        filtered_gtfs_path = join(filtered_feeds_directory, basename(gtfs_file_full_path))
-
-        logging.info(f'Filtering gtfs feed for {date} from {gtfs_file_full_path} into {filtered_gtfs_path}')
-        write_filtered_feed_by_date(gtfs_file_full_path, date, filtered_gtfs_path)
-
-        logging.info(f'Reading filtered feed for file from path {filtered_gtfs_path}')
-        feed = ptg_feed(filtered_gtfs_path)
-    else:
-        logging.info(f'Creating daily partridge feed for {date} from {gtfs_file_full_path}')
-        feed = get_partridge_feed_by_date(gtfs_file_full_path, date)
-
-    logging.debug(f'Finished creating daily partridge feed for {date} from {gtfs_file_full_path}')
-    return feed
 
 
 def log_trip_stats(ts: pd.DataFrame):
@@ -59,16 +39,6 @@ def log_route_stats(rs: pd.DataFrame):
     logging.debug(f'dc_route_id={rs.route_id.nunique()}')
     logging.debug(f'num_start_zones={rs.start_zone.nunique()}')
     logging.debug(f'num_agency={rs.agency_name.nunique()}')
-
-
-def save_trip_stats(ts: pd.DataFrame, output_path: str):
-    logging.info(f'Saving trip stats result DF to gzipped pickle {output_path}')
-    ts.to_pickle(output_path, compression='gzip')
-
-
-def save_route_stats(rs: pd.DataFrame, output_path: str):
-    logging.info(f'Saving route stats result DF to gzipped pickle {output_path}')
-    rs.to_pickle(output_path, compression='gzip')
 
 
 def analyze_gtfs_date(date: datetime.date,
@@ -117,14 +87,6 @@ def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> Li
         return [min_date + datetime.timedelta(days=days_delta)
                 for days_delta
                 in range(delta.days + 1)]
-
-
-def remote_key_to_local_path(date: datetime.date, remote_key: str) -> str:
-    local_file_name = split(remote_key)[-1]
-    local_full_path = join(configuration.files.full_paths.gtfs_feeds,
-                           date.strftime('%Y-%m-%d'),
-                           local_file_name)
-    return local_full_path
 
 
 def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
