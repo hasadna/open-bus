@@ -1,0 +1,22 @@
+html, body, #root {
+  height: 100%;
+}
+
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-grid {
+  margin: 0;
+  flex-grow: 1;
+}
+
+.main-grid-item-ride-selector {
+  height: 20%;
+}
+
+.main-grid-item-ride-viewer {
+  height: 80%;
+}
