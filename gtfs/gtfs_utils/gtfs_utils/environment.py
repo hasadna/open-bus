@@ -10,7 +10,7 @@ def mkdir_if_not_exists(dir_path):
 
 def init_conf():
     """ Initializes directories from configuration file """
-    if not os.path.exists(configuration.files.base_directory):
-        raise ValueError("Base directory does not exist")
+    mkdir_if_not_exists(configuration.files.base_directory)
+
     for dir_path in configuration.files.full_paths.all():
         mkdir_if_not_exists(dir_path)
