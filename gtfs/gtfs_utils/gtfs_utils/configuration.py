@@ -37,6 +37,7 @@ class FilesConfiguration:
     base_directory: str = None
     child_directories: ChildDirectories = None
     output_file_name_regexp: str = None
+    output_file_type: str = None
 
     def __init__(self):
         self.__full_paths = None

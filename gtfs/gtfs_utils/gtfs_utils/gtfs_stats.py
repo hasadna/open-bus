@@ -43,7 +43,8 @@ def log_route_stats(rs: pd.DataFrame):
 
 def analyze_gtfs_date(date: datetime.date,
                       local_full_paths: Dict[str, str],
-                      output_folder=configuration.files.full_paths.output):
+                      output_folder=configuration.files.full_paths.output,
+                      output_file_type=configuration.files.output_file_type):
     """
     Handles analysis of a single date for GTFS. Computes and saves stats files (currently trip_stats
     and route_stats).
@@ -53,8 +54,8 @@ def analyze_gtfs_date(date: datetime.date,
     """
 
     date_str = date.strftime('%Y-%m-%d')
-    trip_stats_output_path = join(output_folder, date_str + '_trip_stats.pkl.gz')
-    route_stats_output_path = join(output_folder, date_str + '_route_stats.pkl.gz')
+    trip_stats_output_path = join(output_folder, f'gtfs_stats_{date_str}_trip_stats')
+    route_stats_output_path = join(output_folder, f'gtfs_stats_{date_str}_route_stats')
 
     feed = prepare_partridge_feed(date, local_full_paths[GTFS_FILE_NAME])
 
@@ -65,11 +66,11 @@ def analyze_gtfs_date(date: datetime.date,
     gtfs_file_base_name = basename(local_full_paths[GTFS_FILE_NAME])
 
     ts = compute_trip_stats(feed, zones, date, gtfs_file_base_name)
-    save_trip_stats(ts, trip_stats_output_path)
+    save_trip_stats(ts, trip_stats_output_path, output_file_type)
     log_trip_stats(ts)
 
     rs = compute_route_stats(ts, date, gtfs_file_base_name)
-    save_route_stats(rs, route_stats_output_path)
+    save_route_stats(rs, route_stats_output_path, output_file_type)
     log_route_stats(rs)
 
 

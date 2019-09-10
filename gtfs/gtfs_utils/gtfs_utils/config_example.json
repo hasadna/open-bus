@@ -7,7 +7,8 @@
       "filtered_feeds": "filtered_feeds",
       "logs": "logs"
     },
-    "output_file_name_regexp": "^(?P<date_str>[^_]+?)_(?P<type>\\w+)\\.pkl\\.gz"
+    "output_file_name_regexp": "^(?P<date_str>[^_]+?)_(?P<type>\\w+)",
+    "output_file_type": "csv.gz"
   },
 
   "s3": {

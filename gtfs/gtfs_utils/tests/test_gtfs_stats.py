@@ -16,9 +16,10 @@ INPUT_LOCAL_FULL_PATHS = {
     GTFS_FILE_NAME: join(TEST_ASSETS_DIR, 'inputs', '2019-03-07-israel-public-transportation.zip'),
     TARIFF_FILE_NAME: join(TEST_ASSETS_DIR, 'inputs', '2019-03-07-Tariff.zip')
 }
+OUTPUT_FILE_TYPE = 'pkl.gz'
 OUTPUT_FILE_NAMES = [
-    f'{TEST_FILE_DATE_STR}_route_stats.pkl.gz',
-    f'{TEST_FILE_DATE_STR}_trip_stats.pkl.gz'
+    f'gtfs_stats_{TEST_FILE_DATE_STR}_route_stats.{OUTPUT_FILE_TYPE}',
+    f'gtfs_stats_{TEST_FILE_DATE_STR}_trip_stats.{OUTPUT_FILE_TYPE}'
 ]
 
 
@@ -39,7 +40,8 @@ def test_analyze_gtfs_date():
     os.makedirs(TEST_OUTPUTS_DIR, exist_ok=True)
     analyze_gtfs_date(date=TEST_FILE_DATE,
                       local_full_paths=INPUT_LOCAL_FULL_PATHS,
-                      output_folder=TEST_OUTPUTS_DIR)
+                      output_folder=TEST_OUTPUTS_DIR,
+                      output_file_type=OUTPUT_FILE_TYPE)
 
 
     for file_name in OUTPUT_FILE_NAMES:
