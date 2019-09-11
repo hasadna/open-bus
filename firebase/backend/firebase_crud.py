@@ -1,5 +1,7 @@
 from google.cloud import firestore
 
+# make sure you have GOOGLE_APPLICATION_CREDENTIALS environment variable pointing to service account credentials file
+# export GOOGLE_APPLICATION_CREDENTIALS="path/to/file"
 
 class BaseCrud:
     def __init__(self, connection: firestore.Client, collection_name: str):
