@@ -8,7 +8,7 @@ import pandas as pd
 import datetime
 import os
 import logging
-from os.path import join, dirname, basename
+from os.path import join, dirname, basename, split
 from typing import List, Dict
 from tqdm import tqdm
 from .output import save_trip_stats, save_route_stats
@@ -43,19 +43,21 @@ def log_route_stats(rs: pd.DataFrame):
 
 def analyze_gtfs_date(date: datetime.date,
                       local_full_paths: Dict[str, str],
-                      output_folder=configuration.files.full_paths.output,
-                      output_file_type=configuration.files.output_file_type):
+                      output_folder: str = configuration.files.full_paths.output,
+                      output_file_type: str = configuration.files.output_file_type) -> List[str]:
     """
     Handles analysis of a single date for GTFS. Computes and saves stats files (currently trip_stats
     and route_stats).
     :param date: the analyzed date
     :param local_full_paths: a dict where keys are the required MOT file names, and values are full local paths
     :param output_folder: local path to write output files to
+    :param output_file_type: The file type for the outputs (for example, csv.gz)
     """
 
     date_str = date.strftime('%Y-%m-%d')
-    trip_stats_output_path = join(output_folder, f'gtfs_stats_{date_str}_trip_stats')
-    route_stats_output_path = join(output_folder, f'gtfs_stats_{date_str}_route_stats')
+    file_prefix = f'gtfs_stats_{date_str}'
+    trip_stats_output_path = join(output_folder, f'{file_prefix}_trip_stats.{output_file_type}')
+    route_stats_output_path = join(output_folder, f'{file_prefix}_route_stats.{output_file_type}')
 
     feed = prepare_partridge_feed(date, local_full_paths[GTFS_FILE_NAME])
 
@@ -66,12 +68,14 @@ def analyze_gtfs_date(date: datetime.date,
     gtfs_file_base_name = basename(local_full_paths[GTFS_FILE_NAME])
 
     ts = compute_trip_stats(feed, zones, date, gtfs_file_base_name)
-    save_trip_stats(ts, trip_stats_output_path, output_file_type)
+    save_trip_stats(ts, trip_stats_output_path)
     log_trip_stats(ts)
 
     rs = compute_route_stats(ts, date, gtfs_file_base_name)
-    save_route_stats(rs, route_stats_output_path, output_file_type)
+    save_route_stats(rs, route_stats_output_path)
     log_route_stats(rs)
+
+    return [route_stats_output_path, trip_stats_output_path]
 
 
 def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> List[datetime.date]:
@@ -135,6 +139,7 @@ def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
         logging.info(f'Finished files download')
 
         logging.info(f'Starting analyzing files for {len(dates_without_output)} dates')
+        all_result_files = []
         with tqdm(dates_without_output, unit='date', desc='Analyzing') as progress_bar:
             for current_date in progress_bar:
                 progress_bar.set_postfix_str(current_date)
@@ -143,8 +148,22 @@ def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
                     for mot_file_name, (date, remote_key)
                     in remote_files_mapping[current_date].items()
                 }
-                analyze_gtfs_date(current_date, local_full_paths, output_folder=output_folder)
+                current_result_files = analyze_gtfs_date(current_date,
+                                                         local_full_paths,
+                                                         output_folder=output_folder)
+                all_result_files.extend(current_result_files)
         logging.info(f'Finished analyzing files')
+
+        if configuration.s3.upload_results:
+            logging.info(f'Starting upload of {len(all_result_files)} result files')
+            with tqdm(all_result_files, unit='file', desc='Uploading') as progress_bar:
+                for current_file in progress_bar:
+                    progress_bar.set_postfix_str(current_file)
+                    cloud_results_path = configuration.s3.results_path.rstrip('/')
+                    cloud_key = f'{cloud_results_path}/{split(current_file)[1]}'
+                    logging.info(f'Uploading {current_file} to {cloud_key}')
+                    crud.upload_one_file(current_file, cloud_key)
+            logging.info(f'Finished upload of result files')
 
         if delete_downloaded_gtfs_zips:
             logging.info(f'Starting removing downloaded files')

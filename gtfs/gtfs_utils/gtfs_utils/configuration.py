@@ -58,6 +58,9 @@ class S3Configuration:
     secret_access_key: str = None
     s3_endpoint_url: str = None
     bucket_name: str = None
+    upload_results: bool = False
+    results_path: str = None
+
 
 @dataclass
 class Configuration:

@@ -40,7 +40,6 @@ class S3Crud:
                    bucket_name=s3_configuration.bucket_name,
                    endpoint_url=s3_configuration.s3_endpoint_url)
 
-
     def upload_one_file(self, local_file: str, cloud_key: str) -> None:
         self.client.upload_file(Filename=local_file, Key=cloud_key, Bucket=self.bucket_name)
 
