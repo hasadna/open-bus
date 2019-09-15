@@ -7,6 +7,8 @@ from multiprocessing import cpu_count
 NUMBER_OF_ITEMS_IN_ITERABLE_BATCH = 500
 NUMBER_OF_ITEMS_IN_PARALLEL_BATCH = 200
 
+# make sure you have GOOGLE_APPLICATION_CREDENTIALS environment variable pointing to service account credentials file
+# export GOOGLE_APPLICATION_CREDENTIALS="path/to/file"
 
 class BaseCrud:
     def __init__(self, connection: firestore.Client, collection_name: str):
