@@ -8,7 +8,7 @@ import pandas as pd
 import datetime
 import os
 import logging
-from os.path import join, dirname, basename
+from os.path import join, dirname, basename, split
 from typing import List, Dict
 from tqdm import tqdm
 from .output import save_trip_stats, save_route_stats
@@ -43,18 +43,20 @@ def log_route_stats(rs: pd.DataFrame):
 
 def analyze_gtfs_date(date: datetime.date,
                       local_full_paths: Dict[str, str],
-                      output_folder=configuration.files.full_paths.output):
+                      output_folder: str = configuration.files.full_paths.output,
+                      output_file_type: str = configuration.files.output_file_type) -> List[str]:
     """
     Handles analysis of a single date for GTFS. Computes and saves stats files (currently trip_stats
     and route_stats).
     :param date: the analyzed date
     :param local_full_paths: a dict where keys are the required MOT file names, and values are full local paths
     :param output_folder: local path to write output files to
+    :param output_file_type: The file type for the outputs (for example, csv.gz)
     """
 
     date_str = date.strftime('%Y-%m-%d')
-    trip_stats_output_path = join(output_folder, date_str + '_trip_stats.pkl.gz')
-    route_stats_output_path = join(output_folder, date_str + '_route_stats.pkl.gz')
+    trip_stats_output_path = join(output_folder, f'trip_stats_{date_str}.{output_file_type}')
+    route_stats_output_path = join(output_folder, f'route_stats_{date_str}.{output_file_type}')
 
     feed = prepare_partridge_feed(date, local_full_paths[GTFS_FILE_NAME])
 
@@ -71,6 +73,8 @@ def analyze_gtfs_date(date: datetime.date,
     rs = compute_route_stats(ts, date, gtfs_file_base_name)
     save_route_stats(rs, route_stats_output_path)
     log_route_stats(rs)
+
+    return [route_stats_output_path, trip_stats_output_path]
 
 
 def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> List[datetime.date]:
@@ -134,6 +138,7 @@ def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
         logging.info(f'Finished files download')
 
         logging.info(f'Starting analyzing files for {len(dates_without_output)} dates')
+        all_result_files = []
         with tqdm(dates_without_output, unit='date', desc='Analyzing') as progress_bar:
             for current_date in progress_bar:
                 progress_bar.set_postfix_str(current_date)
@@ -142,17 +147,31 @@ def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
                     for mot_file_name, (date, remote_key)
                     in remote_files_mapping[current_date].items()
                 }
-                analyze_gtfs_date(current_date, local_full_paths, output_folder=output_folder)
+                current_result_files = analyze_gtfs_date(current_date,
+                                                         local_full_paths,
+                                                         output_folder=output_folder)
+                all_result_files.extend(current_result_files)
         logging.info(f'Finished analyzing files')
 
+        if configuration.s3.upload_results:
+            logging.info(f'Starting upload of {len(all_result_files)} result files')
+            with tqdm(all_result_files, unit='file', desc='Uploading') as progress_bar:
+                for current_file in progress_bar:
+                    progress_bar.set_postfix_str(current_file)
+                    cloud_results_path_prefix = configuration.s3.results_path_prefix.rstrip('/')
+                    cloud_key = f'{cloud_results_path_prefix}/{split(current_file)[1]}'
+                    logging.info(f'Uploading {current_file} to {cloud_key}')
+                    crud.upload_one_file(current_file, cloud_key)
+            logging.info(f'Finished upload of result files')
+
         if delete_downloaded_gtfs_zips:
-            logging.info(f'Starting removing downloaded files')
+            logging.info(f'Starting removal of downloaded files')
             with tqdm(all_local_full_paths, unit='file', desc='Removing') as progress_bar:
                 for local_full_path in progress_bar:
                     os.remove(local_full_path)
                     if len(os.listdir(dirname(local_full_path))) == 0:
                         os.removedirs(dirname(local_full_path))
-            logging.info(f'Finished removing downloaded files')
+            logging.info(f'Finished removal of downloaded files')
     except:
         logging.error('Failed', exc_info=True)
 

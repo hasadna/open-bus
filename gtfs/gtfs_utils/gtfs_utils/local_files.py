@@ -15,11 +15,20 @@ def _get_existing_output_files(output_folder: str) -> List[Tuple[datetime.date, 
     if not exists(output_folder):
         return []
 
-    return [(datetime.datetime.strptime(g[0], '%Y-%m-%d').date(), g[1])
-            for g
-            in (re.match(configuration.files.output_file_name_regexp, file).groups()
-                for file
-                in listdir(output_folder))]
+    file_name_re = configuration.files.output_file_name_regexp
+    file_type_re = configuration.files.output_file_type.replace('.', '\\.')
+    regexp = file_name_re + '\\.' + file_type_re
+
+    existing_output_files = []
+
+    for file in listdir(output_folder):
+        match = re.match(regexp, file)
+        if match:
+            date_str, stats_type = match.groups()
+            file_type = (datetime.datetime.strptime(date_str, '%Y-%m-%d').date(), stats_type)
+            existing_output_files.append(file_type)
+
+    return existing_output_files
 
 
 def get_dates_without_output(dates: List[datetime.date], output_folder: str) -> List[datetime.date]:

@@ -37,6 +37,7 @@ class FilesConfiguration:
     base_directory: str = None
     child_directories: ChildDirectories = None
     output_file_name_regexp: str = None
+    output_file_type: str = None
 
     def __init__(self):
         self.__full_paths = None
@@ -57,6 +58,9 @@ class S3Configuration:
     secret_access_key: str = None
     s3_endpoint_url: str = None
     bucket_name: str = None
+    upload_results: bool = False
+    results_path_prefix: str = None
+
 
 @dataclass
 class Configuration:
