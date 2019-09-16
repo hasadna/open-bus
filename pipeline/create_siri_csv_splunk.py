@@ -24,13 +24,75 @@ def timestr_to_seconds(x, *, only_mins=False):
     return result
 
 
-def create_trip_df_v2(path, drop=['desc'], add_date=True):
-    """
-    Relevant from June 2019, when the SIRI retreiver was updated to retreive more fields.
-    :param path:
-    :param drop:
-    :param add_date:
-    :return:
+# TODO - must test the function after our changes
+def create_trip_df_v2(path, add_date=True):
+    """ Process log file with raw siri data coming from SIRI retreiver service to make
+    it ready for being dumped into the Open Bus splunk database.
+
+    Processing include splitting columns and converting columns types.
+
+    This function determines the format of the real-time bus data we store,
+    and therefore this documentation is an important building block of Open Bus data.
+
+    This function is heavily based on the format of the log file, and therefore should be
+    adjusted on any change being done to it in the SIRI retreiver code.
+
+    This function started being used online on June 2019, when the SIRI retreiver was updated to
+    retrieve more data fields such as "planned_start_date".
+    ## explain explicitly the changes from v1.
+
+    :param path: path to csv file which is the log output of SIRI retreiver
+                    ##mention specific function#
+    :param add_date: bool, for now, used only for backward compatibility to v1, which
+    had to "planned start date" field. After we will rerun the adjustments of v2 on v1 processed
+    data, this field can be removed. The user should change the default value.
+    #TODO edit
+
+    TODO - add details about the Jenkins service that runs this script automatically and saves
+            at S3.
+
+    :return: pandas DataFrame with columns as described below
+
+    Real time bus data table has the following columns:
+
+    ## TODO - when finished, order the columns alphabetically
+    ## TODO - provide link to the GTFS stats docs, and explain that many columns can be
+              joined to the data there to extract more information.
+
+    TODO - add reference to the relevant original GTFS field name and the original siri name.
+
+    - ``timestamp`` - Time of receiving the record, determined by the time zone configured for
+                      the machine that the siri_retreiver runs on, which is aimed to be configured
+                      to Israel time. We don't know now about the clock daylight saving times.
+                      Should be used only relatively
+                       to other timestamps,
+    TODO - how to describe formally the time zone, and include explanation of summer/winter clock.
+    TODO - add exact format of the timestamp.
+    - ``agency_id`` - Identifies a transit brand that operates the service.
+    TODO provide more details about the possible ids and the way to cross them with agency names
+    - ``route_id`` - Identifies a route. In our data, route mostly represents a specific path that
+                     the bus travels. Multiple route ids with a single `route_short_name` represent
+                     multiple alternatives for the same line ("חלופות") that are mostly differ by
+                     a small number of stops.
+    - ``route_short_name`` - A short, abstract identifier like that riders use to identify a route,
+                             but which doesn't give any indication of what places the route serves.
+                             There could be multiple route_id values for the same
+                             `route_short_name`, representing either a few close alternatives of
+                             the same route, or absolutely different routes - mostly in different
+                             areas and/or operated by different agencies.
+    - ``service_id`` -
+
+
+
+    "", "", "",
+             "planned_start_date", "planned_start_time", "bus_id",
+             "predicted_end_date", "predicted_end_time",
+             "date_recorded", "time_recorded", "lat", "lon",
+             "data_frame_ref", "stop_point_ref", "vehicle_at_stop",
+             "log_version", "date"
+
+
+
     """
     header = ["timestamp", "desc", "agency_id",
               "route_id", "route_short_name", "service_id",
@@ -39,9 +101,8 @@ def create_trip_df_v2(path, drop=['desc'], add_date=True):
               "data_frame_ref", "stop_point_ref", "vehicle_at_stop",
               "log_version"]
     df = pd.read_csv(path, header=None, error_bad_lines=False)
-    df.columns = header
-    if drop is not None:
-        df = df.drop(drop, axis=1)
+    df.columns = header # TODO - why not directly mentioning it within the read_csv command?
+
     df = (df.assign(agency_id=lambda x: x.agency_id.astype(int))
           .assign(service_id=lambda x: x.service_id.astype(int))
           .assign(route_id=lambda x: x.route_id.astype(int))
@@ -52,16 +113,19 @@ def create_trip_df_v2(path, drop=['desc'], add_date=True):
     df[['predicted_end_date', 'predicted_end_time']] = df.predicted_end_time.str.split('T', expand=True)
     df[['planned_start_date', 'planned_start_time']] = df.planned_start_time.str.split('T', expand=True)
 
-    if add_date:
-        df = (df.assign(date=lambda x: x.planned_start_date))
-
-    df = df[["timestamp", "agency_id",
+    output_cols = ["timestamp", "agency_id",
              "route_id", "route_short_name", "service_id",
              "planned_start_date", "planned_start_time", "bus_id",
              "predicted_end_date", "predicted_end_time",
              "date_recorded", "time_recorded", "lat", "lon",
              "data_frame_ref", "stop_point_ref", "vehicle_at_stop",
-             "log_version", "date"]]
+             "log_version"]
+
+    if add_date:
+        df = (df.assign(date=lambda x: x.planned_start_date))
+        output_cols += ["date"]
+
+    df = df[output_cols]
     return df
 
 
