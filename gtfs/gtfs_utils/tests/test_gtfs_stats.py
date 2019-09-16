@@ -18,8 +18,8 @@ INPUT_LOCAL_FULL_PATHS = {
 }
 OUTPUT_FILE_TYPE = 'pkl.gz'
 OUTPUT_FILE_NAMES = [
-    f'gtfs_stats_{TEST_FILE_DATE_STR}_route_stats.{OUTPUT_FILE_TYPE}',
-    f'gtfs_stats_{TEST_FILE_DATE_STR}_trip_stats.{OUTPUT_FILE_TYPE}'
+    f'route_stats_{TEST_FILE_DATE_STR}.{OUTPUT_FILE_TYPE}',
+    f'trip_stats_{TEST_FILE_DATE_STR}.{OUTPUT_FILE_TYPE}'
 ]
 
 
