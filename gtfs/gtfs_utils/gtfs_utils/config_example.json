@@ -7,7 +7,7 @@
       "filtered_feeds": "filtered_feeds",
       "logs": "logs"
     },
-    "output_file_name_regexp": "^gtfs_stats_(?P<date_str>[^_]+?)_(?P<type>\\w+)",
+    "output_file_name_regexp": "^(?P<date_str>[^_]+?)_(?P<type>\\w+)",
     "output_file_type": "csv.gz"
   },
 
@@ -17,7 +17,7 @@
     "s3_endpoint_url": "https://ams3.digitaloceanspaces.com",
     "bucket_name": "obus-do2",
     "upload_results": false,
-    "results_path": "gtfs_stats_results/"
+    "results_path_prefix": "gtfs_stats_results/"
   },
 
   "use_data_from_today": false,

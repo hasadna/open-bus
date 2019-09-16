@@ -55,9 +55,8 @@ def analyze_gtfs_date(date: datetime.date,
     """
 
     date_str = date.strftime('%Y-%m-%d')
-    file_prefix = f'gtfs_stats_{date_str}'
-    trip_stats_output_path = join(output_folder, f'{file_prefix}_trip_stats.{output_file_type}')
-    route_stats_output_path = join(output_folder, f'{file_prefix}_route_stats.{output_file_type}')
+    trip_stats_output_path = join(output_folder, f'trip_stats_{date_str}.{output_file_type}')
+    route_stats_output_path = join(output_folder, f'route_stats_{date_str}.{output_file_type}')
 
     feed = prepare_partridge_feed(date, local_full_paths[GTFS_FILE_NAME])
 
@@ -159,20 +158,20 @@ def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
             with tqdm(all_result_files, unit='file', desc='Uploading') as progress_bar:
                 for current_file in progress_bar:
                     progress_bar.set_postfix_str(current_file)
-                    cloud_results_path = configuration.s3.results_path.rstrip('/')
-                    cloud_key = f'{cloud_results_path}/{split(current_file)[1]}'
+                    cloud_results_path_prefix = configuration.s3.results_path_prefix.rstrip('/')
+                    cloud_key = f'{cloud_results_path_prefix}/{split(current_file)[1]}'
                     logging.info(f'Uploading {current_file} to {cloud_key}')
                     crud.upload_one_file(current_file, cloud_key)
             logging.info(f'Finished upload of result files')
 
         if delete_downloaded_gtfs_zips:
-            logging.info(f'Starting removing downloaded files')
+            logging.info(f'Starting removal of downloaded files')
             with tqdm(all_local_full_paths, unit='file', desc='Removing') as progress_bar:
                 for local_full_path in progress_bar:
                     os.remove(local_full_path)
                     if len(os.listdir(dirname(local_full_path))) == 0:
                         os.removedirs(dirname(local_full_path))
-            logging.info(f'Finished removing downloaded files')
+            logging.info(f'Finished removal of downloaded files')
     except:
         logging.error('Failed', exc_info=True)
 

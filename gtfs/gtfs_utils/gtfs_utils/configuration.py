@@ -59,7 +59,7 @@ class S3Configuration:
     s3_endpoint_url: str = None
     bucket_name: str = None
     upload_results: bool = False
-    results_path: str = None
+    results_path_prefix: str = None
 
 
 @dataclass
