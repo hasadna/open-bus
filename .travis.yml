@@ -10,6 +10,7 @@ matrix:
         - cd - 
       # commands to run tests
       script:
+        - ls -la
         - cd ./firebase/firebase_backend/firebase/backend
         - coverage run test_baseCrud.py
         - codecov
