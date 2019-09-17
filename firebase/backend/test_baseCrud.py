@@ -1,3 +1,4 @@
+import unittest
 from unittest import TestCase
 from unittest.mock import MagicMock
 from unittest.mock import call
@@ -68,3 +69,6 @@ class TestBaseCrud(TestCase):
 
         # Assert
         self.assertEqual(expected, actual)
+
+if __name__ == '__main__':
+    unittest.main()
