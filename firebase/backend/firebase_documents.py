@@ -7,6 +7,10 @@ class FirebaseDocument(object):
     def to_firebase_dict(self):
         raise NotImplementedError()
 
+    # noinspection PyMethodMayBeStatic
+    def get_firebase_id(self) -> object:
+        return None
+
 
 class Point(FirebaseDocument):
     def __init__(self, lat: float, lon: float):

@@ -14,10 +14,12 @@ siri_rides_crud = BaseCrud(connection=conn, collection_name='siri_rides')
 ```python
 from google.cloud import firestore
 from firebase_crud import BaseCrud
+from firebase_documents import Point
+
 
 conn = firestore.Client(project='openbus')
 siri_rides_crud = BaseCrud(connection=conn, collection_name='siri_rides')
-doc = dict(foo='bar')
+doc = Point(1.1, 2.2)
 siri_rides_crud.create(content=doc)
 ```
 
@@ -25,10 +27,11 @@ siri_rides_crud.create(content=doc)
 ```python
 from google.cloud import firestore
 from firebase_crud import BaseCrud
+from firebase_documents import Point
 
 conn = firestore.Client(project='openbus')
 siri_rides_crud = BaseCrud(connection=conn, collection_name='siri_rides')
-doc = dict(foo='bar')
+doc = Point(1.1, 2.2)
 siri_rides_crud.create(content=doc, doc_id='baz')
 result = siri_rides_crud.read(doc_id='baz')
 ```
@@ -47,6 +50,6 @@ doc = SiriRide(route_id=1001, agency_id=5, bus_id='23456', planned_start_datetim
                points=[SiriPoint(point=Point(1.1, 2.2), rec_dt=datetime.fromtimestamp(1),
                pred_dt=datetime.fromtimestamp(1))], foo=4)
 
-siri_rides_crud.create(content=doc.to_firebase_dict())
+siri_rides_crud.create(content=doc)
 
 ```

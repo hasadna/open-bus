@@ -4,6 +4,8 @@ from unittest.mock import MagicMock
 from unittest.mock import call
 from firebase_crud import BaseCrud, grouper
 
+from firebase_documents import Point
+
 
 # noinspection PyTypeChecker
 class TestBaseCrud(TestCase):
@@ -29,17 +31,36 @@ class TestBaseCrud(TestCase):
     def test_create(self):
         # Arrange
         expected_doc_id = 'foo'
-        expected_content = {}
+        expected_content = Point(1.1, 2.2)
         mock_conn = MagicMock()
 
         crud = BaseCrud(None, None)
         crud._create_document_ref = mock_conn
 
         # Expected
-        expected_conn_call_list = call(doc_id=expected_doc_id).create(expected_content).call_list()
+        expected_conn_call_list = call(doc_id=expected_doc_id).create(expected_content.to_firebase_dict()).call_list()
 
         # Act
         crud.create(content=expected_content, doc_id=expected_doc_id)
+
+        # Assert
+        self.assertEqual(expected_conn_call_list, mock_conn.mock_calls)
+
+    def test_create_use_get_firebase_id(self):
+        # Arrange
+        expected_doc_id = 'foo'
+        expected_content = Point(1.1, 2.2)
+        expected_content.get_firebase_id = lambda: expected_doc_id
+        mock_conn = MagicMock()
+
+        crud = BaseCrud(None, None)
+        crud._create_document_ref = mock_conn
+
+        # Expected
+        expected_conn_call_list = call(doc_id=expected_doc_id).create(expected_content.to_firebase_dict()).call_list()
+
+        # Act
+        crud.create(content=expected_content)
 
         # Assert
         self.assertEqual(expected_conn_call_list, mock_conn.mock_calls)
@@ -68,6 +89,7 @@ class TestBaseCrud(TestCase):
 
         # Assert
         self.assertEqual(expected, actual)
+
 
 if __name__ == '__main__':
     unittest.main()
