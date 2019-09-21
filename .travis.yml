@@ -5,13 +5,13 @@ matrix:
       python:
         - "3.7"
       install:
-        - cd ./firebase/firebase_backend/firebase/backend
+        - cd ./firebase/backend/
         - pip install -r requirements.txt
-        - cd - 
+        - pip install codecov coverage
+        - cd -
       # commands to run tests
       script:
-        - ls -la
-        - cd ./firebase/firebase_backend/firebase/backend
+        - cd ./firebase/backend/
         - coverage run test_baseCrud.py
         - codecov
     - language: python
