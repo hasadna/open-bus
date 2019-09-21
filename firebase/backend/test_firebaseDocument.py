@@ -8,6 +8,11 @@ class TestFirebaseDocument(TestCase):
     def test_to_firebase_dict(self):
         self.assertRaises(NotImplementedError, FirebaseDocument().to_firebase_dict)
 
+    def test_get_firebase_id(self):
+        expected = None
+        actual = FirebaseDocument().get_firebase_id()
+        self.assertEqual(expected, actual)
+
 
 class TestSiriRide(TestCase):
     def test__init__(self):
