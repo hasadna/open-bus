@@ -17,7 +17,7 @@ class TestBaseCrud(TestCase):
         crud = BaseCrud(mock_conn, collection_name=expected_collection_name)
 
         # Act
-        crud._collection_ref(doc_id=expected_doc_id)
+        crud._create_document_ref(doc_id=expected_doc_id)
 
         # Assert
         expected_conn_call_list = call.collection(expected_collection_name).document(document_id=expected_doc_id)\
@@ -32,7 +32,7 @@ class TestBaseCrud(TestCase):
         mock_conn = MagicMock()
 
         crud = BaseCrud(None, None)
-        crud._collection_ref = mock_conn
+        crud._create_document_ref = mock_conn
 
         # Expected
         expected_conn_call_list = call(doc_id=expected_doc_id).create(expected_content).call_list()
@@ -47,7 +47,7 @@ class TestBaseCrud(TestCase):
         # Arrange
         doc_id = 'foo'
         crud = BaseCrud(None, None)
-        crud._collection_ref = MagicMock()
+        crud._create_document_ref = MagicMock()
 
         # Expect
         expected_conn_call_list = call(doc_id).get().call_list()
@@ -56,8 +56,7 @@ class TestBaseCrud(TestCase):
         crud.read(doc_id=doc_id)
 
         # Assert
-        self.assertEqual(expected_conn_call_list, crud._collection_ref.mock_calls)
-
+        self.assertEqual(expected_conn_call_list, crud._create_document_ref.mock_calls)
 
     def test_grouper(self):
         # Expect

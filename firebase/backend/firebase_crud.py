@@ -2,6 +2,7 @@ import itertools
 from google.cloud import firestore
 from multiprocessing.dummy import Pool as ThreadPool
 from multiprocessing import cpu_count
+from typing import Iterator, Dict
 
 # Max 500
 NUMBER_OF_ITEMS_IN_ITERABLE_BATCH = 500
@@ -10,21 +11,22 @@ NUMBER_OF_ITEMS_IN_PARALLEL_BATCH = 200
 # make sure you have GOOGLE_APPLICATION_CREDENTIALS environment variable pointing to service account credentials file
 # export GOOGLE_APPLICATION_CREDENTIALS="path/to/file"
 
+
 class BaseCrud:
     def __init__(self, connection: firestore.Client, collection_name: str):
         self.connection = connection
         self.collection_name = collection_name
 
-    def _collection_ref(self, doc_id=None):
+    def _create_document_ref(self, doc_id=None):
         return self.connection.collection(self.collection_name).document(document_id=doc_id)
 
     def create(self, content, doc_id=None):
-        self._collection_ref(doc_id=doc_id).create(content)
+        self._create_document_ref(doc_id=doc_id).create(content)
 
     def read(self, doc_id):
-        return self._collection_ref(doc_id).get()
+        return self._create_document_ref(doc_id).get()
 
-    def create_multi(self, contents, parallel=False):
+    def create_multi(self, contents: Iterator[Dict[None,None]], parallel=False):
         if not parallel:
             for chunk_of_rides in grouper(NUMBER_OF_ITEMS_IN_ITERABLE_BATCH, contents):
                 self._batch_commit(chunk_of_rides)
@@ -46,10 +48,15 @@ class BaseCrud:
         pool.join()
 
 
-def grouper(n, iterable):
+def grouper(n, iterable: Iterator):
     it = iter(iterable)
     while True:
         chunk = tuple(itertools.islice(it, n))
         if not chunk:
             return
         yield chunk
+
+
+
+
+
