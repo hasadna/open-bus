@@ -39,7 +39,7 @@ function renderPoint(point, index) {
             {lightFormat(point.recordedDateTime, "HH:mm:ss")}
           </Tooltip>
         </Marker>
-    );
+    ); 
 }
 
 function renderMap(data) {
