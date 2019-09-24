@@ -20,68 +20,70 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
+@Service
 public class GtfsFtp {
 
-	private static final String HOST = "gtfs.mot.gov.il";
-	private static final String FILE_NAME = "israel-public-transportation.zip";
+    private static final String HOST = "gtfs.mot.gov.il";
+    private static final String FILE_NAME = "israel-public-transportation.zip";
     private static final String MAKAT_FILE_NAME_ON_FTP = "TripIdToDate.zip";
     private static final String TEMP_DIR = "/tmp/";
 
-	private static Logger logger = LoggerFactory.getLogger(GtfsFtp.class);
+    private static Logger logger = LoggerFactory.getLogger(GtfsFtp.class);
 
-	FTPClient connect(String host) throws IOException {
-		FTPClient ftpClient = createFTPClient();
-		try {
-		if (System.getProperty("gtfs.connect.timeout") != null) {
-		    int timeout = Integer.parseInt(System.getProperty("gtfs.connect.timeout"));
-            ftpClient.setConnectTimeout(timeout);    // milliseconds
-        } }
+    FTPClient connect(String host) throws IOException {
+        FTPClient ftpClient = createFTPClient();
+        try {
+            if (System.getProperty("gtfs.connect.timeout") != null) {
+                int timeout = Integer.parseInt(System.getProperty("gtfs.connect.timeout"));
+                ftpClient.setConnectTimeout(timeout);    // milliseconds
+            } }
         catch (Exception ex) {
-		    // absorb on purpose, timeout will remain as it was
+            // absorb on purpose, timeout will remain as it was
             logger.warn("absorbing exception while parsing value of system property gtfs.connect.timeout", ex);
         }
-		ftpClient.connect(host);
-		ftpClient.login("anonymous", "");
-		ftpClient.enterLocalPassiveMode();
-		ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-		if (!FTPReply.isPositiveCompletion(ftpClient.getReplyCode())) {
-			throw new IOException("Faild to connect to: " + host);
-		}
-		return ftpClient;
-	}
+        ftpClient.connect(host);
+        ftpClient.login("anonymous", "");
+        ftpClient.enterLocalPassiveMode();
+        ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+        if (!FTPReply.isPositiveCompletion(ftpClient.getReplyCode())) {
+            throw new IOException("Faild to connect to: " + host);
+        }
+        return ftpClient;
+    }
 
-	public Path downloadGtfsZipFile() throws IOException {
-	    try {
+    public Path downloadGtfsZipFile() throws IOException {
+        try {
             return downloadGtfsZipFile(createTempFile("gtfs"));
         }
         catch (DownloadFailedException ex) {
-	        // use an older file
+            // use an older file
             logger.info("handling DownloadFailedException, search older gtfs files...");
-	        Path olderGtfs = findOlderGtfsFile(LocalDate.now());
-	        if (olderGtfs != null) {
+            Path olderGtfs = findOlderGtfsFile(LocalDate.now());
+            if (olderGtfs != null) {
                 logger.info("using newest older gtfs file {}", olderGtfs.getFileName());
             }
             else {
                 logger.info("older gtfs files were not found!");
             }
-	        return olderGtfs;
+            return olderGtfs;
         }
-	}
+    }
 
     public static Path findOlderGtfsFile(LocalDate now) throws IOException {
-	    File dir = new File(TEMP_DIR);
-	    if (!dir.isDirectory()) {
-	        throw new DownloadFailedException("can't find directory " + TEMP_DIR);
+        File dir = new File(TEMP_DIR);
+        if (!dir.isDirectory()) {
+            throw new DownloadFailedException("can't find directory " + TEMP_DIR);
         }
         File[] x = dir.listFiles();
-	    logger.trace("all files: [{}]", Arrays.stream(x).map(file -> file.getName()).collect(Collectors.joining(",")));
-	    List<File> allGtfsFiles =
-            Arrays.asList(x).stream().
-                filter(file -> !file.isDirectory() && file.getName().startsWith("gtfs") && file.getName().endsWith("zip")).
-                sorted(File::compareTo).
-                collect(Collectors.toList());
-	    if (allGtfsFiles.isEmpty()) return null;
+        logger.trace("all files: [{}]", Arrays.stream(x).map(file -> file.getName()).collect(Collectors.joining(",")));
+        List<File> allGtfsFiles =
+                Arrays.asList(x).stream().
+                        filter(file -> !file.isDirectory() && file.getName().startsWith("gtfs") && file.getName().endsWith("zip")).
+                        sorted(File::compareTo).
+                        collect(Collectors.toList());
+        if (allGtfsFiles.isEmpty()) return null;
         Collections.reverse(allGtfsFiles);  // reverse so we get the newest file first
         logger.info("all gtfs files: [{}]", allGtfsFiles.stream().map(file -> file.getName()).collect(Collectors.joining(",")));
         File newestGtfs = allGtfsFiles.stream().
@@ -92,13 +94,13 @@ public class GtfsFtp {
     }
 
     Path createTempFile(String prefix) throws IOException {
-		return Files.createTempFile(prefix, null);
-	}
+        return Files.createTempFile(prefix, null);
+    }
 
     public Path downloadMakatZipFile() throws IOException {
-	    logger.info("downloading makat file");
+        logger.info("downloading makat file");
         Path makatFile = downloadMakatZipFile(createTempFile("makat"));
-	    logger.info("makat file downloaded as {}", makatFile);
+        logger.info("makat file downloaded as {}", makatFile);
 
         logger.info("unzipping makat file");
         GtfsZipFile makatZipFile = new GtfsZipFile(makatFile);
@@ -106,7 +108,7 @@ public class GtfsFtp {
         logger.info("unzipped makat file to {}", unzippedMakatTempFile);
         Path unzippedMakatFile = renameFile(unzippedMakatTempFile, "TripIdToDate", ".txt");
         logger.info("renamed unzipped makat file to {}", unzippedMakatFile);
-	    return unzippedMakatFile;
+        return unzippedMakatFile;
     }
 
     private Path downloadMakatZipFile(final Path pathIn) throws IOException {
@@ -191,7 +193,7 @@ public class GtfsFtp {
     }
 
     private Path renameFile(final Path path, final String prefix) {
-	    return renameFile(path, prefix, ".zip");
+        return renameFile(path, prefix, ".zip");
     }
     private Path renameFile(final Path path, final String prefix, final String suffix) {
         try {
@@ -208,7 +210,7 @@ public class GtfsFtp {
     }
 
     FTPClient createFTPClient() {
-		return new FTPClient();
-	}
+        return new FTPClient();
+    }
 
 }

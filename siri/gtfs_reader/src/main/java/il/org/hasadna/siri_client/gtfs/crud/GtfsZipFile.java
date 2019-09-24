@@ -29,7 +29,7 @@ public class GtfsZipFile {
 
 	/**
 	 * Extracts a ZIP entry (file name) to temporary file
-	 * 
+	 *
 	 * @param fileName
 	 *            The name of the entry in ZIP file
 	 * @param fileLabel
