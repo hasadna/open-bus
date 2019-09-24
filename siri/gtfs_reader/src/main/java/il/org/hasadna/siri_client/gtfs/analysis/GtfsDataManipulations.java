@@ -9,12 +9,8 @@ import java.util.stream.Stream;
 
 import il.org.hasadna.siri_client.gtfs.crud.*;
 import il.org.hasadna.siri_client.gtfs.crud.Calendar;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class GtfsDataManipulations {
-
-	private static Logger logger = LoggerFactory.getLogger(GtfsDataManipulations.class);
 
 	private GtfsCrud gtfsCrud;
 
@@ -56,7 +52,7 @@ public class GtfsDataManipulations {
 	 * find calendars that active in a given date. The method check that the given
 	 * date is between the start date and end date of the calendar and that the
 	 * given date day of week is present in the calendar
-	 * 
+	 *
 	 * @param date
 	 * @return collection of relevant calendars
 	 * @throws IOException
@@ -127,7 +123,6 @@ public class GtfsDataManipulations {
 	}
 
 	private GtfsRecord createGtfsRecord(Trip currTrip) {
-		try {
 		Calendar currCalendar = getCalendars().get(currTrip.getServiceId());
 
 		List<StopTime> tmpStopTimes = getStopTimes().get(currTrip.getTripId());
@@ -138,12 +133,6 @@ public class GtfsDataManipulations {
 		StopTime currFirstStopTime = tmpStopTimes.stream().min(Comparator.comparing(StopTime::getStopSequence)).get();
 		Stop currFirstStop = getStops().get(currFirstStopTime.getStopId());
 		return new GtfsRecord(currTrip, currCalendar, currFirstStopTime, currFirstStop, currLastStopTime, currLastStop);
-		}
-		catch (Exception ex) {
-			logger.error("unexpected exception in createGtfsRecord", ex);
-			logger.error("currTrip: {}", currTrip.toString());
-			return null;
-		}
 	}
 
 }

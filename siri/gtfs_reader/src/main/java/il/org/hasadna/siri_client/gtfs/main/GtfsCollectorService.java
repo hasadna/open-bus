@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Collection;
 import java.util.Optional;
+import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ public class GtfsCollectorService {
     private SiriCollectorClient siriCollectorClient;
     private GtfsFtp gtfsFtp;
     private LocalDate dateOfLastReschedule;
+    private LocalDate dateOfLastDownload;
 
     @Autowired
     public GtfsCollectorService(SiriCollectorClient siriCollectorClient, GtfsFtp gtfsFtp) {
@@ -62,12 +64,12 @@ public class GtfsCollectorService {
             }
 
             if (pathToGtfsFile == null) {
-                Optional<Path> optionalOldGtfs = GtfsFtp.findOlderGtfsFile(LocalDate.now());
-                if (!optionalOldGtfs.isPresent()) {
+                Path optionalOldGtfs = GtfsFtp.findOlderGtfsFile(LocalDate.now());
+                if (optionalOldGtfs == null) {
                     throw new DownloadFailedException("failed to download gtfs file and no old gtfs file found.");
                 }
 
-                pathToGtfsFile = optionalOldGtfs.get();
+                pathToGtfsFile = optionalOldGtfs;
             }
 
             GtfsZipFile gtfsZipFile = new GtfsZipFile(pathToGtfsFile);
@@ -97,21 +99,25 @@ public class GtfsCollectorService {
     public void scheduleGtfs() {
         logger.trace("Scheduler Started!");
 
+        if (dateOfLastDownload == null) {
+            dateOfLastDownload = GtfsCollectorConfiguration.getDateOfLastDownload();
+        }
+
         LocalTime now = LocalTime.now();
         LocalDate dnow = LocalDate.now();
         logger.trace("check if it is time to replace gtfs...");
         if (now.isAfter(GtfsCollectorConfiguration.getWhenToDownload())) {
             // do download, but only if it wasn't already done
-            if (dnow.isAfter(GtfsCollectorConfiguration.getDateOfLastDownload())) {
+            if (dnow.isAfter(dateOfLastDownload)) {
                 logger.trace("start retrieving GTFS of {}", dnow.toString());
 
                 // do download
                 run();
 
                 // signify that dl was done
-                // TODO: restore
-                //configProperties.dateOfLastDownload = dnow;
-                logger.trace("updated dateOfLastDownload to {}", GtfsCollectorConfiguration.getDateOfLastDownload().toString());
+                dateOfLastDownload = dnow;
+
+                logger.trace("updated dateOfLastDownload to {}", dateOfLastDownload);
             } else if (dnow.isAfter(dateOfLastReschedule)) {
                 // do not download, but we must reschedule
                 // because it is another day...

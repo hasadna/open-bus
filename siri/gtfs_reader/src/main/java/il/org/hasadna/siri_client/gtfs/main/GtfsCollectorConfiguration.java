@@ -27,6 +27,16 @@ public class GtfsCollectorConfiguration {
     private static String schedulesLocation;
     private static String rescheduleUrl;
     private static List<String> agencies;
+    private static String gtfsRawFilesBackupDirectory;
+
+    public static String getGtfsRawFilesBackupDirectory() {
+        return gtfsRawFilesBackupDirectory;
+    }
+
+    @Value("${gtfs.RawFilesBackupDirectory:/tmp/}")
+    public void setGtfsRawFilesBackupDirectory(String gtfsRawFilesBackupDirectory) {
+        GtfsCollectorConfiguration.gtfsRawFilesBackupDirectory = gtfsRawFilesBackupDirectory;
+    }
 
     @Value("${gtfs.gtfsDownloadDisabled:false}")
     public void setDisableDownload(Boolean disableDownload) {
