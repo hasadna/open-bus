@@ -1,6 +1,6 @@
 import { actionTypes } from "./actions";
 import { combineReducers } from "redux";
-
+import { rideDataMock } from './mock';
 const initialState = {
     userSelection: {
         date: null,
@@ -14,7 +14,7 @@ const initialState = {
         currentLineAlternativesAndTimes: null,
         
         isFetchingCurrentRideData: false,
-        currentRideData: null,
+        currentRideData: rideDataMock,
     }
 };
 
