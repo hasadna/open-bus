@@ -10,7 +10,7 @@ We're currently working on one main project, **Real Delays**, aggregating real-t
 
 ## Where does the data come from?
 
-1. Planned (static) data: The Ministry of Traansport publishes a file called GTFS. This file contains planned trips data for the next 60 days.
+1. Planned (static) data: The Ministry of Transport publishes a file called GTFS. This file contains planned trips data for the next 60 days. Alongside it, in the same FTP folder, there are a number of files with additional related data. 
 2. Online data: the MoT has a webservice that provides real-time data. The webservice is called [SIRI SM] (https://github.com/hasadna/open-bus/wiki/Bus-Real-Time-(SIRI)-Data-Documentation).
 
 ## Want to help?
