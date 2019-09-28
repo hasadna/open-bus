@@ -41,7 +41,15 @@ public class SchedulingDataCreator {
     Function<GtfsRecord, String> f = new Function<GtfsRecord, String>() {
         @Override
         public String apply(GtfsRecord gtfsRecord) {
-            return gtfsRecord.getTrip().getRouteId();
+            if (gtfsRecord != null) {
+                return gtfsRecord.getTrip().getRouteId();
+            }
+            else {
+                logger.warn("null gtfsRecord!");
+                // returning some dummy routeId. So grouping will work, and all failed records will be grouped to routeId "99999999"
+                // which does not exist anyway
+                return "99999999999";
+            }
         }
     };
 

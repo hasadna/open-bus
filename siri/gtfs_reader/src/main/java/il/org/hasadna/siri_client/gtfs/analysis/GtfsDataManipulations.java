@@ -10,7 +10,12 @@ import java.util.stream.Stream;
 import il.org.hasadna.siri_client.gtfs.crud.*;
 import il.org.hasadna.siri_client.gtfs.crud.Calendar;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class GtfsDataManipulations {
+
+	private static Logger logger = LoggerFactory.getLogger(GtfsDataManipulations.class);
 
 	private GtfsCrud gtfsCrud;
 
@@ -123,16 +128,23 @@ public class GtfsDataManipulations {
 	}
 
 	private GtfsRecord createGtfsRecord(Trip currTrip) {
-		Calendar currCalendar = getCalendars().get(currTrip.getServiceId());
+		try {
+			Calendar currCalendar = getCalendars().get(currTrip.getServiceId());
 
-		List<StopTime> tmpStopTimes = getStopTimes().get(currTrip.getTripId());
+			List<StopTime> tmpStopTimes = getStopTimes().get(currTrip.getTripId());
 
-		StopTime currLastStopTime = tmpStopTimes.stream().max(Comparator.comparing(StopTime::getStopSequence)).get();
-		Stop currLastStop = getStops().get(currLastStopTime.getStopId());
+			StopTime currLastStopTime = tmpStopTimes.stream().max(Comparator.comparing(StopTime::getStopSequence)).get();
+			Stop currLastStop = getStops().get(currLastStopTime.getStopId());
 
-		StopTime currFirstStopTime = tmpStopTimes.stream().min(Comparator.comparing(StopTime::getStopSequence)).get();
-		Stop currFirstStop = getStops().get(currFirstStopTime.getStopId());
-		return new GtfsRecord(currTrip, currCalendar, currFirstStopTime, currFirstStop, currLastStopTime, currLastStop);
+			StopTime currFirstStopTime = tmpStopTimes.stream().min(Comparator.comparing(StopTime::getStopSequence)).get();
+			Stop currFirstStop = getStops().get(currFirstStopTime.getStopId());
+			return new GtfsRecord(currTrip, currCalendar, currFirstStopTime, currFirstStop, currLastStopTime, currLastStop);
+		}
+		catch (Exception ex) {
+			logger.error("unexpected exception in createGtfsRecord", ex);
+			logger.error("currTrip: {}", currTrip.toString());
+			return null;
+		}
 	}
 
 }
