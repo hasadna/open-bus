@@ -1,20 +1,16 @@
 package il.org.hasadna.siri_client.gtfs.crud;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
-import il.org.hasadna.siri_client.gtfs.crud.Calendar;
-import il.org.hasadna.siri_client.gtfs.crud.GtfsCrud;
-import il.org.hasadna.siri_client.gtfs.crud.GtfsZipFile;
-import il.org.hasadna.siri_client.gtfs.crud.StopTime;
-import il.org.hasadna.siri_client.gtfs.crud.Trip;
-
+@Ignore
 public class GtfsCrudTest {
 
 	@BeforeClass
@@ -40,7 +36,7 @@ public class GtfsCrudTest {
 		StopTime stopTimesActual = gtfsCrud.getStopTimes()
 				.findAny()
 				.get();
-		
+
 		Stop stopsActual = gtfsCrud.getStops()
 				.findAny()
 				.get();
