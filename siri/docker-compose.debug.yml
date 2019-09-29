@@ -1,0 +1,6 @@
+version: "3"
+
+services:
+  siri-collector:
+    extra_hosts:
+      - "siri.motrealtime.co.il:172.17.0.1"

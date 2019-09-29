@@ -1,0 +1,116 @@
+<form theme="dark">
+  <label>SIRI Trips</label>
+  <fieldset submitButton="false" autoRun="true">
+    <input type="time" token="time_setter">
+      <label></label>
+      <default>
+        <earliest>-7d@d</earliest>
+        <latest>@d</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="agency_id" searchWhenChanged="true">
+      <label>Agency</label>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <fieldForLabel>desc</fieldForLabel>
+      <fieldForValue>agency_id</fieldForValue>
+      <search>
+        <query>| tstats sum(num_trips) as count where index=route_stats by agency_name agency_id | eval desc = agency_name." (".agency_id.")" | sort -count</query>
+        <earliest>$time_setter.earliest$</earliest>
+        <latest>$time_setter.latest$</latest>
+      </search>
+      <choice value="*">All</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="stop_city" searchWhenChanged="true">
+      <label>Start/End City</label>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <fieldForLabel>stop_city</fieldForLabel>
+      <fieldForValue>stop_city</fieldForValue>
+      <search>
+        <query>| tstats count where index="route_stats" agency_id=$agency_id$ by start_stop_city | rename start_stop_city as stop_city 
+        | append [| tstats count where index="route_stats" agency_id=$agency_id$ by end_stop_city | rename end_stop_city as stop_city] 
+        | stats count by stop_city </query>
+        <earliest>$time_setter.earliest$</earliest>
+        <latest>$time_setter.latest$</latest>
+      </search>
+      <choice value="*">All</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="route_short_name" searchWhenChanged="true">
+      <label>Route Short Name</label>
+      <default>*</default>
+      <fieldForLabel>route_short_name</fieldForLabel>
+      <fieldForValue>route_short_name</fieldForValue>
+      <search>
+        <query>| tstats count where index="route_stats" AND agency_id=$agency_id$ AND (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) by route_short_name</query>
+        <earliest>$time_setter.earliest$</earliest>
+        <latest>$time_setter.latest$</latest>
+      </search>
+    </input>
+    <input type="multiselect" token="route_id" searchWhenChanged="true">
+      <label>Route (selects route_id)</label>
+      <fieldForLabel>description</fieldForLabel>
+      <fieldForValue>route_id</fieldForValue>
+      <search>
+        <query>| tstats count max(num_trips) as num_trips where index="route_stats" AND route_short_name=$route_short_name$ AND agency_id=$agency_id$ AND (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) by agency_name start_stop_city route_short_name route_long_name route_id | eval description = "קו ".route_short_name." (".route_id.") - ".route_long_name." - ".num_trips." נסיעות" | sort -num_trips</query>
+        <earliest>$time_setter.earliest$</earliest>
+        <latest>$time_setter.latest$</latest>
+      </search>
+      <prefix>(</prefix>
+      <suffix>)</suffix>
+      <valuePrefix>route_id="</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+      <delimiter> OR </delimiter>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <input type="text" token="hour_min" searchWhenChanged="true">
+        <label>hour_min</label>
+        <default>0</default>
+      </input>
+      <input type="text" token="hour_max" searchWhenChanged="true">
+        <label>hour_max</label>
+        <default>24</default>
+      </input>
+      <chart>
+        <search base="bad_trips">
+          <query>fields date route_id bad_trips_ratio | xyseries date route_id bad_trips_ratio</query>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search id="bad_trips">
+          <query>((index=siri lat!=0  [search index=route_stats agency_id=$agency_id$ $route_id$ | makemv delim=";" all_start_time |  stats count by route_id all_start_time | rename all_start_time AS planned_start_time | fields - count]) OR index=route_stats) $route_id$ agency_id=$agency_id$
+| makemv delim=";" all_start_time
+| eval start_time = coalesce(planned_start_time, all_start_time) 
+| stats dc(time_recorded) as siri_points by route_id date start_time 
+| eval missing_trips = if(siri_points==0, start_time, NULL)
+| eval less_than_ten_trips = if(siri_points&lt;10 AND siri_points&gt;0, start_time, NULL)
+| stats avg(siri_points) as avg_points count(eval(siri_points==0)) as no_siri count(eval(siri_points&lt;10 AND siri_points&gt;0)) as less_than_ten_siri count as total values(missing_trips) values(less_than_ten_trips) by route_id date
+| eval avg_points = round(avg_points,1)
+| eval bad_trips_ratio = round((no_siri+less_than_ten_siri)/total,2)</query>
+          <earliest>$time_setter.earliest$</earliest>
+          <latest>$time_setter.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</form>

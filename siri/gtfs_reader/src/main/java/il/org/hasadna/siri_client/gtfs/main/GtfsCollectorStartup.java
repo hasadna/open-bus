@@ -9,29 +9,29 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class GtfsCollectorStartup {
-    private static final String SPRING_APPLICATION_CONTEXT_FILENAME = "applicationContext.xml";
-    private static final String SERVICE_NAME = "gtfs-collector";
+  private static final String SPRING_APPLICATION_CONTEXT_FILENAME = "applicationContext.xml";
+  private static final String SERVICE_NAME = "gtfs-collector";
 
-    private static Logger logger = LoggerFactory.getLogger(GtfsCollectorStartup.class);
+  private static Logger logger = LoggerFactory.getLogger(GtfsCollectorStartup.class);
 
-    private static LocalDate dateOfLastReschedule = LocalDate.of(2000, 1, 1);
 
-    private static LocalDate date;
 
-    private static GtfsCrud gtfsCrud;
+  private static LocalDate date;
 
-    @Autowired
-    GtfsCollectorConfiguration gtfsCollectorConfiguration;
+  private static GtfsCrud gtfsCrud;
 
-    @Autowired
-    private static GtfsCollectorService gtfsCollectorService;
+  @Autowired
+  GtfsCollectorConfiguration gtfsCollectorConfiguration;
 
-    public static void main(String[] args) throws InterruptedException {
-        logger.info("starting {}!", SERVICE_NAME);
+  @Autowired
+  private static GtfsCollectorService gtfsCollectorService;
 
-        ApplicationContext context = new ClassPathXmlApplicationContext(SPRING_APPLICATION_CONTEXT_FILENAME);
-        gtfsCollectorService = context.getBean(GtfsCollectorService.class);
+  public static void main(String[] args) throws InterruptedException {
+    logger.info("starting {}!", SERVICE_NAME);
 
-        Thread.sleep(Long.MAX_VALUE);
-    }
+    ApplicationContext context = new ClassPathXmlApplicationContext(SPRING_APPLICATION_CONTEXT_FILENAME);
+    gtfsCollectorService = context.getBean(GtfsCollectorService.class);
+
+    Thread.sleep(Long.MAX_VALUE);
+  }
 }

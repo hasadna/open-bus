@@ -1,0 +1,162 @@
+[app/ui]
+version = 7.2.0
+modtime = 1540846270.235156300
+
+[app/launcher]
+version = 7.2.0
+modtime = 1540846270.266074400
+
+[inputs/monitor%3A%2F%2FC%3A%5Cdev%5Cds%5Copen-bus-explore%5Cdata%5Cgtfs_stats_csv]
+owner = admin
+version = 7.2.0
+modtime = 1540846791.696794700
+
+[indexes/siri]
+owner = admin
+version = 7.2.1
+modtime = 1543959371.999054000
+
+[inputs/monitor%3A%2F%2FC%3A%5Cdev%5Cds%5Copen-bus-explore%5Cdata%5Csiri_csv]
+owner = admin
+version = 7.2.0
+modtime = 1540939892.492096100
+
+[views/siri_investigator]
+access = read : [ * ], write : [ admin, power ]
+export = none
+owner = admin
+version = 7.2.6
+modtime = 1560803635.203692000
+
+[inputs/monitor%3A%2F%2FC%3A%5Cdev%5Cds%5Copen-bus-explore%5Cdata%5Csiri_csv_new]
+owner = admin
+version = 7.2.0
+modtime = 1543843697.626413400
+
+[indexes/siri_v2]
+owner = admin
+version = 7.2.0
+modtime = 1543845356.750899500
+
+[app/install/install_source_checksum]
+version = 7.2.1
+modtime = 1543937814.703443000
+
+[inputs/monitor%3A%2F%2F%2Fmnt%2Fdisks%2Fsplunk1%2Finputs%2Fsiri_csv]
+version = 7.2.5.1
+modtime = 1554737164.295200000
+
+[views/vehicle_investigator]
+access = read : [ * ], write : [ admin ]
+export = none
+owner = danb
+version = 7.2.6
+modtime = 1561970739.393449000
+
+[lookups/mehadrin.csv]
+owner = danb
+version = 7.2.1
+modtime = 1546350263.148170000
+
+[savedsearches/SIRI%20Export]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.1
+modtime = 1548096906.698696000
+
+[props/trip_stats_csv]
+owner = danb
+version = 7.2.1
+modtime = 1549377626.370131000
+
+[indexes/trip_stats]
+owner = danb
+version = 7.2.1
+modtime = 1549373979.330241000
+
+[indexes/route_stats]
+owner = danb
+version = 7.2.1
+modtime = 1552839986.031485000
+
+[views/siri_trips]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.6
+modtime = 1559211446.384629000
+
+[views/data_exporter]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.1
+modtime = 1553167838.812233000
+
+[savedsearches/Allenby%20northbound%20trips]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.1
+modtime = 1553422173.244654000
+
+[inputs/monitor%3A%2F%2F%2Fmnt%2Fdisks%2Fsplunk1%2Finputs%2Froute_stats_csv]
+version = 7.2.5.1
+modtime = 1554737568.698366000
+
+[savedsearches/Compare%20num_trips%20Oct-18%20vs%20Apr-19%20by%20city]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.5.1
+modtime = 1554912550.696237000
+
+[savedsearches/Search%20by%20stop_code%20polygon]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.6
+modtime = 1558978278.074502000
+
+[savedsearches/Find%20weird%20distance%20hops]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.6
+modtime = 1558979569.839706000
+
+[views/search_by_stop]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.6
+modtime = 1559727192.951207000
+
+[views/late_rides]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.6
+modtime = 1559600714.007813000
+
+[views/gtfs_compare]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.6
+modtime = 1559659790.403466000
+
+[views/stop_times]
+access = read : [ * ]
+export = none
+owner = danb
+version = 7.2.6
+modtime = 1562252848.255657000
+
+[views/openbus_monitor]
+access = read : [ admin ]
+export = none
+owner = danb
+version = 7.2.6
+modtime = 1562252749.079633000

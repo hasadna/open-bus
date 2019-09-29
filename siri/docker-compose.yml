@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+  siri-collector:
+    container_name: siri-collector
+    image: openbus1/siri-collector:${TAG:-master}
+    environment:
+      - spring.profiles.active=production
+      - scheduler.data.file=/opt/hasadna/data/
+      - gtfs.schedules.location=/opt/hasadna/data/
+      - gtfs.dir.location=/opt/hasadna
+      - SIRI_OUTPUT_PATH=/opt/hasadna/data/siri_output
+    volumes:
+      - ${SCHEDULE_DATA_HOST_PATH}:/opt/hasadna/data
+    restart: always
+  gtfs-collector:
+    container_name: gtfs-collector
+    image: openbus1/gtfs-collector:${TAG:-master}
+    environment:
+      - gtfs.agencies=[3,4,5,7,8,14,15,16,18,19,25,30,31,32]
+      - gtfs.dateOfLastDownload=2018-11-17
+      - gtfs.reschedule.url=http://siri-collector:8080/data/schedules/read/all
+      - gtfs.dir.location=/opt/hasadna/data/
+      - gtfs.schedules.location=/opt/hasadna/data/
+      - gtfs.RawFilesBackupDirectory=/opt/hasadna/data/
+    volumes:
+      - ${SCHEDULE_DATA_HOST_PATH}:/opt/hasadna/data
+    restart: always
+

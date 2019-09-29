@@ -1,6 +1,5 @@
 *.pyc
-__pycache__
-.idea/
-gtfs/data/connection_details.txt
-gtfs/sample/israel-public-transportation/
-venv
+*.egg*
+.pytest_cache
+gtfs/retriever/.idea/
+build

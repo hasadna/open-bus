@@ -1,6 +1,12 @@
 package il.org.hasadna.siri_client.gtfs.crud;
 
 import il.org.hasadna.siri_client.gtfs.main.GtfsCollectorConfiguration;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.commons.net.ftp.FTP;
@@ -9,13 +15,6 @@ import org.apache.commons.net.ftp.FTPReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Path;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class FtpClientService {
@@ -74,7 +73,7 @@ public class FtpClientService {
 
   private FTPClient connect(String host) throws IOException {
     FTPClient ftpClient = new FTPClient();
-    ftpClient.setConnectTimeout((int) GtfsCollectorConfiguration.getGtfsConnectTimeoutMilliseconds());
+    ftpClient.setConnectTimeout((int)GtfsCollectorConfiguration.getGtfsConnectTimeoutMilliseconds());
     ftpClient.connect(host);
     ftpClient.login("anonymous", "");
     ftpClient.enterLocalPassiveMode();

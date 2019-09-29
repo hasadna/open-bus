@@ -1,0 +1,30 @@
+pipeline {
+    agent {
+        docker { 
+            image 'python:3.7'
+            args '-u root:root -v /usr/share/gtfs_stats/config.json:/gtfs_stats_config.json:ro'
+        }
+    }
+    stages {
+        stage('Code Checkout') {
+            steps {
+                git branch: 'master', url: 'https://github.com/hasadna/open-bus.git'
+            }
+        }
+        stage('Setup') {
+            steps {
+                dir('gtfs/gtfs_utils') {
+                    sh "cp /gtfs_stats_config.json ./gtfs_utils/config.json"
+                    sh "python setup.py develop"
+                }
+            }
+        }
+        stage('Run GTFS Stats') {
+            steps {
+                dir('gtfs/gtfs_utils') {
+                    sh "run_gtfs_stats"
+                }
+            }
+        }
+    }
+}
