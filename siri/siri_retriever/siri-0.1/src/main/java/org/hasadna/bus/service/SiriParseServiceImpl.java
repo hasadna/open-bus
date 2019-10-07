@@ -23,11 +23,14 @@ public class SiriParseServiceImpl implements SiriParseService {
     @Override
     public Optional<String> parseShortSummary(GetStopMonitoringServiceResponse sm) {
         try {
-            if ((sm == null) || (sm.getAnswer() == null)) {
+            if ((sm == null) || (sm.getAnswer() == null) || (sm.getAnswer().getStopMonitoringDelivery() == null)) {
                 return Optional.empty();
             }
             if (sm.getAnswer().isStatus() != null) {
-                logger.trace("answer.isStatus={}", sm.getAnswer().isStatus());
+                logger.info("answer.isStatus={}", sm.getAnswer().isStatus());
+                logger.info("sm getAnswer = {}",sm.getAnswer());
+                logger.info("sm getAnswer getStopMonitoringDelivery = {}",sm.getAnswer().getStopMonitoringDelivery());
+                logger.info("sm getAnswer getStatus = {}", sm.getAnswer().getStatus());
             }
             SortedMap<String, MonitoredStopVisitStructure> visits = new TreeMap<>();
             Set<String> licensePlates = new HashSet<>();
