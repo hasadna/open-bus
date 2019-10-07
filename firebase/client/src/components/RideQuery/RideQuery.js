@@ -22,10 +22,10 @@ const RideQuery = props => {
   );
 };
 
-// RideQuery.PropTypes = {
-//     isFetchingCurrentRideData:PropTypes.object,
-//     routeData: PropTypes.object
-// }
+RideQuery.propTypes = {
+    isFetchingCurrentRideData:PropTypes.object,
+    routeData: PropTypes.object
+}
 
 const mapStateToProps = state => {
   return {

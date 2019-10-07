@@ -8,6 +8,7 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import { Map, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import lightFormat from "date-fns/lightFormat";
 import { parseISO } from "date-fns";
+import PropTypes from 'prop-types';
 
 function renderNoData(isLoading) {
   if (isLoading) {
@@ -26,15 +27,16 @@ function renderNoData(isLoading) {
   );
 }
 
-function renderPoint(point) {
-    const handleClick = () => {console.log('selected point: ', point)} 
+function renderPoint(point,i) {
+  const handleClick = () => {console.log('click on point')}
   const { _lat, _long } = point.point;
   return (
     <Marker 
-        // position={[latitude, longitude]}
-        // this for mock data
-        onClick={handleClick}
-        position={[_lat, _long]}>
+      key={`render-point-${i}`}
+      // position={[latitude, longitude]}
+      // this for mock data
+      onClick={handleClick}
+      position={[_lat, _long]}>
       <Popup>
         {_lat}, {_long}
         <br />
@@ -43,23 +45,11 @@ function renderPoint(point) {
       <Tooltip permanent>
         {lightFormat(parseISO(point.recordedDateTime), "HH:mm:ss")}
       </Tooltip>
-
-      {
-    /* <Marker position={[latitude, longitude]}>
-    <Popup>
-    {latitude}, {longitude}
-    <br/>
-    Predicted: {lightFormat(point.predictedDateTime, "HH:mm:ss")} 
-    </Popup>
-    <Tooltip permanent>
-    {lightFormat(point.recordedDateTime, "HH:mm:ss")}
-    </Tooltip> */}
     </Marker>
   );
 }
 
 function renderMap(data) {
-  console.log("data: ", data.points);
   return (
     <Map className="map">
       <TileLayer
@@ -67,7 +57,7 @@ function renderMap(data) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <AutoFocusFeatureGroup>
-        {data.points.map(renderPoint)}
+        {data.points.map((point,i) => renderPoint(point,i))}
       </AutoFocusFeatureGroup>
     </Map>
   );
@@ -81,6 +71,11 @@ function RideViewer(props) {
         : renderNoData(props.isLoading)}
     </Paper>
   );
+}
+
+RideViewer.propTypes = {
+  routeData: PropTypes.object,
+  isLoading: PropTypes.bool,
 }
 
 export default React.memo(RideViewer);

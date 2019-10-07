@@ -11,25 +11,6 @@ import Typography from "@material-ui/core/Typography";
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 import RideQuery from './../RideQuery/RideQuery';
-// const mapStateToProps = (state) => {
-//   return { 
-//     isFetchingRideDate: state.data.isFetchingCurrentRideData,
-//     rideDate: state.data.currentRideData
-//   };
-// };
-
-// function RideQuery(props) {
-//   return (
-//   <Grid container className="main-grid" spacing={0} justify="center">
-//     <Grid item className="main-grid-item-ride-selector" xs={12}>
-//       <RiderSelector />
-//     </Grid>
-//     <Grid item className="main-grid-item-ride-viewer" xs={12} align="center">
-//       <RideViewer isLoading={props.isFetchingRideDate} routeData={props.rideDate} />
-//     </Grid>
-//   </Grid>
-//   )
-// }
 
 function About() {
   return <h2>This is About</h2>
@@ -68,14 +49,6 @@ function App(props) {
           <Route path="/about/" component={About} />
           <Route path="/users/" component={Users} />
         </Router>        
-         {/* <Grid container className="main-grid" spacing={0} justify="center">
-           <Grid item className="main-grid-item-ride-selector" xs={12}>
-             <RiderSelector />
-           </Grid>
-           <Grid item className="main-grid-item-ride-viewer" xs={12} align="center">
-             <RideViewer isLoading={props.isFetchingRideDate} routeData={props.rideDate} />
-           </Grid>
-         </Grid> */}
        </div>
      </>
   );
