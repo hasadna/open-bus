@@ -73,6 +73,7 @@ class Configuration:
     display_size_on_progress_bar: bool = True
     delete_downloaded_gtfs_zip_files: bool = True
     write_filtered_feed: bool = True
+    console_verbosity: str = 'ERROR'
 
 
 def dict_to_dataclass(data_dict: Dict, data_class: type) -> Dict:
@@ -82,12 +83,15 @@ def dict_to_dataclass(data_dict: Dict, data_class: type) -> Dict:
     data_class_instance = data_class()
 
     for field in fields(data_class):
-        if isclass(field.type) and is_dataclass(field.type):
-            value = dict_to_dataclass(data_dict[field.name], field.type)
-        elif field.type == re.Pattern:
-            value = re.compile(data_dict[field.name])
+        if field.name not in data_dict:
+            value = field.default
         else:
-            value = data_dict[field.name]
+            if isclass(field.type) and is_dataclass(field.type):
+                value = dict_to_dataclass(data_dict[field.name], field.type)
+            elif field.type == re.Pattern:
+                value = re.compile(data_dict[field.name])
+            else:
+                value = data_dict[field.name]
 
         if isinstance(field.type, type):
             if not isinstance(value, field.type):
