@@ -27,4 +27,11 @@ pipeline {
             }
         }
     }
+    post {
+        always {
+            // Clear build directory
+            sh "rm -rf ./*"
+        }
+    }
 }
+
