@@ -15,7 +15,7 @@ requirements = [
     'gtfstk==9.6.3',
     'numpy',
     'pandas<0.25,>=0.24',
-    'boto3',
+    'boto3==1.10.7',
     'tqdm',
 ]
 
