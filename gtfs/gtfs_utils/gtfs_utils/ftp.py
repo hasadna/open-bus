@@ -2,6 +2,9 @@ import os
 import datetime
 import re
 from ftplib import FTP
+from os.path import dirname
+
+from gtfs.gtfs_utils.gtfs_utils.environment import get_free_space_bytes
 from .constants import *
 
 
@@ -29,6 +32,26 @@ def get_ftp_dir(conn=None):
         conn.close()
 
     return ftp_dir
+
+
+def validate_enough_disk_space(conn=None, file_names=(GTFS_FILE_NAME,), local_path=LOCAL_ZIP_PATH):
+    close = False
+
+    if conn is None:
+        conn = ftp_connect()
+        close = True
+
+    # confirm enough disk space
+    free_space = get_free_space_bytes(dirname(local_path))
+    ftp_files_size = sum([conn.size(file_name) for file_name in file_names])
+    if not free_space > ftp_files_size:
+        raise IOError(
+            f'There is no enough free disk space for the files {file_names!r} to be saved in {local_path!r}.\n'
+            f'free space - {free_space / 1024 / 1024}MB and the file size is - {ftp_files_size / 1024 / 1024}MB'
+        )
+
+    if close:
+        conn.close()
 
 
 def get_ftp_file(conn=None, file_name=GTFS_FILE_NAME, local_path=LOCAL_ZIP_PATH, force=False):
