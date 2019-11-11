@@ -16,7 +16,7 @@ from .partridge_helper import prepare_partridge_feed
 from .local_files import get_dates_without_output, remote_key_to_local_path
 from .core_computations import get_zones_df, compute_route_stats, compute_trip_stats
 from .environment import init_conf
-from .s3 import get_latest_file, fetch_remote_file
+from .s3 import get_latest_file, fetch_remote_file, is_enough_disk_space
 from .logging_config import configure_logger
 from .configuration import configuration
 from .s3_wrapper import S3Crud
@@ -129,6 +129,8 @@ def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
                 all_remote_files.append(date_and_key)
 
         logging.info(f'Starting files download, downloading {len(all_remote_files)} files')
+        is_enough_disk_space([date_key[1] for date_key in all_remote_files],
+                             crud, silent=False)
         with tqdm(all_remote_files, unit='file', desc='Downloading') as progress_bar:
             for date, remote_file_key in progress_bar:
                 progress_bar.set_postfix_str(remote_file_key)

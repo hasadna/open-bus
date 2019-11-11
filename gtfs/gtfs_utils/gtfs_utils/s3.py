@@ -96,16 +96,19 @@ def fetch_remote_file(remote_file_key: str,
 
 
 def is_enough_disk_space(remote_file_keys: List[str],
-                         crud: S3Crud) -> bool:
+                         crud: S3Crud,
+                         silent: True) -> bool:
     # confirm enough disk space
     local_dir = configuration.files.full_paths.gtfs_feeds
     free_space = get_free_space_bytes(local_dir)
     s3_files_size = sum([crud.get_file_size(file_name) for file_name in remote_file_keys])
     if not free_space > s3_files_size:
+        if silent:
+            return False
         raise IOError(
             f'There is no enough free disk space for {len(remote_file_keys)!r} files '
             f'to be saved in {local_dir!r}.\n'
             f'free space - {free_space / 1024 / 1024}MB '
-            f'and the file size is - {s3_files_size / 1024 / 1024}MB'
+            f'and the remotre files size is - {s3_files_size / 1024 / 1024}MB'
         )
     return True
