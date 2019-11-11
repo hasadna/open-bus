@@ -1,8 +1,11 @@
 import logging
 import datetime
 import os.path
+from os.path import dirname
 from typing import List, Tuple
 from tqdm import tqdm
+
+from gtfs.gtfs_utils.gtfs_utils.environment import get_free_space_bytes
 from .s3_wrapper import list_content, S3Crud
 from .retry import retry
 from .configuration import configuration
@@ -90,3 +93,19 @@ def fetch_remote_file(remote_file_key: str,
     logging.debug(f'Finished file download (key="{remote_file_key}", local path="{local_file_full_path}")')
     return True
     # TODO: log file size
+
+
+def is_enough_disk_space(remote_file_keys: List[str],
+                         crud: S3Crud) -> bool:
+    # confirm enough disk space
+    local_dir = configuration.files.full_paths.gtfs_feeds
+    free_space = get_free_space_bytes(local_dir)
+    s3_files_size = sum([crud.get_file_size(file_name) for file_name in remote_file_keys])
+    if not free_space > s3_files_size:
+        raise IOError(
+            f'There is no enough free disk space for {len(remote_file_keys)!r} files '
+            f'to be saved in {local_dir!r}.\n'
+            f'free space - {free_space / 1024 / 1024}MB '
+            f'and the file size is - {s3_files_size / 1024 / 1024}MB'
+        )
+    return True
