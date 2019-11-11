@@ -46,7 +46,7 @@ def compute_trip_stats(feed: ptg.feed,
     - ``agency_id`` - Agency identifier, as specified in `agency.txt` file.
     - ``agency_name`` - The full name of the agency, as specified in `agency.txt` file.
     - ``all_stop_code`` - All stop codes (as specified in `stops.txt` file), separated by semicolons.
-    - ``all_stop_desc_city`` - The city of the last stop of the trip (as described in `stop_desc` field in `stops.txt` \
+    - ``all_stop_desc_city`` - Cities of all stops of the trip (as described in `stop_desc` field in `stops.txt` \
         file), separated by semicolons.
     - ``all_stop_id`` - All stop identifiers (as specified in `stops.txt` file), separated by \
         semicolons.
@@ -185,6 +185,8 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     - ``all_stop_desc_city`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``all_stop_id`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``all_stop_latlon`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``all_stop_name`` - Names of all stops of the trip (as described in `stop_name` field in \
+        `stops.txt` file), separated by semicolons.
     - ``all_trip_id`` -All of the identifiers (``trip_id``, as specified in `trips.txt` file) of \
         the trips in the route, separated by semicolons
     - ``date`` - Same as in :func:`gtfs_utils.compute_trip_stats`
