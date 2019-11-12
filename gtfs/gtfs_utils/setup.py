@@ -11,12 +11,13 @@ with io.open(join(dirname(abspath(__file__)),
     exec(f.read(), about)
 
 requirements = [
-    'partridge<1.0.0,>=0.11.0',
+    'python-dateutil<2.8.1,>=2.1',
+    'boto3==1.10.13',
+    'partridge==0.11.0',
     'gtfstk==9.6.3',
-    'numpy',
+    'numpy==1.17.3',
     'pandas<0.25,>=0.24',
-    'boto3',
-    'tqdm',
+    'tqdm==4.37.0',
 ]
 
 setup_requirements = [
@@ -26,7 +27,7 @@ setup_requirements = [
 ]
 
 test_requirements = [
-    'pytest',
+    'pytest==4.0.2',
 ]
 
 setup(

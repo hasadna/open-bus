@@ -281,7 +281,8 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
            'start_stop_lat', 'start_stop_lon', 'end_stop_lat',
            'end_stop_lon', 'num_stops', 'start_zone', 'end_zone',
            'num_zones', 'num_zones_missing',
-           'all_stop_latlon', 'all_stop_code', 'all_stop_id', 'all_stop_desc_city', 'all_start_time', 'all_trip_id',
+           'all_stop_latlon', 'all_stop_code', 'all_stop_id', 'all_stop_desc_city',
+           'all_start_time', 'all_trip_id', 'all_stop_name'
            ]]
 
     g['date'] = date
