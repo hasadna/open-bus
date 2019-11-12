@@ -130,7 +130,7 @@ def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
 
         logging.info(f'Starting files download, downloading {len(all_remote_files)} files')
         is_enough_disk_space([date_key[1] for date_key in all_remote_files],
-                             crud, silent=False)
+                             crud, suppress_errors=False)
         with tqdm(all_remote_files, unit='file', desc='Downloading') as progress_bar:
             for date, remote_file_key in progress_bar:
                 progress_bar.set_postfix_str(remote_file_key)

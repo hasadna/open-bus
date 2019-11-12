@@ -5,7 +5,7 @@ from os.path import dirname
 from typing import List, Tuple, Union
 from tqdm import tqdm
 
-from gtfs.gtfs_utils.gtfs_utils.environment import get_free_space_bytes
+from .environment import get_free_space_bytes
 from .s3_wrapper import list_content, S3Crud
 from .retry import retry
 from .configuration import configuration
@@ -98,13 +98,12 @@ def fetch_remote_file(remote_file_key: str,
 
 def is_enough_disk_space(remote_file_keys: List[str],
                          crud: S3Crud,
-                         silent: True) -> bool:
-    # confirm enough disk space
-    local_dir = configuration.files.full_paths.gtfs_feeds
+                         local_dir: str = configuration.files.full_paths.gtfs_feeds,
+                         suppress_errors: bool = True) -> bool:
     free_space = get_free_space_bytes(local_dir)
     s3_files_size = sum([crud.get_file_size(file_name) for file_name in remote_file_keys])
     if not free_space > s3_files_size:
-        if silent:
+        if suppress_errors:
             return False
         raise IOError(
             f'There is no enough free disk space for {len(remote_file_keys)!r} files '
