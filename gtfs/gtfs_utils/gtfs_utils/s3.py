@@ -2,7 +2,7 @@ import logging
 import datetime
 import os.path
 from os.path import dirname
-from typing import List, Tuple
+from typing import List, Tuple, Union
 from tqdm import tqdm
 
 from gtfs.gtfs_utils.gtfs_utils.environment import get_free_space_bytes
@@ -15,8 +15,8 @@ from .configuration import configuration
 def s3_download(crud: S3Crud, key, output_path):
     """
 Download file from s3 bucket. Retry using decorator.
-    :param bucket: s3 boto bucket object
-    :type bucket: boto3.resources.factory.s3.Bucket
+    :param crud: s3 boto bucket object
+    :type crud: s3_wrapper.S3Crud
     :param key: key of the file to download
     :type key: str
     :param output_path: output path to download the file to
@@ -60,8 +60,9 @@ def get_bucket_file_keys_for_date(crud: S3Crud,
 
 def get_latest_file(crud: S3Crud,
                     mot_file_name: str,
-                    desired_date: datetime.datetime,
-                    past_days_to_try: int = 100) -> Tuple[datetime.date, str]:
+                    desired_date: Union[datetime.datetime, datetime.date],
+                    past_days_to_try: int = 100) -> Tuple[Union[datetime.datetime, datetime.date],
+                                                          str]:
     for i in range(past_days_to_try):
         date = desired_date - datetime.timedelta(i)
         bucket_files_in_date = get_bucket_file_keys_for_date(crud, mot_file_name, date)
