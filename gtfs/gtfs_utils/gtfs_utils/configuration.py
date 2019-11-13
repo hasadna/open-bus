@@ -1,12 +1,12 @@
-from dataclasses import dataclass, fields, is_dataclass
 import json
+import numbers
 import os
 import re
+from dataclasses import dataclass, fields, is_dataclass
 from inspect import isclass
 from typing import Dict, List
 
-
-CONFIGURATION_FILE_PATH  = os.path.join(os.path.dirname(__file__), 'config.json')
+CONFIGURATION_FILE_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
 
 
 @dataclass
@@ -69,6 +69,7 @@ class Configuration:
     use_data_from_today: bool = True
     date_range: List[str] = None
     future_days_count: int = 0
+    max_gtfs_size_in_bytes: numbers.Number = float('inf')
     display_download_progress_bar: bool = True
     display_size_on_progress_bar: bool = True
     delete_downloaded_gtfs_zip_files: bool = True
