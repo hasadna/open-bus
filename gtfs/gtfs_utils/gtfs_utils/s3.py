@@ -116,7 +116,7 @@ def is_enough_disk_space(remote_file_keys: List[str],
     if local_dir is None:
         local_dir = configuration.files.full_paths.gtfs_feeds
     if max_download_size is None:
-        max_download_size = configuration.max_gtfs_size_in_bytes
+        max_download_size = configuration.max_gtfs_size_in_mb * 1024 * 1024
     free_space = get_free_space_bytes(local_dir)
     allowed_download_size = min(free_space, max_download_size)
     s3_files_size = sum([crud.get_file_size(file_name) for file_name in remote_file_keys])
