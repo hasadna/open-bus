@@ -61,8 +61,7 @@ def get_bucket_file_keys_for_date(crud: S3Crud,
 def get_latest_file(crud: S3Crud,
                     mot_file_name: str,
                     desired_date: Union[datetime.datetime, datetime.date],
-                    past_days_to_try: int = 100) -> Tuple[Union[datetime.datetime, datetime.date],
-                                                          str]:
+                    past_days_to_try: int = 100) -> Tuple[datetime.date, str]:
     for i in range(past_days_to_try):
         date = desired_date - datetime.timedelta(i)
         bucket_files_in_date = get_bucket_file_keys_for_date(crud, mot_file_name, date)
@@ -96,38 +95,13 @@ def fetch_remote_file(remote_file_key: str,
     # TODO: log file size
 
 
-def is_enough_disk_space(remote_file_keys: List[str],
-                         crud: S3Crud,
-                         max_download_size: float = None,
-                         local_dir: str = None,
-                         suppress_errors: bool = True) -> bool:
+def get_files_size(keys: List[str],
+                   crud: S3Crud) -> int:
     """
-    Check if there is enough free disk space in the dest dir to download the files from the S3
-    returns True if there is enough space
-    if not enough space returns False or raise IOError if suppress is set to false
+    return the total size in bytes of files for the keys in the s3
 
-    :param remote_file_keys: a list of S3 file keys
+    :param keys: a list of S3 file keys
     :param crud: S3Crud object
-    :param max_download_size: limit the download size (in bytes)
-    :param local_dir: the local dir the files will be saved in
-    :param suppress_errors: when files are to big if False raise IOError, else return False
-    :return: wether there is enough space or not
+    :return: the total keys size in bytes
     """
-    if local_dir is None:
-        local_dir = configuration.files.full_paths.gtfs_feeds
-    if max_download_size is None:
-        max_download_size = configuration.max_gtfs_size_in_mb * 1024 * 1024
-    free_space = get_free_space_bytes(local_dir)
-    allowed_download_size = min(free_space, max_download_size)
-    s3_files_size = sum([crud.get_file_size(file_name) for file_name in remote_file_keys])
-    if not allowed_download_size > s3_files_size:
-        if suppress_errors:
-            return False
-        raise IOError(
-            f'There is not enough free disk space for {len(remote_file_keys)!r} files '
-            f'to be saved in {local_dir!r}.\n'
-            f'free space - {round(free_space / 1024 / 1024, 3)}MB, '
-            f'configuration max allowed size is {round(max_download_size / 1024 / 1024,3)}MB\n'
-            f'and the remote files size is - {round(s3_files_size / 1024 / 1024,3)}MB'
-        )
-    return True
+    return sum([crud.get_file_size(file_name) for file_name in keys])
