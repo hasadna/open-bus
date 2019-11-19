@@ -1,7 +1,7 @@
 import json
-import numbers
 import os
 import re
+import sys
 from dataclasses import dataclass, fields, is_dataclass
 from inspect import isclass
 from typing import Dict, List
@@ -69,7 +69,7 @@ class Configuration:
     use_data_from_today: bool = True
     date_range: List[str] = None
     future_days_count: int = 0
-    max_gtfs_size_in_mb: numbers.Number = float('inf')
+    max_gtfs_size_in_mb: int = sys.maxsize
     display_download_progress_bar: bool = True
     display_size_on_progress_bar: bool = True
     delete_downloaded_gtfs_zip_files: bool = True
