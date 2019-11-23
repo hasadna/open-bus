@@ -4,23 +4,25 @@
 # This will later become a module which we will run on our historical 
 # MoT GTFS archive and schedule for nightly runs.
 
-import pandas as pd
 import datetime
-import os
 import logging
+import os
 from os.path import join, dirname, basename, split
 from typing import List, Dict
+
+import pandas as pd
 from tqdm import tqdm
+
+from .configuration import configuration
+from .constants import GTFS_FILE_NAME, TARIFF_FILE_NAME
+from .core_computations import get_zones_df, compute_route_stats, compute_trip_stats
+from .environment import init_conf
+from .local_files import get_dates_without_output, remote_key_to_local_path
+from .logging_config import configure_logger
 from .output import save_trip_stats, save_route_stats
 from .partridge_helper import prepare_partridge_feed
-from .local_files import get_dates_without_output, remote_key_to_local_path
-from .core_computations import get_zones_df, compute_route_stats, compute_trip_stats
-from .environment import init_conf, get_free_space_bytes
-from .s3 import get_latest_file, fetch_remote_file, get_files_size
-from .logging_config import configure_logger
-from .configuration import configuration
+from .s3 import get_latest_file, fetch_remote_file, validate_download_size
 from .s3_wrapper import S3Crud
-from .constants import GTFS_FILE_NAME, TARIFF_FILE_NAME
 
 
 def log_trip_stats(ts: pd.DataFrame):
@@ -91,25 +93,6 @@ def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> Li
         return [min_date + datetime.timedelta(days=days_delta)
                 for days_delta
                 in range(delta.days + 1)]
-
-
-def validate_download_size(all_remote_keys: List[str], crud):
-    """
-    validate that the gtfs file to download are not too big
-    :param all_remote_keys: list of keys to be downloaded
-    :param crud: crud
-    :return: the total size of the file, IOError if the files are to big
-    """
-    files_size = get_files_size(all_remote_keys, crud)
-    free_space = get_free_space_bytes(configuration.files.full_paths.gtfs_feeds)
-    max_download_size_mb = configuration.max_gtfs_size_in_mb
-    if files_size > max_download_size_mb:
-        raise IOError(f'The files to download are bigger than the max size allowed in the config file\n'
-                      f'files size - {files_size/(1024**2)} MB , config limit - {max_download_size_mb} MB')
-    if files_size > free_space:
-        raise IOError(f'The files to download are bigger than the free disk space in the download dir\n'
-                      f'files size - {files_size/(1024**2)} MB , free space - {free_space/1024**2} MB')
-    return files_size
 
 
 def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,

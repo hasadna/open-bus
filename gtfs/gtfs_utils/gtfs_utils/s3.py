@@ -105,3 +105,26 @@ def get_files_size(keys: List[str],
     :return: the total keys size in bytes
     """
     return sum([crud.get_file_size(file_name) for file_name in keys])
+
+
+def validate_download_size(all_remote_keys: List[str], crud: S3Crud,
+                           download_dir: str =None) -> int:
+    """
+    validate that the gtfs file to download are not too big
+    :param download_dir: the path that the files would be saved in, default is gtfs_feed
+    :param all_remote_keys: list of keys to be downloaded
+    :param crud: crud
+    :return: the total size of the file, IOError if the files are to big
+    """
+    if download_dir is None:
+        download_dir = configuration.files.full_paths.gtfs_feeds
+    free_space = get_free_space_bytes(download_dir)
+    files_size = get_files_size(all_remote_keys, crud)
+    max_download_size_mb = configuration.max_gtfs_size_in_mb
+    if files_size > max_download_size_mb:
+        raise IOError(f'The files to download are bigger than the max size allowed in the config file\n'
+                      f'files size - {files_size/(1024**2)} MB , config limit - {max_download_size_mb} MB')
+    if files_size > free_space:
+        raise IOError(f'The files to download are bigger than the free disk space in the download dir\n'
+                      f'files size - {files_size/(1024**2)} MB , free space - {free_space/1024**2} MB')
+    return files_size
