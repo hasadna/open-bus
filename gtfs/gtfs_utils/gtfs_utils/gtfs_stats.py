@@ -132,7 +132,7 @@ def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
 
         files_size = validate_download_size([date_key[1] for date_key in all_remote_files], crud)
         logging.info(f'Starting files download, downloading {len(all_remote_files)} files, '
-                     f'with total size {files_size/1024**2} MB')
+                     f'with total size {files_size/(1024**2)} MB')
         with tqdm(all_remote_files, unit='file', desc='Downloading') as progress_bar:
             for date, remote_file_key in progress_bar:
                 progress_bar.set_postfix_str(remote_file_key)

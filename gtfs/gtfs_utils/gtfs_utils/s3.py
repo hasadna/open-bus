@@ -121,10 +121,10 @@ def validate_download_size(all_remote_keys: List[str], crud: S3Crud,
     free_space = get_free_space_bytes(download_dir)
     files_size = get_files_size(all_remote_keys, crud)
     max_download_size_mb = configuration.max_gtfs_size_in_mb
-    if files_size > max_download_size_mb:
+    if files_size > (max_download_size_mb * (1024**2)):
         raise IOError(f'The files to download are bigger than the max size allowed in the config file\n'
-                      f'files size - {files_size/(1024**2)} MB , config limit - {max_download_size_mb} MB')
+                      f'files size - {round(files_size/(1024**2), 3)} MB , config limit - {max_download_size_mb} MB')
     if files_size > free_space:
         raise IOError(f'The files to download are bigger than the free disk space in the download dir\n'
-                      f'files size - {files_size/(1024**2)} MB , free space - {free_space/1024**2} MB')
+                      f'files size - {round(files_size/(1024**2), 3)} MB , free space - {free_space/1024**2} MB')
     return files_size
