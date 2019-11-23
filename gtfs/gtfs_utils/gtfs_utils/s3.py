@@ -1,19 +1,22 @@
-import logging
 import datetime
+import logging
 import os.path
-from typing import List, Tuple
+from typing import List, Tuple, Union
+
 from tqdm import tqdm
-from .s3_wrapper import list_content, S3Crud
-from .retry import retry
+
 from .configuration import configuration
+from .environment import get_free_space_bytes
+from .retry import retry
+from .s3_wrapper import list_content, S3Crud
 
 
 @retry()
 def s3_download(crud: S3Crud, key, output_path):
     """
 Download file from s3 bucket. Retry using decorator.
-    :param bucket: s3 boto bucket object
-    :type bucket: boto3.resources.factory.s3.Bucket
+    :param crud: s3 boto bucket object
+    :type crud: s3_wrapper.S3Crud
     :param key: key of the file to download
     :type key: str
     :param output_path: output path to download the file to
@@ -57,7 +60,7 @@ def get_bucket_file_keys_for_date(crud: S3Crud,
 
 def get_latest_file(crud: S3Crud,
                     mot_file_name: str,
-                    desired_date: datetime.datetime,
+                    desired_date: Union[datetime.datetime, datetime.date],
                     past_days_to_try: int = 100) -> Tuple[datetime.date, str]:
     for i in range(past_days_to_try):
         date = desired_date - datetime.timedelta(i)
@@ -90,3 +93,38 @@ def fetch_remote_file(remote_file_key: str,
     logging.debug(f'Finished file download (key="{remote_file_key}", local path="{local_file_full_path}")')
     return True
     # TODO: log file size
+
+
+def get_files_size(keys: List[str],
+                   crud: S3Crud) -> int:
+    """
+    return the total size in bytes of files for the keys in the s3
+
+    :param keys: a list of S3 file keys
+    :param crud: S3Crud object
+    :return: the total keys size in bytes
+    """
+    return sum([crud.get_file_size(file_name) for file_name in keys])
+
+
+def validate_download_size(all_remote_keys: List[str], crud: S3Crud,
+                           download_dir: str =None) -> int:
+    """
+    validate that the gtfs file to download are not too big
+    :param download_dir: the path that the files would be saved in, default is gtfs_feed
+    :param all_remote_keys: list of keys to be downloaded
+    :param crud: crud
+    :return: the total size of the file, IOError if the files are to big
+    """
+    if download_dir is None:
+        download_dir = configuration.files.full_paths.gtfs_feeds
+    free_space = get_free_space_bytes(download_dir)
+    files_size = get_files_size(all_remote_keys, crud)
+    max_download_size_mb = configuration.max_gtfs_size_in_mb
+    if files_size > (max_download_size_mb * (1024**2)):
+        raise IOError(f'The files to download are bigger than the max size allowed in the config file\n'
+                      f'files size - {round(files_size/(1024**2), 3)} MB , config limit - {max_download_size_mb} MB')
+    if files_size > free_space:
+        raise IOError(f'The files to download are bigger than the free disk space in the download dir\n'
+                      f'files size - {round(files_size/(1024**2), 3)} MB , free space - {free_space/1024**2} MB')
+    return files_size

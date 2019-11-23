@@ -4,23 +4,25 @@
 # This will later become a module which we will run on our historical 
 # MoT GTFS archive and schedule for nightly runs.
 
-import pandas as pd
 import datetime
-import os
 import logging
+import os
 from os.path import join, dirname, basename, split
 from typing import List, Dict
+
+import pandas as pd
 from tqdm import tqdm
-from .output import save_trip_stats, save_route_stats
-from .partridge_helper import prepare_partridge_feed
-from .local_files import get_dates_without_output, remote_key_to_local_path
+
+from .configuration import configuration
+from .constants import GTFS_FILE_NAME, TARIFF_FILE_NAME
 from .core_computations import get_zones_df, compute_route_stats, compute_trip_stats
 from .environment import init_conf
-from .s3 import get_latest_file, fetch_remote_file
+from .local_files import get_dates_without_output, remote_key_to_local_path
 from .logging_config import configure_logger
-from .configuration import configuration
+from .output import save_trip_stats, save_route_stats
+from .partridge_helper import prepare_partridge_feed
+from .s3 import get_latest_file, fetch_remote_file, validate_download_size
 from .s3_wrapper import S3Crud
-from .constants import GTFS_FILE_NAME, TARIFF_FILE_NAME
 
 
 def log_trip_stats(ts: pd.DataFrame):
@@ -128,7 +130,9 @@ def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
                 remote_files_mapping[desired_date][mot_file_name] = date_and_key
                 all_remote_files.append(date_and_key)
 
-        logging.info(f'Starting files download, downloading {len(all_remote_files)} files')
+        files_size = validate_download_size([date_key[1] for date_key in all_remote_files], crud)
+        logging.info(f'Starting files download, downloading {len(all_remote_files)} files, '
+                     f'with total size {files_size/(1024**2)} MB')
         with tqdm(all_remote_files, unit='file', desc='Downloading') as progress_bar:
             for date, remote_file_key in progress_bar:
                 progress_bar.set_postfix_str(remote_file_key)

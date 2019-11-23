@@ -1,4 +1,7 @@
+import ctypes
 import os
+import platform
+
 from .configuration import configuration
 
 
@@ -14,3 +17,14 @@ def init_conf():
 
     for dir_path in configuration.files.full_paths.all():
         mkdir_if_not_exists(dir_path)
+
+
+def get_free_space_bytes(dir_name):
+    """Return folder/drive free space (in bytes)."""
+    if platform.system() == 'Windows':
+        free_bytes = ctypes.c_ulonglong(0)
+        ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(dir_name), None, None, ctypes.pointer(free_bytes))
+        return free_bytes.value
+    else:
+        st = os.statvfs(dir_name)
+        return st.f_bavail * st.f_frsize

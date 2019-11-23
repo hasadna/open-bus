@@ -3,3 +3,4 @@
 .pytest_cache
 gtfs/retriever/.idea/
 build
+config.log
