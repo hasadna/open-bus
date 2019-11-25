@@ -311,24 +311,17 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     # Convert m/h to km/h
     g['service_speed'] = g.service_speed / 1000
 
-    g = g[['route_id', 'route_short_name', 'agency_id', 'agency_name',
-           'route_long_name', 'route_type', 'route_mkt', 'route_direction', 'route_alternative',
-           'num_trips', 'num_trip_starts',
-           'num_trip_ends', 'is_loop', 'is_bidirectional', 'start_time',
-           'end_time', 'max_headway', 'min_headway', 'mean_headway',
-           'peak_num_trips', 'peak_start_time', 'peak_end_time',
-           'service_distance', 'service_duration', 'service_speed',
-           'mean_trip_distance', 'mean_trip_duration', 'start_stop_id',
-           'end_stop_id', 'start_stop_name', 'end_stop_name',
-           'start_stop_city', 'end_stop_city',
-           'start_stop_desc', 'end_stop_desc',
-           'start_stop_lat', 'start_stop_lon', 'end_stop_lat',
-           'end_stop_lon', 'num_stops', 'start_zone', 'end_zone',
-           'num_zones', 'num_zones_missing',
-           'all_stop_latlon', 'all_stop_code', 'all_stop_id', 'all_stop_desc_city',
-           'all_start_time', 'all_trip_id', 'all_stop_name',
-           'line_type', 'line_type_desc', 'cluster_id', 'cluster_name', 'cluster_sub_desc',
-           ]]
+    g = g[[
+        'route_id', 'route_short_name', 'agency_id', 'agency_name', 'route_long_name', 'route_type', 'route_mkt',
+        'route_direction', 'route_alternative', 'num_trips', 'num_trip_starts', 'num_trip_ends', 'is_loop',
+        'is_bidirectional', 'start_time', 'end_time', 'max_headway', 'min_headway', 'mean_headway',
+        'peak_num_trips', 'peak_start_time', 'peak_end_time', 'service_distance', 'service_duration', 'service_speed',
+        'mean_trip_distance', 'mean_trip_duration', 'start_stop_id', 'end_stop_id', 'start_stop_name', 'end_stop_name',
+        'start_stop_city', 'end_stop_city', 'start_stop_desc', 'end_stop_desc', 'start_stop_lat', 'start_stop_lon',
+        'end_stop_lat', 'end_stop_lon', 'num_stops', 'start_zone', 'end_zone', 'num_zones', 'num_zones_missing',
+        'all_stop_latlon', 'all_stop_code', 'all_stop_id', 'all_stop_desc_city', 'all_start_time', 'all_trip_id',
+        'all_stop_name', 'line_type', 'line_type_desc', 'cluster_id', 'cluster_name', 'cluster_sub_desc',
+    ]]
 
     g['date'] = date
     g['date'] = pd.Categorical(g['date'])

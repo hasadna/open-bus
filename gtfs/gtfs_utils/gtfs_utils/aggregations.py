@@ -15,7 +15,8 @@ def generate_trip_stats_aggregation(feed):
         keys = [
             'route_id', 'route_short_name', 'route_long_name', 'route_mkt', 'route_direction',
             'route_alternative', 'agency_id', 'agency_name', 'route_type', 'direction_id',
-            'shape_id'
+            'shape_id', 'line_type', 'line_type_desc', 'cluster_id',
+            'cluster_name', 'cluster_sub_desc',
         ]
         for key in keys:
             d[key] = group[key].iat[0]
@@ -74,7 +75,8 @@ def generate_route_stats_aggregation(headway_start_time, headway_end_time):
             'start_stop_lat', 'start_stop_lon', 'end_stop_lat', 'end_stop_lon', 'start_stop_city',
             'end_stop_city', 'num_stops', 'start_zone', 'end_zone', 'num_zones',
             'num_zones_missing', 'all_stop_latlon', 'all_stop_code', 'all_stop_id',
-            'all_stop_desc_city', 'all_stop_name'
+            'all_stop_desc_city', 'all_stop_name', 'line_type', 'line_type_desc', 'cluster_id',
+            'cluster_name', 'cluster_sub_desc',
         ]
         for key in keys:
             d[key] = group[key].iat[0]
