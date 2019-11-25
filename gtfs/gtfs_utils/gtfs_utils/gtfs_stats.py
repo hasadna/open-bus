@@ -14,7 +14,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from .configuration import configuration
-from .constants import GTFS_FILE_NAME, TARIFF_FILE_NAME
+from .constants import GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME
 from .core_computations import get_zones_df, compute_route_stats, compute_trip_stats
 from .environment import init_conf
 from .local_files import get_dates_without_output, remote_key_to_local_path
@@ -62,7 +62,7 @@ def analyze_gtfs_date(date: datetime.date,
 
     feed = prepare_partridge_feed(date, local_full_paths[GTFS_FILE_NAME])
 
-    tariff_path_to_use = local_full_paths[TARIFF_FILE_NAME]
+    tariff_path_to_use = local_full_paths[TARIFF_ZIP_NAME]
     logging.info(f'Creating zones DF from {tariff_path_to_use}')
     zones = get_zones_df(tariff_path_to_use)
 
@@ -116,7 +116,7 @@ def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
         crud = S3Crud.from_configuration(configuration.s3)
         logging.info(f'Connected to S3 bucket {configuration.s3.bucket_name}')
 
-        file_types_to_download = [GTFS_FILE_NAME, TARIFF_FILE_NAME]
+        file_types_to_download = [GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME]
         remote_files_mapping = {}
         all_remote_files = []
         all_local_full_paths = []

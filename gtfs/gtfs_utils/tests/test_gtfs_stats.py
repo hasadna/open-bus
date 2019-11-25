@@ -3,7 +3,7 @@ import gzip
 import os
 import pickle
 from os.path import dirname, join
-from ..gtfs_utils.constants import GTFS_FILE_NAME, TARIFF_FILE_NAME
+from ..gtfs_utils.constants import GTFS_FILE_NAME, TARIFF_ZIP_NAME
 from ..gtfs_utils.gtfs_stats import analyze_gtfs_date
 
 
@@ -14,7 +14,7 @@ TEST_FILE_DATE_STR = TEST_FILE_DATE.strftime('%Y-%m-%d')
 TEST_INPUT_FILE_KEY = f'gtfs/2019/03/07/2019-03-07T01-28-07_israel-public-transportation.zip'
 INPUT_LOCAL_FULL_PATHS = {
     GTFS_FILE_NAME: join(TEST_ASSETS_DIR, 'inputs', '2019-03-07-israel-public-transportation.zip'),
-    TARIFF_FILE_NAME: join(TEST_ASSETS_DIR, 'inputs', '2019-03-07-Tariff.zip')
+    TARIFF_ZIP_NAME: join(TEST_ASSETS_DIR, 'inputs', '2019-03-07-Tariff.zip')
 }
 OUTPUT_FILE_TYPE = 'pkl.gz'
 OUTPUT_FILE_NAMES = [
