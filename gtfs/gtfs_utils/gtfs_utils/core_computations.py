@@ -30,8 +30,27 @@ def get_zones_df(local_tariff_zip_path):
     return zones
 
 
+def get_clusters_df(local_cluster_zip_path):
+    with zipfile.ZipFile(local_cluster_zip_path) as zf:
+        clusters_df = pd.read_csv(zf.open(CLUSTER_TO_LINE_TXT_NAME))
+
+    clusters_df = clusters_df.rename(columns={
+        'ClusterId': 'cluster_id',
+        'ClusterName': 'cluster_name',
+        'ClusterSubDesc': 'cluster_sub_desc',
+        'LineType': 'line_type',
+        'LineTypeDesc': 'line_type_desc',
+        'OfficeLineId': 'route_mkt'
+    })
+
+    clusters_df = clusters_df[['route_mkt', 'line_type', 'line_type_desc', 'cluster_id',
+                               'cluster_name', 'cluster_sub_desc']]
+
+    return clusters_df
+
 def compute_trip_stats(feed: ptg.feed,
                        zones: pd.DataFrame,
+                       clusters: pd.DataFrame,
                        date: datetime.date,
                        gtfs_file_name: str) -> pd.DataFrame:
     """
@@ -120,6 +139,9 @@ def compute_trip_stats(feed: ptg.feed,
     # parse route_desc
     f[['route_mkt', 'route_direction', 'route_alternative']] = f['route_desc'].str.split('-', expand=True)
     f = f.drop('route_desc', axis=1)
+    f['route_mkt'] = f['route_mkt'].astype(int)
+
+    f = f.merge(clusters, how='left', on='route_mkt')
 
     # parse stop_desc
     stop_desc_fields = {'street': 'רחוב',
@@ -284,7 +306,8 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
            'end_stop_lon', 'num_stops', 'start_zone', 'end_zone',
            'num_zones', 'num_zones_missing',
            'all_stop_latlon', 'all_stop_code', 'all_stop_id', 'all_stop_desc_city',
-           'all_start_time', 'all_trip_id', 'all_stop_name'
+           'all_start_time', 'all_trip_id', 'all_stop_name',
+           'line_type', 'line_type_desc', 'cluster_id', 'cluster_name', 'cluster_sub_desc',
            ]]
 
     g['date'] = date

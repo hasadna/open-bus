@@ -79,7 +79,6 @@ def generate_route_stats_aggregation(headway_start_time, headway_end_time):
         for key in keys:
             d[key] = group[key].iat[0]
 
-
         d['num_trips'] = group.shape[0]
         d['num_trip_starts'] = group['start_time'].count()
         d['num_trip_ends'] = group.loc[
@@ -116,7 +115,6 @@ def generate_route_stats_aggregation(headway_start_time, headway_end_time):
 
         d['service_distance'] = group['distance'].sum()
         d['service_duration'] = group['duration'].sum()
-
 
         d['all_start_time'] = ';'.join([gtfstk.helpers.timestr_to_seconds(x, inverse=True)
                                         for x in group['start_time'].tolist()])
