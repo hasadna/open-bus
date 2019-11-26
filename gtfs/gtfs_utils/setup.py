@@ -18,6 +18,7 @@ requirements = [
     'numpy==1.17.3',
     'pandas<0.25,>=0.24',
     'tqdm==4.37.0',
+    'jsonschema==3.2.0'
 ]
 
 setup_requirements = [

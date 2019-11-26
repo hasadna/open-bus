@@ -6,7 +6,10 @@ from dataclasses import dataclass, fields, is_dataclass
 from inspect import isclass
 from typing import Dict, List
 
+from jsonschema import validate
+
 CONFIGURATION_FILE_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
+CONFIGURATION_SCHEMA_FILE_PATH = os.path.join(os.path.dirname(__file__), 'config.schema.json')
 
 
 @dataclass
@@ -59,7 +62,7 @@ class S3Configuration:
     s3_endpoint_url: str = None
     bucket_name: str = None
     upload_results: bool = False
-    results_path_prefix: str = None
+    results_path_prefix: str = ''
 
 
 @dataclass
@@ -112,6 +115,9 @@ def dict_to_dataclass(data_dict: Dict, data_class: type) -> Dict:
 def load_configuration() -> Configuration:
     with open(CONFIGURATION_FILE_PATH, 'r') as configuration_file:
         configuration_dict = json.load(configuration_file)
+        with open(CONFIGURATION_SCHEMA_FILE_PATH, 'r') as schema_file:
+            config_schema = json.load(schema_file)
+            validate(instance=configuration_dict, schema=config_schema)
     return dict_to_dataclass(configuration_dict, Configuration)
 
 
