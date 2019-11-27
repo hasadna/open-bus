@@ -1,54 +1,65 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://example.com/config.schema.json",
-  "title": "GTFS config",
-  "description": "The configuration for a gtfs_stats run",
-  "type": "object",
-  "properties": {
-    "files": {"$ref": "#/definitions/files"},
-    "s3": {"$ref": "#/definitions/s3"},
-    "date_range": {
-      "description": "First and last date of the gtfs files to be download from bucket",
-      "type": "array",
-      "items":{
-        "type": "string",
-        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://example.com/config.schema.json",
+    "title": "GTFS config",
+    "description": "The configuration for a gtfs_stats run",
+    "type": "object",
+    "properties": {
+      "files": {
+        "$ref": "#/definitions/files"
       },
-      "maxLength": 2,
-      "minLength": 2
+      "s3": {
+        "$ref": "#/definitions/s3"
+      },
+      "date_range": {
+        "description": "First and last date of the gtfs files to be download from bucket",
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "maxLength": 2,
+        "minLength": 2
+      },
+      "use_data_from_today": {
+        "description": "Download only gtfs data from today (overrides date_range). {default: False)",
+        "type": "boolean"
+      },
+      "max_gtfs_size_in_mb": {
+        "description": "Limit the maximum size of the downloaded gtfs files (in MB). If not set the limit is only free disk space.",
+        "type": "integer"
+      },
+      "display_download_progress_bar": {
+        "description": "If true displays a proggress bar while downloading. {default: False)",
+        "type": "boolean"
+      },
+      "display_size_on_progress_bar": {
+        "description": "If true displays file size on the download status bar. {default: False)",
+        "type": "boolean"
+      },
+      "delete_downloaded_gtfs_zip_files": {
+        "description": "If true delete the gtfs files after parsing them. {default: True)",
+        "type": "boolean"
+      },
+      "write_filtered_feed": {
+        "description": "If true writes a filtered version of the gtfs for the specific dates. {default: False)",
+        "type": "boolean"
+      },
+      "console_verbosity": {
+        "description": "Lowest logging level to be printed to console. {default: 'Error')",
+        "type": "string"
+      }
     },
-    "use_data_from_today": {
-      "description": "Download only gtfs data from today (overrides date_range). {default: False)",
-      "type": "boolean"
-    },
-    "max_gtfs_size_in_mb": {
-      "description": "Limit the maximum size of the downloaded gtfs files (in MB). If not set the limit is only free disk space.",
-      "type": "integer"
-    },
-    "display_download_progress_bar": {
-      "description": "If true displays a proggress bar while downloading. {default: False)",
-      "type": "boolean"
-    },
-    "display_size_on_progress_bar": {
-      "description": "If true displays file size on the download status bar. {default: False)",
-      "type": "boolean"
-    },
-    "delete_downloaded_gtfs_zip_files": {
-      "description": "If true delete the gtfs files after parsing them. {default: True)",
-      "type": "boolean"
-    },
-    "write_filtered_feed": {
-      "description": "If true writes a filtered version of the gtfs for the specific dates. {default: False)",
-      "type": "boolean"
-    },
-    "console_verbosity": {
-      "description": "Lowest logging level to be printed to console. {default: 'Error')",
-      "type": "string"
-    }
+    "required": [
+      "date_range",
+      "files",
+      "s3"
+    ],
+    "additionalProperties": false
   },
-  "required": [ "date_range", "files", "s3" ],
-  "additionalProperties": false,
   "definitions": {
+    "description": "The definitions are separated to a different key so it won't appear in the main doc",
     "files": {
       "title": "File System Information",
       "$$target": "#/definitions/files",

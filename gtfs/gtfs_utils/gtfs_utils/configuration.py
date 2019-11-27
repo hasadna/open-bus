@@ -112,12 +112,19 @@ def dict_to_dataclass(data_dict: Dict, data_class: type) -> Dict:
     return data_class_instance
 
 
+def validate_configuration_schema(configuration_dict):
+    with open(CONFIGURATION_SCHEMA_FILE_PATH, 'r') as schema_file:
+        config_schema = json.load(schema_file)
+        # The definitions are separated to a different key,
+        # so it won't appear in the sphinx generated docs
+        schema = dict(**config_schema['schema'], definitions=config_schema['definitions'])
+        validate(instance=configuration_dict, schema=schema)
+
+
 def load_configuration() -> Configuration:
     with open(CONFIGURATION_FILE_PATH, 'r') as configuration_file:
         configuration_dict = json.load(configuration_file)
-        with open(CONFIGURATION_SCHEMA_FILE_PATH, 'r') as schema_file:
-            config_schema = json.load(schema_file)
-            validate(instance=configuration_dict, schema=config_schema)
+        validate_configuration_schema(configuration_dict)
     return dict_to_dataclass(configuration_dict, Configuration)
 
 
