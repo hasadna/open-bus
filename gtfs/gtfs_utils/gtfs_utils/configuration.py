@@ -71,7 +71,6 @@ class Configuration:
     s3: S3Configuration = None
     use_data_from_today: bool = True
     date_range: List[str] = None
-    future_days_count: int = 0
     max_gtfs_size_in_mb: int = sys.maxsize
     display_download_progress_bar: bool = True
     display_size_on_progress_bar: bool = True
@@ -112,13 +111,20 @@ def dict_to_dataclass(data_dict: Dict, data_class: type) -> Dict:
     return data_class_instance
 
 
-def validate_configuration_schema(configuration_dict):
+def validate_configuration_schema(configuration_dict: dict) -> bool:
+    """
+    Validate the configuration dict against the configuration JSON Schema
+    :param configuration_dict: a dict of the configuration, as loaded with json.load
+    :return: True or raises an error (jsonschema.exceptions.ValidationError)
+    """
     with open(CONFIGURATION_SCHEMA_FILE_PATH, 'r') as schema_file:
         config_schema = json.load(schema_file)
         # The definitions are separated to a different key,
         # so it won't appear in the sphinx generated docs
-        schema = dict(**config_schema['schema'], definitions=config_schema['definitions'])
+        schema = config_schema['schema']
+        schema['definitions'] = config_schema['definitions']
         validate(instance=configuration_dict, schema=schema)
+    return True
 
 
 def load_configuration() -> Configuration:
