@@ -58,8 +58,8 @@
     ],
     "additionalProperties": false
   },
+  "$comment": "The definitions are separated to a different key so it won't appear in the main doc",
   "definitions": {
-    "description": "The definitions are separated to a different key so it won't appear in the main doc",
     "files": {
       "title": "File System Information",
       "$$target": "#/definitions/files",
