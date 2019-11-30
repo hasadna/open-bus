@@ -23,7 +23,7 @@
         "minLength": 2
       },
       "use_data_from_today": {
-        "description": "Download only gtfs data from today (overrides date_range). {default: False)",
+        "description": "Download only gtfs data from today (overrides date_range). {default: *False*}",
         "type": "boolean"
       },
       "max_gtfs_size_in_mb": {
@@ -31,23 +31,23 @@
         "type": "integer"
       },
       "display_download_progress_bar": {
-        "description": "If true displays a proggress bar while downloading. {default: False)",
+        "description": "If true displays a proggress bar while downloading. {default: *False*}",
         "type": "boolean"
       },
       "display_size_on_progress_bar": {
-        "description": "If true displays file size on the download status bar. {default: False)",
+        "description": "If true displays file size on the download status bar. {default: *False*}",
         "type": "boolean"
       },
       "delete_downloaded_gtfs_zip_files": {
-        "description": "If true delete the gtfs files after parsing them. {default: True)",
+        "description": "If true delete the gtfs files after parsing them. {default: *True*}",
         "type": "boolean"
       },
       "write_filtered_feed": {
-        "description": "If true writes a filtered version of the gtfs for the specific dates. {default: False)",
+        "description": "If true writes a filtered version of the gtfs for the specific dates. {default: *False*}",
         "type": "boolean"
       },
       "console_verbosity": {
-        "description": "Lowest logging level to be printed to console. {default: 'Error')",
+        "description": "Lowest logging level to be printed to console. {default: *'Error'*}",
         "type": "string"
       }
     },
