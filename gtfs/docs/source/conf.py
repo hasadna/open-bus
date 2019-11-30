@@ -94,13 +94,11 @@ html_theme = 'sphinx_rtd_theme'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-# I used this guide to override the Read The Docs table width problem in css:
-# https://rackerlabs.github.io/docs-rackspace/tools/rtd-tables.html
-html_context = {
-    'css_files': [
-        '_static/theme_overrides.css',  # override wide tables in RTD theme
-        ],
-     }
+
+# Known issue with line wrap inside table for ReadTheDocs:
+# https://github.com/readthedocs/sphinx_rtd_theme/issues/117
+def setup(app):
+    app.add_stylesheet("theme_overrides.css")
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
