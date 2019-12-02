@@ -2,7 +2,7 @@
   "schema": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "http://example.com/config.schema.json",
-    "title": "GTFS config",
+    "title": "Main configuration object parameter",
     "description": "The configuration for a gtfs_stats run",
     "type": "object",
     "properties": {
@@ -61,7 +61,7 @@
   "$comment": "The definitions are separated to a different key so it won't appear in the main doc",
   "definitions": {
     "files": {
-      "title": "File System Information",
+      "title": "Files object parameters",
       "$$target": "#/definitions/files",
       "description": "files info would be under the `files` tag.",
       "type": "object",
@@ -105,7 +105,7 @@
       "additionalProperties": false
     },
     "s3": {
-      "title": "S3 connection information",
+      "title": "S3 object parameters",
       "$$target": "#/definitions/s3",
       "description": "All the info about the s3 connection parameters would come here (under `s3` tag).",
       "type": "object",

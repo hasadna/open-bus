@@ -3,7 +3,7 @@
     "base_directory": "/home/travis/build/open-bus-files/",
     "child_directories": {
       "gtfs_feeds": "gtfs_feeds",
-      "output": "gtfs_stats_hack",
+      "output": "output",
       "filtered_feeds": "filtered_feeds",
       "logs": "logs"
     },
