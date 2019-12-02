@@ -67,8 +67,8 @@ def analyze_gtfs_date(date: datetime.date,
     zones = get_zones_df(tariff_path_to_use)
 
     source_files_base_name = []
-    for full_path in sorted(local_full_paths.keys()):
-        source_files_base_name += [basename(full_path)]
+    for file_name in sorted(local_full_paths.keys()):
+        source_files_base_name += [basename(local_full_paths[file_name])]
 
     ts = compute_trip_stats(feed, zones, date, source_files_base_name)
     save_trip_stats(ts, trip_stats_output_path)
