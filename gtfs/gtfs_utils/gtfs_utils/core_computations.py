@@ -107,8 +107,8 @@ def compute_trip_stats(feed: ptg.feed,
     - ``trip_id`` - Trip identifier, as specified in `trips.txt` file.
     """
 
-    source_files_merged = ';'.join(source_files_base_name)
-    logging.info(f'Starting compute_trip_stats for {date} from {source_files_merged}')
+    source_files_str = ';'.join(source_files_base_name)
+    logging.info(f'Starting compute_trip_stats for {date} from {source_files_str}')
 
     f = feed.trips
     f = (f[['route_id', 'trip_id', 'direction_id', 'shape_id']]
@@ -155,9 +155,9 @@ def compute_trip_stats(feed: ptg.feed,
 
     h['date'] = date
     h['date'] = pd.Categorical(h['date'])
-    h['source_files'] = source_files_merged
+    h['source_files'] = source_files_str
 
-    logging.debug(f'finished compute_trip_stats for {date} from {source_files_merged}')
+    logging.debug(f'finished compute_trip_stats for {date} from {source_files_str}')
 
     return h
 
@@ -252,7 +252,7 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     If ``trip_stats_subset`` is empty, return an empty DataFrame.
 
     """
-    source_files__merged = ';'.join(source_files_base_name)
+    source_files_str = ';'.join(source_files_base_name)
     logging.info(f'Starting compute_route_stats from trip stats result')
 
     f = trip_stats_subset.copy()
@@ -293,7 +293,7 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
 
     g['date'] = date
     g['date'] = pd.Categorical(g['date'])
-    g['source_files'] = source_files__merged
+    g['source_files'] = source_files_str
 
     logging.debug(f'Finished compute_route_stats from trip stats result')
 
