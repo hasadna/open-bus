@@ -13,7 +13,7 @@
         "$ref": "#/definitions/s3"
       },
       "date_range": {
-        "description": "First and last date of the gtfs files to be download from bucket",
+        "description": "First and last date of the gtfs files to be download from bucket. {Format: *YYYY-MM-DD*}",
         "type": "array",
         "items": {
           "type": "string",
