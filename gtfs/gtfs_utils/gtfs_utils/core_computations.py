@@ -219,12 +219,11 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     - ``all_stop_latlon`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``all_stop_name`` - Names of all stops of the trip (as described in `stop_name` field in \
         `stops.txt` file), separated by semicolons.
-    - ``all_trip_id`` -All of the identifiers (``trip_id``, as specified in `trips.txt` file) of \
+    - ``all_trip_id`` - All of the identifiers (``trip_id``, as specified in `trips.txt` file) of \
         the trips in the route, separated by semicolons
-    - ``cluster_id`` - Cluster code, as in `ClusterId` in `ClusterToLine` file.
-    - ``cluster_name`` - The name of the cluster to which the line belongs, as in `ClusterName` in `ClusterToLine` file.
-    - ``cluster_sub_desc`` - A sub-cluster name to which the line is associated, as in `ClusterSubDesc` in \
-        `ClusterToLine` file.
+    - ``cluster_id`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``cluster_name`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``cluster_sub_desc`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``date`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``end_stop_city`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``end_stop_desc`` - Same as in :func:`gtfs_utils.compute_trip_stats`
@@ -238,12 +237,8 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     - ``gtfs_file_name`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``is_bidirectional`` - 1 if the route has trips in both directions, otherwise 0
     - ``is_loop`` - Same as in :func:`gtfs_utils.compute_trip_stats`
-    - ``line_type`` - Line type code, as in `LineType` in `ClusterToLine` file.
-    - ``line_type_desc`` - Line type description, as in `LineTypeDesc` in `ClusterToLine` file. \
-        The options for this fields are:
-        * "עירוני" - Urban
-        * "בינעירוני" - Intercity
-        * "אזורי" - Regional
+    - ``line_type`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``line_type_desc`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``max_headway`` - The maximal duration (in minutes) between trip starts on the route between \
         ``headway_start_time`` and ``headway_end_time``
     - ``mean_headway`` - The mean duration (in minutes) between trip starts on the route between \
