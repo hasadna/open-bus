@@ -31,8 +31,14 @@ def get_zones_df(local_tariff_zip_path):
 
 
 def get_clusters_df(local_cluster_zip_path):
+    # not a true csv, so we need to jiggle it a bit, hence the 'EXTRA' field
+    cluster_cols = ['OperatorName', 'OfficeLineId', 'OperatorLineId', 'ClusterName', 'FromDate', 'ToDate', 'ClusterId',
+                    'LineType', 'LineTypeDesc', 'ClusterSubDesc', 'EXTRA']
+
+
     with zipfile.ZipFile(local_cluster_zip_path) as zf:
-        clusters_df = pd.read_csv(zf.open(CLUSTER_TO_LINE_TXT_NAME))
+        clusters_df = pd.read_csv(zf.open(CLUSTER_TO_LINE_TXT_NAME), header=None, skiprows=[0], names=cluster_cols) \
+                        .drop(columns=['EXTRA'])
 
     clusters_df = clusters_df.rename(columns={
         'ClusterId': 'cluster_id',
@@ -41,10 +47,7 @@ def get_clusters_df(local_cluster_zip_path):
         'LineType': 'line_type',
         'LineTypeDesc': 'line_type_desc',
         'OfficeLineId': 'route_mkt'
-    })
-
-    clusters_df = clusters_df[['route_mkt', 'line_type', 'line_type_desc', 'cluster_id',
-                               'cluster_name', 'cluster_sub_desc']]
+    }).drop(columns=['OperatorName', 'OperatorLineId', 'FromDate', 'ToDate'])
 
     return clusters_df
 
