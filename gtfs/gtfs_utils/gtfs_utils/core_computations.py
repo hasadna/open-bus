@@ -8,16 +8,24 @@ from .constants import *
 from .aggregations import generate_trip_stats_aggregation, generate_route_stats_aggregation
 
 
+def _read_almost_valid_csv_to_df(zip_path, file_name_in_zip, real_columns):
+    """ Read almost-valid csv files, which are not actually valid, while jiggling the columns a bit. """
+
+    cols = real_columns + ['EXTRA']
+    with zipfile.ZipFile(zip_path) as zf:
+        with zf.open(file_name_in_zip) as file_in_zip:
+            df = pd.read_csv(file_in_zip, header=None, skiprows=[0], names=cols) \
+                    .drop(columns=['EXTRA'])
+
+    return df
+
+
 def get_zones_df(local_tariff_zip_path):
-    # not a true csv, so we need to jiggle it a bit, hence the 'EXTRA' field
-    tariff_cols = ['ShareCode', 'ShareCodeDesc', 'ZoneCodes', 'Daily', 'Weekly', 'Monthly', 'FromDate', 'ToDate',
-                   'EXTRA']
-    reform_cols = ['StationId', 'ReformZoneCode', 'FromDate', 'ToDate', 'EXTRA']
-    with zipfile.ZipFile(local_tariff_zip_path) as zf:
-        tariff_df = (pd.read_csv(zf.open(TARIFF_TXT_NAME), header=None, skiprows=[0], names=tariff_cols)
-                     .drop(columns=['EXTRA']))
-        reform_df = (pd.read_csv(zf.open(TARIFF_TO_REFORM_ZONE), header=None, skiprows=[0], names=reform_cols)
-                     .drop(columns=['EXTRA']))
+    tariff_cols = ['ShareCode', 'ShareCodeDesc', 'ZoneCodes', 'Daily', 'Weekly', 'Monthly', 'FromDate', 'ToDate']
+    tariff_df = _read_almost_valid_csv_to_df(local_tariff_zip_path, TARIFF_TXT_NAME, tariff_cols)
+
+    reform_cols = ['StationId', 'ReformZoneCode', 'FromDate', 'ToDate']
+    reform_df = _read_almost_valid_csv_to_df(local_tariff_zip_path, TARIFF_TO_REFORM_ZONE, reform_cols)
 
     # remove ShareCodes which contain multiple zones  e.g. גוש דן מורחב
     tariff_df = (tariff_df[~ tariff_df.ZoneCodes.str.contains(';')]
@@ -31,14 +39,10 @@ def get_zones_df(local_tariff_zip_path):
 
 
 def get_clusters_df(local_cluster_zip_path):
-    # not a true csv, so we need to jiggle it a bit, hence the 'EXTRA' field
     cluster_cols = ['OperatorName', 'OfficeLineId', 'OperatorLineId', 'ClusterName', 'FromDate', 'ToDate', 'ClusterId',
-                    'LineType', 'LineTypeDesc', 'ClusterSubDesc', 'EXTRA']
+                    'LineType', 'LineTypeDesc', 'ClusterSubDesc']
 
-
-    with zipfile.ZipFile(local_cluster_zip_path) as zf:
-        clusters_df = pd.read_csv(zf.open(CLUSTER_TO_LINE_TXT_NAME), header=None, skiprows=[0], names=cluster_cols) \
-                        .drop(columns=['EXTRA'])
+    clusters_df = _read_almost_valid_csv_to_df(local_cluster_zip_path, CLUSTER_TO_LINE_TXT_NAME, cluster_cols)
 
     clusters_df = clusters_df.rename(columns={
         'ClusterId': 'cluster_id',
