@@ -22,9 +22,7 @@
 
   "use_data_from_today": false,
   "date_range": ["2019-03-07", "2019-03-07"],
-
-  "future_days_count": 0,
-
+  
   "display_download_progress_bar": false,
   "display_size_on_progress_bar": false,
 
