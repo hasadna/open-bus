@@ -60,14 +60,13 @@
         "default": "'ERROR'"
       }
     },
-    "allOf": [
-      {"anyOf": [
+    "anyOf": [
         {"required": ["date_range"]},
         {"required": ["use_data_from_today"]}
-      ]},
-      {"required": [
+      ],
+    "required": [
         "files",
-        "s3"]}
+        "s3"
     ],
     "additionalProperties": false
   },
@@ -80,7 +79,7 @@
       "type": "object",
       "properties": {
         "base_directory": {
-          "description": "base directory for the for the created files.",
+          "description": "base directory the for the created files.",
           "type": "string"
         },
         "output_file_name_regexp": {
@@ -88,14 +87,15 @@
           "type": "string"
         },
         "output_file_type": {
-          "description": "The file type for the outputs (for example, csv.gz).",
-          "type": "string"
+          "description": "The file type for the outputs.",
+          "type": "string",
+          "enum": ["csv.gz", "pkl.gz"]
         },
         "child_directories": {
           "type": "object",
           "properties": {
             "gtfs_feeds": {
-              "description": "The name of the directory for the gtfs_feeds.",
+              "description": "The name of the directory the GTFS files would be downloaded to.",
               "type": "string"
             },
             "output": {
@@ -128,7 +128,7 @@
           "type": "string"
         },
         "secret_access_key": {
-          "description": "Authorization secert access key for S3.",
+          "description": "Authorization secret access key for S3.",
           "type": "string"
         },
         "s3_endpoint_url": {
@@ -136,15 +136,15 @@
           "type": "string"
         },
         "bucket_name": {
-          "description": "Connection bucket name for S3.",
+          "description": "Bucket name for S3.",
           "type": "string"
         },
         "upload_results": {
-          "description": "If true, upload the analzed results back to the S3.",
+          "description": "If true, upload the analyzed results back to S3.",
           "type": "boolean"
         },
         "results_path_prefix": {
-          "description": "Prefix for the uploaded results.",
+          "description": "Prefix path on the S3 for the uploaded results.",
           "type": "string"
         }
       },
