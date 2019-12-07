@@ -2,7 +2,7 @@ import json
 import os
 import re
 import sys
-from dataclasses import dataclass, fields, is_dataclass
+from dataclasses import dataclass, fields, is_dataclass, field
 from inspect import isclass
 from typing import Dict, List
 

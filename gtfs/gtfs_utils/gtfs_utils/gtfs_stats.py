@@ -84,7 +84,7 @@ def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> Li
         return [datetime.datetime.now().date()]
     else:
         if len(date_range) != 2:
-            raise ValueError('date_range must be a 2-element list')
+            raise ValueError('Use "date_range" or set "use_data_from_today" to true if the configuration.')
 
         min_date, max_date = [datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
                               for date_str

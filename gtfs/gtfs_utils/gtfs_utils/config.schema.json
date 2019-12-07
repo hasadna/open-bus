@@ -60,10 +60,14 @@
         "default": "'ERROR'"
       }
     },
-    "required": [
-      "date_range",
-      "files",
-      "s3"
+    "allOf": [
+      {"anyOf": [
+        {"required": ["date_range"]},
+        {"required": ["use_data_from_today"]}
+      ]},
+      {"required": [
+        "files",
+        "s3"]}
     ],
     "additionalProperties": false
   },
