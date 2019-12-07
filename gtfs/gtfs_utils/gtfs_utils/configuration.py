@@ -79,7 +79,7 @@ class Configuration:
     console_verbosity: str = 'ERROR'
 
 
-def dict_to_dataclass(data_dict: Dict, data_class: type) -> Dict:
+def dict_to_dataclass(data_dict: Dict, data_class: type) -> Configuration:
     """
     Converts the dict to a dataclass instance of the given type.
     """
@@ -111,26 +111,25 @@ def dict_to_dataclass(data_dict: Dict, data_class: type) -> Dict:
     return data_class_instance
 
 
-def validate_configuration_schema(configuration_dict: dict) -> bool:
+def validate_configuration_schema(configuration_dict: dict) -> None:
     """
     Validate the configuration dict against the configuration JSON Schema
     :param configuration_dict: a dict of the configuration, as loaded with json.load
-    :return: True or raises an error (jsonschema.exceptions.ValidationError)
+    :return: raises an error (jsonschema.exceptions.ValidationError)
     """
     with open(CONFIGURATION_SCHEMA_FILE_PATH, 'r') as schema_file:
         config_schema = json.load(schema_file)
-        # The definitions are separated to a different key,
-        # so it won't appear in the sphinx generated docs
-        schema = config_schema['schema']
-        schema['definitions'] = config_schema['definitions']
-        validate(instance=configuration_dict, schema=schema)
-    return True
+    # The definitions are separated to a different key,
+    # so it won't appear in the sphinx generated docs
+    schema = config_schema['schema']
+    schema['definitions'] = config_schema['definitions']
+    validate(instance=configuration_dict, schema=schema)
 
 
 def load_configuration() -> Configuration:
     with open(CONFIGURATION_FILE_PATH, 'r') as configuration_file:
         configuration_dict = json.load(configuration_file)
-        validate_configuration_schema(configuration_dict)
+    validate_configuration_schema(configuration_dict)
     return dict_to_dataclass(configuration_dict, Configuration)
 
 
