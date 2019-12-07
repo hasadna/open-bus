@@ -13,7 +13,8 @@
         "$ref": "#/definitions/s3"
       },
       "date_range": {
-        "description": "First and last date of the gtfs files to be download from bucket. {Format: *YYYY-MM-DD*}",
+        "$$description": ["First and last date of the gtfs files to be download from bucket.",
+                         "only relevant if ``use_data_from_today`` is set to false. {Format: *YYYY-MM-DD*}"],
         "type": "array",
         "items": {
           "type": "string",
@@ -23,32 +24,40 @@
         "minLength": 2
       },
       "use_data_from_today": {
-        "description": "Download only gtfs data from today (overrides date_range). {default: *False*}",
-        "type": "boolean"
+        "description": "Download only gtfs data from today (overrides date_range).",
+        "type": "boolean",
+        "default": false
       },
       "max_gtfs_size_in_mb": {
-        "description": "Limit the maximum size of the downloaded gtfs files (in MB). If not set the limit is only free disk space.",
-        "type": "integer"
+        "$$description": ["Limit the maximum size of the downloaded gtfs files (in MB).",
+                          "If not set, the limit is only free disk space."],
+        "type": "integer",
+        "default": "sys.maxsize"
       },
       "display_download_progress_bar": {
-        "description": "If true displays a proggress bar while downloading. {default: *False*}",
-        "type": "boolean"
+        "description": "If true, displays a proggress bar while downloading.",
+        "type": "boolean",
+        "default": false
       },
       "display_size_on_progress_bar": {
-        "description": "If true displays file size on the download status bar. {default: *False*}",
-        "type": "boolean"
+        "description": "If true, displays file size on the download status bar.",
+        "type": "boolean",
+        "default": false
       },
       "delete_downloaded_gtfs_zip_files": {
-        "description": "If true delete the gtfs files after parsing them. {default: *True*}",
-        "type": "boolean"
+        "description": "If true, delete the gtfs files after parsing them.",
+        "type": "boolean",
+        "default": true
       },
       "write_filtered_feed": {
-        "description": "If true writes a filtered version of the gtfs for the specific dates. {default: *False*}",
-        "type": "boolean"
+        "description": "If true, writes a filtered version of the gtfs for the specific dates.",
+        "type": "boolean",
+        "default": false
       },
       "console_verbosity": {
-        "description": "Lowest logging level to be printed to console. {default: *'Error'*}",
-        "type": "string"
+        "description": "Lowest logging level to be printed to console.",
+        "type": "string",
+        "default": "'ERROR'"
       }
     },
     "required": [
@@ -127,7 +136,7 @@
           "type": "string"
         },
         "upload_results": {
-          "description": "If true upload the analzed results back to the S3.",
+          "description": "If true, upload the analzed results back to the S3.",
           "type": "boolean"
         },
         "results_path_prefix": {
