@@ -108,7 +108,9 @@ def compute_trip_stats(feed: ptg.feed,
     """
 
     source_files_str = ';'.join(source_files_base_name)
-    logging.info(f'Starting compute_trip_stats for {date} from {source_files_str}')
+    line_sep = '  \n'
+    logging.info((f'Starting compute_trip_stats for {date} from files: {line_sep}' 
+                  f'{line_sep.join(source_files_base_name)}'))
 
     f = feed.trips
     f = (f[['route_id', 'trip_id', 'direction_id', 'shape_id']]
@@ -157,7 +159,8 @@ def compute_trip_stats(feed: ptg.feed,
     h['date'] = pd.Categorical(h['date'])
     h['source_files'] = source_files_str
 
-    logging.debug(f'finished compute_trip_stats for {date} from {source_files_str}')
+    logging.debug((f'finished compute_trip_stats for {date} from: {line_sep}' 
+                   f'{line_sep.join(source_files_base_name)}'))
 
     return h
 
