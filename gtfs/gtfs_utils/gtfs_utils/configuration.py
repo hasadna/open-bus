@@ -2,9 +2,9 @@ import json
 import os
 import re
 import sys
-from dataclasses import dataclass, fields, is_dataclass, field
+from dataclasses import dataclass, fields, is_dataclass
 from inspect import isclass
-from typing import Dict, List
+from typing import Dict, List, Iterable
 
 from jsonschema import validate
 
@@ -70,7 +70,7 @@ class Configuration:
     files: FilesConfiguration = None
     s3: S3Configuration = None
     use_data_from_today: bool = True
-    date_range: List[str] = None
+    date_range: Iterable[str] = ('',)
     max_gtfs_size_in_mb: int = sys.maxsize
     display_download_progress_bar: bool = True
     display_size_on_progress_bar: bool = True
