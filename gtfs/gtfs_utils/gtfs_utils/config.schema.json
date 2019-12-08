@@ -79,7 +79,7 @@
       "type": "object",
       "properties": {
         "base_directory": {
-          "description": "base directory the for the created files.",
+          "description": "base directory for the created files.",
           "type": "string"
         },
         "output_file_name_regexp": {
@@ -120,7 +120,7 @@
     "s3": {
       "title": "S3 object parameters",
       "$$target": "#/definitions/s3",
-      "description": "All the info about the s3 connection parameters would come here (under `s3` tag).",
+      "description": "All the info about S3 connection parameters would come here (under `s3` tag).",
       "type": "object",
       "properties": {
         "access_key_id": {
@@ -144,7 +144,7 @@
           "type": "boolean"
         },
         "results_path_prefix": {
-          "description": "Prefix path on the S3 for the uploaded results.",
+          "description": "Prefix path on S3 for the uploaded results.",
           "type": "string"
         }
       },
