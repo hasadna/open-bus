@@ -2,9 +2,9 @@ import json
 import os
 import re
 import sys
-from dataclasses import dataclass, fields, is_dataclass
+from dataclasses import dataclass, fields, is_dataclass, field
 from inspect import isclass
-from typing import Dict, List, Iterable
+from typing import Dict, List
 
 from jsonschema import validate
 
@@ -70,7 +70,7 @@ class Configuration:
     files: FilesConfiguration = None
     s3: S3Configuration = None
     use_data_from_today: bool = True
-    date_range: Iterable[str] = ('',)
+    date_range: List[str] = field(default_factory=list)
     max_gtfs_size_in_mb: int = sys.maxsize
     display_download_progress_bar: bool = True
     display_size_on_progress_bar: bool = True
@@ -87,7 +87,7 @@ def dict_to_dataclass(data_dict: Dict, data_class: type) -> Configuration:
 
     for field in fields(data_class):
         if field.name not in data_dict:
-            value = field.default
+            continue  # The value is already set by default value of the class
         else:
             if isclass(field.type) and is_dataclass(field.type):
                 value = dict_to_dataclass(data_dict[field.name], field.type)
