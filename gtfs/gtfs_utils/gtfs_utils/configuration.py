@@ -83,30 +83,31 @@ def dict_to_dataclass(data_dict: Dict, data_class: type) -> Configuration:
     """
     Converts the dict to a dataclass instance of the given type.
     """
+    # initialize the default values of the class
     data_class_instance = data_class()
 
-    for field in fields(data_class):
-        if field.name not in data_dict:
-            continue  # The value is already set by default value of the class
-        else:
-            if isclass(field.type) and is_dataclass(field.type):
-                value = dict_to_dataclass(data_dict[field.name], field.type)
-            elif field.type == re.Pattern:
-                value = re.compile(data_dict[field.name])
+    for class_field in fields(data_class):
+        # override the default value
+        if class_field.name in data_dict:
+            if isclass(class_field.type) and is_dataclass(class_field.type):
+                value = dict_to_dataclass(data_dict[class_field.name], class_field.type)
+            elif class_field.type == re.Pattern:
+                value = re.compile(data_dict[class_field.name])
             else:
-                value = data_dict[field.name]
+                value = data_dict[class_field.name]
 
-        if isinstance(field.type, type):
-            if not isinstance(value, field.type):
-                raise TypeError(f'Configuration field \'{field.name}\' '
-                                f'should be of type {field.type.__name__}, '
-                                f'but is actually of type {type(value).__name__}')
-        elif not isinstance(value, field.type.__origin__):
-                raise TypeError(f'Configuration field \'{field.name}\' '
-                                f'should be of type {field.type.__origin__.__name__}, '
-                                f'but is actually of type {type(value).__name__}')
+            # validate that the type matches the type hint
+            if isinstance(class_field.type, type):
+                if not isinstance(value, class_field.type):
+                    raise TypeError(f'Configuration field \'{class_field.name}\' '
+                                    f'should be of type {class_field.type.__name__}, '
+                                    f'but is actually of type {type(value).__name__}')
+            elif not isinstance(value, class_field.type.__origin__):
+                    raise TypeError(f'Configuration field \'{class_field.name}\' '
+                                    f'should be of type {class_field.type.__origin__.__name__}, '
+                                    f'but is actually of type {type(value).__name__}')
 
-        setattr(data_class_instance, field.name, value)
+            setattr(data_class_instance, class_field.name, value)
 
     return data_class_instance
 
