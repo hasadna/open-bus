@@ -107,10 +107,9 @@ def compute_trip_stats(feed: ptg.feed,
     - ``trip_id`` - Trip identifier, as specified in `trips.txt` file.
     """
 
-    source_files_str = ';'.join(source_files_base_name)
-    line_sep = '  \n'
-    logging.info((f'Starting compute_trip_stats for {date} from files: {line_sep}' 
-                  f'{line_sep.join(source_files_base_name)}'))
+    source_files_str = '\n'.join(source_files_base_name)
+    logging.info((f'Starting compute_trip_stats for {date} from files: \n' 
+                  f'{source_files_str}'))
 
     f = feed.trips
     f = (f[['route_id', 'trip_id', 'direction_id', 'shape_id']]
@@ -157,10 +156,10 @@ def compute_trip_stats(feed: ptg.feed,
 
     h['date'] = date
     h['date'] = pd.Categorical(h['date'])
-    h['source_files'] = source_files_str
+    h['source_files'] = ';'.join(source_files_base_name)
 
-    logging.debug((f'finished compute_trip_stats for {date} from: {line_sep}' 
-                   f'{line_sep.join(source_files_base_name)}'))
+    logging.debug((f'finished compute_trip_stats for {date} from: \n' 
+                   f'{source_files_str}'))
 
     return h
 
