@@ -112,18 +112,23 @@ def dict_to_dataclass(data_dict: Dict, data_class: type) -> Configuration:
     return data_class_instance
 
 
-def validate_configuration_schema(configuration_dict: dict) -> None:
-    """
-    Validate the configuration dict against the configuration JSON Schema
-    :param configuration_dict: a dict of the configuration, as loaded with json.load
-    :return: raises an error (jsonschema.exceptions.ValidationError)
-    """
+def get_json_schema():
     with open(CONFIGURATION_SCHEMA_FILE_PATH, 'r') as schema_file:
         config_schema = json.load(schema_file)
     # The definitions are separated to a different key,
     # so it won't appear in the sphinx generated docs
     schema = config_schema['schema']
     schema['definitions'] = config_schema['definitions']
+    return schema
+
+
+def validate_configuration_schema(configuration_dict: dict) -> None:
+    """
+    Validate the configuration dict against the configuration JSON Schema
+    :param configuration_dict: a dict of the configuration, as loaded with json.load
+    :return: raises an error (jsonschema.exceptions.ValidationError)
+    """
+    schema = get_json_schema()
     validate(instance=configuration_dict, schema=schema)
 
 
