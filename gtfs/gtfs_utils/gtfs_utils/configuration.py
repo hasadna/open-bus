@@ -112,7 +112,11 @@ def dict_to_dataclass(data_dict: Dict, data_class: type) -> Configuration:
     return data_class_instance
 
 
-def get_json_schema():
+def get_json_schema() -> dict:
+    """
+    read the JSON Schema and construct is from the different keys
+    :return: dict of the JSON Schema
+    """
     with open(CONFIGURATION_SCHEMA_FILE_PATH, 'r') as schema_file:
         config_schema = json.load(schema_file)
     # The definitions are separated to a different key,

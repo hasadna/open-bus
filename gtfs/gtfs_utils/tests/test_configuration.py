@@ -7,8 +7,9 @@ DESCRIPTION_KEYS = ('title', 'description', '$$description', '$$title', '$ref')
 
 
 def test_example_config():
-    example_config = json.load(open(os.path.join(os.path.dirname(__file__),
-                                                 '../gtfs_utils/config_example.json')))
+    example_config_path = os.path.join(os.path.dirname(__file__), '../gtfs_utils/config_example.json')
+    with open(example_config_path) as example_file:
+        example_config = json.load(example_file)
     validate_configuration_schema(example_config)
 
 
