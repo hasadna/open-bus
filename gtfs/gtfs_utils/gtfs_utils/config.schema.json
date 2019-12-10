@@ -93,6 +93,7 @@
         },
         "child_directories": {
           "type": "object",
+          "description": "Names of dirs that will be used (name is relative to ``base_directory``",
           "properties": {
             "gtfs_feeds": {
               "description": "The name of the directory the GTFS files would be downloaded to.",
@@ -111,7 +112,8 @@
               "type": "string"
             }
           },
-          "required": ["gtfs_feeds", "output", "filtered_feeds", "logs"]
+          "required": ["gtfs_feeds", "output", "filtered_feeds", "logs"],
+          "additionalProperties": false
         }
       },
       "required": ["base_directory", "child_directories", "output_file_name_regexp", "output_file_type"],
