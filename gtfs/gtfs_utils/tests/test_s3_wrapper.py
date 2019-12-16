@@ -209,7 +209,6 @@ class TestFoo(unittest.TestCase):
         file_path = join(dirname(__file__), 'resources', 'test_folder_hierarchy')
         key_prefix = 'dfgdfgdfg'
         actual = _create_items_from_local_folder(True, file_path, key_prefix)
-        print(actual)
         expected = [(join(file_path, 'bar.txt'), key_prefix + '/bar.txt'),
                     (join(file_path, 'foo.txt'), key_prefix + '/foo.txt')]
         self.assertEqual(expected, actual)
@@ -218,7 +217,6 @@ class TestFoo(unittest.TestCase):
         file_path = join(dirname(__file__), 'resources', 'test_folder_hierarchy')
         key_prefix = 'dfgdfgdfg'
         actual = _create_items_from_local_folder(True, file_path, key_prefix, "*.txt")
-        print(actual)
         expected = [(join(file_path, 'bar.txt'), key_prefix + '/bar.txt'),
                     (join(file_path, 'foo.txt'), key_prefix + '/foo.txt')]
         self.assertEqual(expected, actual)
@@ -227,7 +225,6 @@ class TestFoo(unittest.TestCase):
         file_path = join(dirname(__file__), 'resources', 'test_folder_hierarchy')
         key_prefix = 'dfgdfgdfg'
         actual = _create_items_from_local_folder(True, file_path, key_prefix, "bar*")
-        print(actual)
         expected = [(join(file_path, 'bar.txt'), key_prefix + '/bar.txt')]
         self.assertEqual(expected, actual)
 

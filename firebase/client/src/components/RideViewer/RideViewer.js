@@ -25,10 +25,11 @@ function renderNoData(isLoading) {
     )
 }
 
-function renderPoint(point) {
+function renderPoint(point, index) {
+    
     const {latitude, longitude} = point.point;
     return (
-        <Marker position={[latitude, longitude]}>
+        <Marker key={index} position={[latitude, longitude]}>
           <Popup>
               {latitude}, {longitude}
               <br/>
@@ -38,7 +39,7 @@ function renderPoint(point) {
             {lightFormat(point.recordedDateTime, "HH:mm:ss")}
           </Tooltip>
         </Marker>
-    );
+    ); 
 }
 
 function renderMap(data) {

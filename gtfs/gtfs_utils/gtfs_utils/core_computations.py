@@ -1,11 +1,14 @@
 import datetime
 import logging
+import zipfile
+from typing import List
+
+import gtfstk
 import pandas as pd
 import partridge as ptg
-import zipfile
-import gtfstk
-from .constants import *
+
 from .aggregations import generate_trip_stats_aggregation, generate_route_stats_aggregation
+from .constants import *
 
 
 def _read_almost_valid_csv_to_df(zip_path, file_name_in_zip, real_columns):
@@ -59,12 +62,12 @@ def compute_trip_stats(feed: ptg.feed,
                        zones: pd.DataFrame,
                        clusters: pd.DataFrame,
                        date: datetime.date,
-                       gtfs_file_name: str) -> pd.DataFrame:
+                       source_files_base_name: List[str]) -> pd.DataFrame:
     """
     :param feed: Partridge feed for the specific date
     :param zones: DataFrame with stop_code to zone_name mapping
     :param date: The original schedule date
-    :param gtfs_file_name: The original GTFS (zip) file name
+    :param source_files_base_name: The original zips the data is based on (GTFS, Tariff, etc.)
     :returns: A DataFrame with columns as described below
 
     Trip stats table has the following columns:
@@ -97,7 +100,7 @@ def compute_trip_stats(feed: ptg.feed,
     - ``end_stop_name`` - Stop name of the last stop of the trip
     - ``end_time`` - Departure time of the last stop of the trip
     - ``end_zone`` - Zone name of the last stop of the trip
-    - ``gtfs_file_name`` - The original GTFS (zip) file name
+    - ``source_files`` - The original the data is based on (GTFS, Tariff, etc.)
     - ``is_loop`` - 1 if the start and end stop are less than 400m apart, otherwise 0
     - ``line_type`` - Line type code, as in `LineType` in `ClusterToLine` file.
     - ``line_type_desc`` - Line type description, as in `LineTypeDesc` in `ClusterToLine` file. \
@@ -140,7 +143,9 @@ def compute_trip_stats(feed: ptg.feed,
     - ``trip_id`` - Trip identifier, as specified in `trips.txt` file.
     """
 
-    logging.info(f'Starting compute_trip_stats for {date} from {gtfs_file_name}')
+    source_files_str = '\n'.join(source_files_base_name)
+    logging.info((f'Starting compute_trip_stats for {date} from files: \n' 
+                  f'{source_files_str}'))
 
     f = feed.trips
     f = (f[['route_id', 'trip_id', 'direction_id', 'shape_id']]
@@ -190,16 +195,17 @@ def compute_trip_stats(feed: ptg.feed,
 
     h['date'] = date
     h['date'] = pd.Categorical(h['date'])
-    h['gtfs_file_name'] = gtfs_file_name
+    h['source_files'] = ';'.join(source_files_base_name)
 
-    logging.debug(f'finished compute_trip_stats for {date} from {gtfs_file_name}')
+    logging.debug((f'finished compute_trip_stats for {date} from: \n' 
+                   f'{source_files_str}'))
 
     return h
 
 
 def compute_route_stats(trip_stats_subset: pd.DataFrame,
                         date: datetime.date,
-                        gtfs_file_name: str,
+                        source_files_base_name: List[str],
                         headway_start_time: str = '07:00:00',
                         headway_end_time: str = '19:00:00') -> pd.DataFrame:
     """
@@ -207,7 +213,7 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
 
     :param trip_stats_subset: Subset of the output of :func:`compute_trip_stats`
     :param date: The original schedule date
-    :param gtfs_file_name: The original GTFS (zip) file name
+    :param source_files_base_name: The original zips the data is based on (GTFS, Tariff, etc.)
     :param headway_start_time: HH:MM:SS time string indicating the start time for computing \
     headway stats
     :param headway_end_time: HH:MM:SS time string indicating the end time for computing headway \
@@ -241,7 +247,7 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     - ``end_time`` - Same as in :func:`gtfs_utils.compute_trip_stats`, referring to the last trip \
     of the route
     - ``end_zone`` - Same as in :func:`gtfs_utils.compute_trip_stats`
-    - ``gtfs_file_name`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``source_files`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``is_bidirectional`` - 1 if the route has trips in both directions, otherwise 0
     - ``is_loop`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``line_type`` - Same as in :func:`gtfs_utils.compute_trip_stats`
@@ -292,7 +298,7 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     If ``trip_stats_subset`` is empty, return an empty DataFrame.
 
     """
-
+    source_files_str = ';'.join(source_files_base_name)
     logging.info(f'Starting compute_route_stats from trip stats result')
 
     f = trip_stats_subset.copy()
@@ -327,7 +333,7 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
 
     g['date'] = date
     g['date'] = pd.Categorical(g['date'])
-    g['gtfs_file_name'] = gtfs_file_name
+    g['source_files'] = source_files_str
 
     logging.debug(f'Finished compute_route_stats from trip stats result')
 

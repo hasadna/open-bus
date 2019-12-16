@@ -18,6 +18,8 @@ requirements = [
     'numpy==1.17.3',
     'pandas<0.25,>=0.24',
     'tqdm==4.37.0',
+    'jsonschema==3.2.0',
+    'sphinx-jsonschema==1.11',
 ]
 
 setup_requirements = [
@@ -39,7 +41,7 @@ setup(
     author_email='dbareket@gmail.com',
     packages=find_packages(include=['.']),
     include_package_data=True,
-    install_requires=requirements,
+    install_requires=requirements + test_requirements + setup_requirements,
     license='MIT license',
     zip_safe=False,
     keywords='gtfs_utils',

@@ -69,13 +69,15 @@ def analyze_gtfs_date(date: datetime.date,
     cluster_file_path = local_full_paths[CLUSTER_TO_LINE_ZIP_NAME]
     clusters = get_clusters_df(cluster_file_path)
 
-    gtfs_file_base_name = basename(local_full_paths[GTFS_FILE_NAME])
+    source_files_base_name = []
+    for file_name in sorted(local_full_paths.keys()):
+        source_files_base_name += [basename(local_full_paths[file_name])]
 
-    ts = compute_trip_stats(feed, zones, clusters, date, gtfs_file_base_name)
+    ts = compute_trip_stats(feed, zones, clusters, date, source_files_base_name)
     save_trip_stats(ts, trip_stats_output_path)
     log_trip_stats(ts)
 
-    rs = compute_route_stats(ts, date, gtfs_file_base_name)
+    rs = compute_route_stats(ts, date, source_files_base_name)
     save_route_stats(rs, route_stats_output_path)
     log_route_stats(rs)
 
@@ -87,7 +89,7 @@ def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> Li
         return [datetime.datetime.now().date()]
     else:
         if len(date_range) != 2:
-            raise ValueError('date_range must be a 2-element list')
+            raise ValueError('Use "date_range" or set "use_data_from_today" to true if the configuration.')
 
         min_date, max_date = [datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
                               for date_str
