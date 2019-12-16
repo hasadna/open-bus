@@ -19,11 +19,14 @@ requirements = [
     'pandas<0.25,>=0.24',
     'tqdm==4.37.0',
     'jsonschema==3.2.0',
-    'pytest==4.0.2',
+    'sphinx-jsonschema==1.11',
     'pytest-runner',
     'sphinx==1.7.9',
     'sphinx_rtd_theme==0.4.2',
-    'sphinx-jsonschema==1.11',
+]
+
+test_requirements = [
+    'pytest==4.0.2',
 ]
 
 setup(
@@ -35,7 +38,7 @@ setup(
     author_email='dbareket@gmail.com',
     packages=find_packages(include=['.']),
     include_package_data=True,
-    install_requires=requirements,
+    install_requires=requirements + test_requirements,
     license='MIT license',
     zip_safe=False,
     keywords='gtfs_utils',
@@ -47,6 +50,7 @@ setup(
     ],
     python_requires='>=3.7, <4',
     test_suite='tests',
+    tests_require=test_requirements,
     entry_points={
         'console_scripts': [
             'run_gtfs_stats=gtfs_utils.gtfs_stats:main',
