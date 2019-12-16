@@ -19,17 +19,11 @@ requirements = [
     'pandas<0.25,>=0.24',
     'tqdm==4.37.0',
     'jsonschema==3.2.0',
-    'sphinx-jsonschema==1.11',
-]
-
-setup_requirements = [
-    'pytest-runner',
-    # 'sphinx==1.7.9',
-    # 'sphinx_rtd_theme==0.4.2',
-]
-
-test_requirements = [
     'pytest==4.0.2',
+    'pytest-runner',
+    'sphinx==1.7.9',
+    'sphinx_rtd_theme==0.4.2',
+    'sphinx-jsonschema==1.11',
 ]
 
 setup(
@@ -53,8 +47,6 @@ setup(
     ],
     python_requires='>=3.7, <4',
     test_suite='tests',
-    tests_require=test_requirements,
-    setup_requires=setup_requirements,
     entry_points={
         'console_scripts': [
             'run_gtfs_stats=gtfs_utils.gtfs_stats:main',
