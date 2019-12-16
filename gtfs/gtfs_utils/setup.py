@@ -20,9 +20,12 @@ requirements = [
     'tqdm==4.37.0',
     'jsonschema==3.2.0',
     'sphinx-jsonschema==1.11',
-    'pytest-runner',
     'sphinx==1.7.9',
     'sphinx_rtd_theme==0.4.2',
+]
+
+setup_requirements = [
+    'pytest-runner',
 ]
 
 test_requirements = [
@@ -38,7 +41,7 @@ setup(
     author_email='dbareket@gmail.com',
     packages=find_packages(include=['.']),
     include_package_data=True,
-    install_requires=requirements + test_requirements,
+    install_requires=requirements + test_requirements + setup_requirements,
     license='MIT license',
     zip_safe=False,
     keywords='gtfs_utils',
