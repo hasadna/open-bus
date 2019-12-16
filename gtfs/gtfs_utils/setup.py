@@ -24,8 +24,8 @@ requirements = [
 
 setup_requirements = [
     'pytest-runner',
-    'sphinx==1.7.9',
-    'sphinx_rtd_theme==0.4.2',
+    # 'sphinx==1.7.9',
+    # 'sphinx_rtd_theme==0.4.2',
 ]
 
 test_requirements = [
