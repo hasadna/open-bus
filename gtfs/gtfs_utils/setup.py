@@ -53,6 +53,7 @@ setup(
     ],
     python_requires='>=3.7, <4',
     test_suite='tests',
+    setup_requirements=setup_requirements,
     tests_require=test_requirements,
     entry_points={
         'console_scripts': [
