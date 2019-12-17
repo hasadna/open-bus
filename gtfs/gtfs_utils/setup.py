@@ -11,12 +11,12 @@ with io.open(join(dirname(abspath(__file__)),
     exec(f.read(), about)
 
 requirements = [
-    'python-dateutil<2.8.1,>=2.1',
+    'python-dateutil==2.8.0',
     'boto3==1.10.13',
     'partridge==0.11.0',
     'gtfstk==9.6.3',
     'numpy==1.17.3',
-    'pandas<0.25,>=0.24',
+    'pandas==0.24.2',
     'tqdm==4.37.0',
     'jsonschema==3.2.0',
     'sphinx-jsonschema==1.11',
