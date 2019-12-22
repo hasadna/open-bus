@@ -13,6 +13,7 @@ with io.open(join(dirname(abspath(__file__)),
 requirements = [
     'docutils==0.15.2',
     'python-dateutil==2.8.0',
+    'botocore==1.13.39',
     'boto3==1.10.13',
     'partridge==0.11.0',
     'gtfstk==9.6.3',
