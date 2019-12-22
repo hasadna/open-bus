@@ -11,6 +11,7 @@ with io.open(join(dirname(abspath(__file__)),
     exec(f.read(), about)
 
 requirements = [
+    'docutils==0.15.2',
     'python-dateutil==2.8.0',
     'boto3==1.10.13',
     'partridge==0.11.0',
