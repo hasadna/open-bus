@@ -49,7 +49,9 @@ def create_trip_df(path, drop=['timestamp', 'desc'],
     return df
 
 def create_trip_df_v2(path, drop=['desc'],
-                   add_date=True):
+                       add_date=True,
+                       remove_zero_latlons=False,
+                       drop_duplicates=True):
     header = ["timestamp", "desc", "agency_id",
               "route_id", "route_short_name", "service_id",
               "planned_start_time", "bus_id", "predicted_end_time",
@@ -66,19 +68,44 @@ def create_trip_df_v2(path, drop=['desc'],
               .assign(lat = lambda x: x.lat.astype(float))
               .assign(lon = lambda x: x.lon.astype(float)))
     
+    if remove_zero_latlons:
+        df = df[(df.lat!=0) & (df.lon!=0)]
+        
+    if drop_duplicates:
+        new_df = df.groupby(["agency_id",
+              "route_id", "route_short_name", "service_id",
+              "planned_start_time", "bus_id", "predicted_end_time",
+              "time_recorded", "lat", "lon",
+              "stop_point_ref",], sort=False).first()
+        new_df['num_duplicates'] = df.groupby(["agency_id",
+              "route_id", "route_short_name", "service_id",
+              "planned_start_time", "bus_id", "predicted_end_time",
+              "time_recorded", "lat", "lon",
+              "stop_point_ref",], sort=False).size()
+        df = new_df.reset_index()
+        
+        
     df[['date_recorded', 'time_recorded']] = df.time_recorded.str.split('T', expand=True)
     df[['predicted_end_date', 'predicted_end_time']] = df.predicted_end_time.str.split('T', expand=True)
     df[['planned_start_date', 'planned_start_time']] = df.planned_start_time.str.split('T', expand=True)
 
-    if add_date:
-        df = (df.assign(date = lambda x: x.planned_start_date))
-        
-    df = df[["timestamp", "agency_id",
+    # removed  'data_frame_ref' because it is useless (always the current date)
+    # removed 'vehicle_at_stop' because it is useless (always 2)
+    # removed 'log_version' because you can get it from the file name 
+    final_cols = ["timestamp", "agency_id",
                   "route_id", "route_short_name", "service_id",
                   "planned_start_date", "planned_start_time", "bus_id", "predicted_end_date", "predicted_end_time",
                   "date_recorded", "time_recorded", "lat", "lon",
-                  "data_frame_ref", "stop_point_ref", "vehicle_at_stop",
-                  "log_version", "date"]]
+                  "stop_point_ref"]
+    
+    if add_date:
+        df = (df.assign(date = lambda x: x.planned_start_date))
+        final_cols.append('date')
+        
+    if drop_duplicates:
+        final_cols.append('num_duplicates')
+        
+    df = df[final_cols]
     return df
 
 
