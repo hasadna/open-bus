@@ -8,6 +8,7 @@ import pandas as pd
 import partridge as ptg
 
 from .aggregations import generate_trip_stats_aggregation, generate_route_stats_aggregation
+from .partridge_helper import parse_time_no_seconds_column
 from .constants import *
 
 
@@ -21,6 +22,32 @@ def _read_almost_valid_csv_to_df(zip_path, file_name_in_zip, real_columns):
                     .drop(columns=['EXTRA'])
 
     return df
+
+
+def get_trip_id_to_date_df(local_file_path: str, date: datetime.date) -> pd.DataFrame:
+    """
+    returns the TripIdToDate information that matches the given date
+    :param local_file_path: The path if the zip file
+    :param date: The date to filter by
+    :return: A DataFrame with the columns `route_id`, `trip_id_to_date` and `start_time`
+    """
+    DATE_FORMAT = '%d/%m/%Y 00:00:00'
+    trip_id_to_date_cols = ['route_id', 'OfficeLineId', 'Direction', 'LineAlternative', 'FromDate',
+                            'ToDate', 'trip_id_to_date', 'DayInWeek', 'departure_time']
+    trip_date_df = _read_almost_valid_csv_to_df(local_file_path, TRIP_ID_TO_DATE_TXT_NAME, trip_id_to_date_cols)
+    trip_date_df['FromDate'] = pd.to_datetime(trip_date_df.FromDate, format=DATE_FORMAT)
+    trip_date_df['ToDate'] = pd.to_datetime(trip_date_df.ToDate, format=DATE_FORMAT)
+    # filter to a specific date
+    trip_date_df = trip_date_df[(trip_date_df['FromDate'] <= date) &
+                                (trip_date_df['ToDate'] >= date) &
+                                (trip_date_df['DayInWeek'] == date.weekday())]
+    # remove all columns except 'route_id' and 'trip_id_to_date'
+    trip_date_df = trip_date_df[['route_id', 'trip_id_to_date', 'departure_time']]
+    # change column type because feed returns route_id as object (and not int64)
+    trip_date_df = trip_date_df.assign(route_id=trip_date_df.route_id.astype(str))
+    # Change departure time to float(64) to match partridge return type
+    trip_date_df.departure_time = trip_date_df.departure_time.apply(parse_time_no_seconds_column)
+    return trip_date_df
 
 
 def get_zones_df(local_tariff_zip_path):
@@ -58,14 +85,17 @@ def get_clusters_df(local_cluster_zip_path):
 
     return clusters_df
 
+
 def compute_trip_stats(feed: ptg.feed,
                        zones: pd.DataFrame,
                        clusters: pd.DataFrame,
+                       trip_to_date: pd.DataFrame,
                        date: datetime.date,
                        source_files_base_name: List[str]) -> pd.DataFrame:
     """
     :param feed: Partridge feed for the specific date
     :param zones: DataFrame with stop_code to zone_name mapping
+    :param trip_to_date: trip_id_to_date information to match with the feed data
     :param date: The original schedule date
     :param source_files_base_name: The original zips the data is based on (GTFS, Tariff, etc.)
     :returns: A DataFrame with columns as described below
@@ -164,6 +194,7 @@ def compute_trip_stats(feed: ptg.feed,
     f['route_mkt'] = f['route_mkt'].astype(int)
 
     f = f.merge(clusters, how='left', on='route_mkt')
+    f = f.merge(trip_to_date, how='inner', on=['route_id', 'departure_time'])
 
     # parse stop_desc
     stop_desc_fields = {'street': 'רחוב',

@@ -14,8 +14,9 @@ import pandas as pd
 from tqdm import tqdm
 
 from .configuration import configuration
-from .constants import GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME
-from .core_computations import get_zones_df, compute_route_stats, compute_trip_stats, get_clusters_df
+from .constants import GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME, TRIP_ID_TO_DATE_ZIP_NAME
+from .core_computations import get_zones_df, compute_route_stats, compute_trip_stats, get_clusters_df, \
+    get_trip_id_to_date_df
 from .environment import init_conf
 from .local_files import get_dates_without_output, remote_key_to_local_path
 from .logging_config import configure_logger
@@ -69,11 +70,14 @@ def analyze_gtfs_date(date: datetime.date,
     cluster_file_path = local_full_paths[CLUSTER_TO_LINE_ZIP_NAME]
     clusters = get_clusters_df(cluster_file_path)
 
+    trip_id_to_date_path = local_full_paths[TRIP_ID_TO_DATE_ZIP_NAME]
+    trip_id_to_date_df = get_trip_id_to_date_df(trip_id_to_date_path, date)
+
     source_files_base_name = []
     for file_name in sorted(local_full_paths.keys()):
         source_files_base_name += [basename(local_full_paths[file_name])]
 
-    ts = compute_trip_stats(feed, zones, clusters, date, source_files_base_name)
+    ts = compute_trip_stats(feed, zones, clusters, trip_id_to_date_df, date, source_files_base_name)
     save_trip_stats(ts, trip_stats_output_path)
     log_trip_stats(ts)
 
@@ -121,7 +125,7 @@ def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
         crud = S3Crud.from_configuration(configuration.s3)
         logging.info(f'Connected to S3 bucket {configuration.s3.bucket_name}')
 
-        file_types_to_download = [GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME]
+        file_types_to_download = [GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME, TRIP_ID_TO_DATE_ZIP_NAME]
         remote_files_mapping = {}
         all_remote_files = []
         all_local_full_paths = []
