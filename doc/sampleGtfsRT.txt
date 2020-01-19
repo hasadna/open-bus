@@ -1,0 +1,732 @@
+08:44:32.700 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609466"
+start_time: "10:00:00"
+start_date: "20200118"
+, vehicle=id: "-142439664~5523917"
+, 32 StopTime Updates
+08:44:32.713 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533262 sequence=11 arrival2020-01-18T10:15:07
+08:44:32.713 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387021 sequence=12 arrival2020-01-18T10:16:30
+08:44:32.713 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37533474 sequence=13 arrival2020-01-18T10:17:35
+08:44:32.713 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387023 sequence=14 arrival2020-01-18T10:18:27
+08:44:32.713 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913804 sequence=15 arrival2020-01-18T10:19:02
+08:44:32.713 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387025 sequence=16 arrival2020-01-18T10:21:03
+08:44:32.713 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37013884 sequence=17 arrival2020-01-18T10:22:23
+08:44:32.713 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390273 sequence=18 arrival2020-01-18T10:24:02
+08:44:32.713 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387027 sequence=19 arrival2020-01-18T10:24:59
+08:44:32.713 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390016 sequence=20 arrival2020-01-18T10:26:26
+08:44:32.713 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390316 sequence=21 arrival2020-01-18T10:27:27
+08:44:32.713 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37389145 sequence=22 arrival2020-01-18T10:28:25
+08:44:32.713 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37389144 sequence=23 arrival2020-01-18T10:30:18
+08:44:32.713 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842022 sequence=24 arrival2020-01-18T10:30:59
+08:44:32.713 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842020 sequence=25 arrival2020-01-18T10:31:16
+08:44:32.714 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842018 sequence=26 arrival2020-01-18T10:31:34
+08:44:32.714 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390059 sequence=27 arrival2020-01-18T10:32:47
+08:44:32.714 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390061 sequence=28 arrival2020-01-18T10:33:28
+08:44:32.714 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390180 sequence=29 arrival2020-01-18T10:34:01
+08:44:32.714 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390043 sequence=30 arrival2020-01-18T10:34:27
+08:44:32.714 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390066 sequence=31 arrival2020-01-18T10:34:38
+08:44:32.714 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390063 sequence=32 arrival2020-01-18T10:35:06
+08:44:32.714 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390058 sequence=33 arrival2020-01-18T10:35:23
+08:44:32.714 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387051 sequence=34 arrival2020-01-18T10:36:06
+08:44:32.714 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390200 sequence=35 arrival2020-01-18T10:36:45
+08:44:32.714 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390049 sequence=36 arrival2020-01-18T10:37:15
+08:44:32.714 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390282 sequence=37 arrival2020-01-18T10:38:14
+08:44:32.714 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390284 sequence=38 arrival2020-01-18T10:40:24
+08:44:32.714 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390283 sequence=39 arrival2020-01-18T10:41:04
+08:44:32.714 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390195 sequence=40 arrival2020-01-18T10:42:39
+08:44:32.715 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390241 sequence=41 arrival2020-01-18T10:43:18
+08:44:32.715 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390236 sequence=42 arrival2020-01-18T10:43:43
+08:44:32.715 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:56 status=IN_TRANSIT_TO stopSequence=0, position=32.061543,34.773636, vid=-142439664~5523917, tripId=1885609466
+08:44:32.715 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609296"
+start_time: "09:30:00"
+start_date: "20200118"
+, vehicle=id: "-142444876~5523885"
+, 4 StopTime Updates
+08:44:32.715 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390108 sequence=34 arrival2020-01-18T10:14:44
+08:44:32.715 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390167 sequence=35 arrival2020-01-18T10:15:38
+08:44:32.715 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390106 sequence=36 arrival2020-01-18T10:16:45
+08:44:32.715 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390137 sequence=37 arrival2020-01-18T10:18:04
+08:44:32.716 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:57 status=IN_TRANSIT_TO stopSequence=0, position=32.054966,34.863678, vid=-142444876~5523885, tripId=1885609296
+08:44:32.716 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609507"
+start_time: "09:20:00"
+start_date: "20200118"
+, vehicle=id: "-142433772~5523910"
+, 3 StopTime Updates
+08:44:32.716 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390306 sequence=39 arrival2020-01-18T10:15
+08:44:32.716 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390303 sequence=40 arrival2020-01-18T10:16:32
+08:44:32.716 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390218 sequence=41 arrival2020-01-18T10:18:10
+08:44:32.716 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:14:01 status=IN_TRANSIT_TO stopSequence=0, position=32.04974,34.76132, vid=-142433772~5523910, tripId=1885609507
+08:44:32.716 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609602"
+start_time: "09:20:00"
+start_date: "20200118"
+, vehicle=id: "-142429263~5487826"
+, 5 StopTime Updates
+08:44:32.716 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388485 sequence=49 arrival2020-01-18T10:14:27
+08:44:32.716 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388482 sequence=50 arrival2020-01-18T10:14:27
+08:44:32.716 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388479 sequence=51 arrival2020-01-18T10:15:01
+08:44:32.716 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388477 sequence=52 arrival2020-01-18T10:15:33
+08:44:32.717 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390190 sequence=53 arrival2020-01-18T10:17:11
+08:44:32.717 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:57 status=IN_TRANSIT_TO stopSequence=0, position=32.033756,34.751762, vid=-142429263~5487826, tripId=1885609602
+08:44:32.717 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609371"
+start_time: "09:30:00"
+start_date: "20200118"
+, vehicle=id: "-142450396~5523901"
+, 5 StopTime Updates
+08:44:32.717 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390280 sequence=39 arrival2020-01-18T10:14:26
+08:44:32.717 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387134 sequence=40 arrival2020-01-18T10:15:19
+08:44:32.717 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387114 sequence=41 arrival2020-01-18T10:17:21
+08:44:32.717 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390175 sequence=42 arrival2020-01-18T10:18:23
+08:44:32.717 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390245 sequence=43 arrival2020-01-18T10:20:38
+08:44:32.717 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:56 status=IN_TRANSIT_TO stopSequence=0, position=32.122677,34.79153, vid=-142450396~5523901, tripId=1885609371
+08:44:32.717 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609575"
+start_time: "09:20:00"
+start_date: "20200118"
+, vehicle=id: "-142431777~5523897"
+, 17 StopTime Updates
+08:44:32.717 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390204 sequence=36 arrival2020-01-18T10:14:55
+08:44:32.717 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390208 sequence=37 arrival2020-01-18T10:15:11
+08:44:32.717 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387051 sequence=38 arrival2020-01-18T10:15:37
+08:44:32.717 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390200 sequence=39 arrival2020-01-18T10:16:15
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390049 sequence=40 arrival2020-01-18T10:16:46
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390282 sequence=41 arrival2020-01-18T10:17:44
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390153 sequence=42 arrival2020-01-18T10:19:27
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390154 sequence=43 arrival2020-01-18T10:19:48
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390019 sequence=44 arrival2020-01-18T10:20:38
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390285 sequence=45 arrival2020-01-18T10:21:02
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390297 sequence=46 arrival2020-01-18T10:21:24
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390090 sequence=47 arrival2020-01-18T10:21:56
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390300 sequence=48 arrival2020-01-18T10:23:12
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390302 sequence=49 arrival2020-01-18T10:24:05
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390111 sequence=50 arrival2020-01-18T10:24:56
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390092 sequence=51 arrival2020-01-18T10:25:30
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390191 sequence=52 arrival2020-01-18T10:26:36
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:14 status=IN_TRANSIT_TO stopSequence=0, position=32.11591,34.824707, vid=-142431777~5523897, tripId=1885609575
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609553"
+start_time: "09:20:00"
+start_date: "20200118"
+, vehicle=id: "-142441978~5523895"
+, 10 StopTime Updates
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387168 sequence=46 arrival2020-01-18T10:14:57
+08:44:32.718 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387169 sequence=47 arrival2020-01-18T10:17:53
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913811 sequence=48 arrival2020-01-18T10:19:24
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388511 sequence=49 arrival2020-01-18T10:20:55
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913816 sequence=50 arrival2020-01-18T10:21:30
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388509 sequence=51 arrival2020-01-18T10:22:15
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388508 sequence=52 arrival2020-01-18T10:22:41
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388506 sequence=53 arrival2020-01-18T10:23:39
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388504 sequence=54 arrival2020-01-18T10:24:46
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37593962 sequence=55 arrival2020-01-18T10:25:19
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:57 status=IN_TRANSIT_TO stopSequence=0, position=32.064655,34.77595, vid=-142441978~5523895, tripId=1885609553
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609465"
+start_time: "09:40:00"
+start_date: "20200118"
+, vehicle=id: "-142443784~5523921"
+, 19 StopTime Updates
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842022 sequence=24 arrival2020-01-18T10:14:30
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842020 sequence=25 arrival2020-01-18T10:14:30
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842018 sequence=26 arrival2020-01-18T10:14:40
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390059 sequence=27 arrival2020-01-18T10:15:53
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390061 sequence=28 arrival2020-01-18T10:16:34
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390180 sequence=29 arrival2020-01-18T10:17:06
+08:44:32.719 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390043 sequence=30 arrival2020-01-18T10:17:32
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390066 sequence=31 arrival2020-01-18T10:17:44
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390063 sequence=32 arrival2020-01-18T10:18:12
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390058 sequence=33 arrival2020-01-18T10:18:29
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387051 sequence=34 arrival2020-01-18T10:19:12
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390200 sequence=35 arrival2020-01-18T10:19:50
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390049 sequence=36 arrival2020-01-18T10:20:21
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390282 sequence=37 arrival2020-01-18T10:21:19
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390284 sequence=38 arrival2020-01-18T10:23:30
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390283 sequence=39 arrival2020-01-18T10:24:09
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390195 sequence=40 arrival2020-01-18T10:25:45
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390241 sequence=41 arrival2020-01-18T10:26:24
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390236 sequence=42 arrival2020-01-18T10:26:48
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:14 status=IN_TRANSIT_TO stopSequence=0, position=32.10231,34.805035, vid=-142443784~5523921, tripId=1885609465
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609534"
+start_time: "10:00:00"
+start_date: "20200118"
+, vehicle=id: "-142443232~5523909"
+, 42 StopTime Updates
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390207 sequence=14 arrival2020-01-18T10:14:28
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390278 sequence=15 arrival2020-01-18T10:14:40
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390094 sequence=16 arrival2020-01-18T10:15:15
+08:44:32.720 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390112 sequence=17 arrival2020-01-18T10:16:06
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390310 sequence=18 arrival2020-01-18T10:17:09
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390178 sequence=19 arrival2020-01-18T10:18:05
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390028 sequence=20 arrival2020-01-18T10:19:16
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390269 sequence=21 arrival2020-01-18T10:19:55
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390223 sequence=22 arrival2020-01-18T10:21:01
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390082 sequence=23 arrival2020-01-18T10:21:41
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387154 sequence=24 arrival2020-01-18T10:22:14
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387155 sequence=25 arrival2020-01-18T10:22:34
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390038 sequence=26 arrival2020-01-18T10:23:34
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390046 sequence=27 arrival2020-01-18T10:23:57
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390034 sequence=28 arrival2020-01-18T10:24:31
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390288 sequence=29 arrival2020-01-18T10:25:21
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390252 sequence=30 arrival2020-01-18T10:26:51
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390134 sequence=31 arrival2020-01-18T10:27:40
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390309 sequence=32 arrival2020-01-18T10:28:28
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390315 sequence=33 arrival2020-01-18T10:30:20
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913793 sequence=34 arrival2020-01-18T10:31:25
+08:44:32.721 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388526 sequence=35 arrival2020-01-18T10:32:40
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913797 sequence=36 arrival2020-01-18T10:33:11
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913798 sequence=37 arrival2020-01-18T10:34:11
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913800 sequence=38 arrival2020-01-18T10:34:43
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390318 sequence=39 arrival2020-01-18T10:35:43
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37386995 sequence=40 arrival2020-01-18T10:37:20
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533271 sequence=41 arrival2020-01-18T10:38:33
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387117 sequence=42 arrival2020-01-18T10:40:18
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533277 sequence=43 arrival2020-01-18T10:41:06
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533278 sequence=44 arrival2020-01-18T10:41:59
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533266 sequence=45 arrival2020-01-18T10:42:33
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387168 sequence=46 arrival2020-01-18T10:44:07
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387169 sequence=47 arrival2020-01-18T10:47:03
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913811 sequence=48 arrival2020-01-18T10:48:34
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388511 sequence=49 arrival2020-01-18T10:50:05
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913816 sequence=50 arrival2020-01-18T10:50:40
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388509 sequence=51 arrival2020-01-18T10:51:25
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388508 sequence=52 arrival2020-01-18T10:51:51
+08:44:32.722 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388506 sequence=53 arrival2020-01-18T10:52:49
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388504 sequence=54 arrival2020-01-18T10:53:56
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37593962 sequence=55 arrival2020-01-18T10:54:29
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:58 status=IN_TRANSIT_TO stopSequence=0, position=32.123466,34.82421, vid=-142443232~5523909, tripId=1885609534
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609555"
+start_time: "09:40:00"
+start_date: "20200118"
+, vehicle=id: "-142440850~5523913"
+, 32 StopTime Updates
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390308 sequence=21 arrival2020-01-18T10:15:31
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390135 sequence=22 arrival2020-01-18T10:16:39
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390277 sequence=23 arrival2020-01-18T10:18:32
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387182 sequence=24 arrival2020-01-18T10:18:58
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390044 sequence=25 arrival2020-01-18T10:20:16
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387184 sequence=26 arrival2020-01-18T10:20:38
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387185 sequence=27 arrival2020-01-18T10:21:19
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387186 sequence=28 arrival2020-01-18T10:23:01
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390296 sequence=29 arrival2020-01-18T10:24:47
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390311 sequence=30 arrival2020-01-18T10:25:49
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390031 sequence=31 arrival2020-01-18T10:26:30
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390177 sequence=32 arrival2020-01-18T10:26:55
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390312 sequence=33 arrival2020-01-18T10:27:46
+08:44:32.723 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390115 sequence=34 arrival2020-01-18T10:28:16
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390100 sequence=35 arrival2020-01-18T10:28:39
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390204 sequence=36 arrival2020-01-18T10:30:17
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390208 sequence=37 arrival2020-01-18T10:30:33
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387051 sequence=38 arrival2020-01-18T10:30:59
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390200 sequence=39 arrival2020-01-18T10:31:37
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390049 sequence=40 arrival2020-01-18T10:32:08
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390282 sequence=41 arrival2020-01-18T10:33:06
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390153 sequence=42 arrival2020-01-18T10:34:49
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390154 sequence=43 arrival2020-01-18T10:35:11
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390019 sequence=44 arrival2020-01-18T10:36:01
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390285 sequence=45 arrival2020-01-18T10:36:24
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390297 sequence=46 arrival2020-01-18T10:36:47
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390090 sequence=47 arrival2020-01-18T10:37:18
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390300 sequence=48 arrival2020-01-18T10:38:34
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390302 sequence=49 arrival2020-01-18T10:39:27
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390111 sequence=50 arrival2020-01-18T10:40:18
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390092 sequence=51 arrival2020-01-18T10:40:53
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390191 sequence=52 arrival2020-01-18T10:41:59
+08:44:32.724 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:59 status=IN_TRANSIT_TO stopSequence=0, position=32.09063,34.790676, vid=-142440850~5523913, tripId=1885609555
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609533"
+start_time: "09:40:00"
+start_date: "20200118"
+, vehicle=id: "-142433174~5523929"
+, 15 StopTime Updates
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533271 sequence=41 arrival2020-01-18T10:14:29
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387117 sequence=42 arrival2020-01-18T10:16:09
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533277 sequence=43 arrival2020-01-18T10:16:57
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533278 sequence=44 arrival2020-01-18T10:17:51
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533266 sequence=45 arrival2020-01-18T10:18:24
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387168 sequence=46 arrival2020-01-18T10:19:58
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387169 sequence=47 arrival2020-01-18T10:22:54
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913811 sequence=48 arrival2020-01-18T10:24:25
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388511 sequence=49 arrival2020-01-18T10:25:56
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913816 sequence=50 arrival2020-01-18T10:26:31
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388509 sequence=51 arrival2020-01-18T10:27:16
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388508 sequence=52 arrival2020-01-18T10:27:42
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388506 sequence=53 arrival2020-01-18T10:28:40
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388504 sequence=54 arrival2020-01-18T10:29:48
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37593962 sequence=55 arrival2020-01-18T10:30:21
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:59 status=IN_TRANSIT_TO stopSequence=0, position=32.075558,34.776375, vid=-142433174~5523929, tripId=1885609533
+08:44:32.725 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609626"
+start_time: "10:00:00"
+start_date: "20200118"
+, vehicle=id: "-142430654~5487827"
+, 41 StopTime Updates
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388498 sequence=13 arrival2020-01-18T10:14:43
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388500 sequence=14 arrival2020-01-18T10:15:15
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388501 sequence=15 arrival2020-01-18T10:15:38
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388503 sequence=16 arrival2020-01-18T10:16:31
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388505 sequence=17 arrival2020-01-18T10:17:03
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388507 sequence=18 arrival2020-01-18T10:18:15
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913817 sequence=19 arrival2020-01-18T10:20:08
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388510 sequence=20 arrival2020-01-18T10:21:47
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388513 sequence=21 arrival2020-01-18T10:23:27
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388514 sequence=22 arrival2020-01-18T10:24:41
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388516 sequence=23 arrival2020-01-18T10:25:59
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390056 sequence=24 arrival2020-01-18T10:26:57
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388517 sequence=25 arrival2020-01-18T10:27:26
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388518 sequence=26 arrival2020-01-18T10:28:35
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37027925 sequence=27 arrival2020-01-18T10:29:04
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388522 sequence=28 arrival2020-01-18T10:29:41
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388525 sequence=29 arrival2020-01-18T10:30:27
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=34086162 sequence=30 arrival2020-01-18T10:31:42
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37155827 sequence=31 arrival2020-01-18T10:33:09
+08:44:32.726 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913799 sequence=32 arrival2020-01-18T10:35:16
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533301 sequence=33 arrival2020-01-18T10:35:51
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913796 sequence=34 arrival2020-01-18T10:37:03
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=34087236 sequence=35 arrival2020-01-18T10:37:43
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=34086096 sequence=36 arrival2020-01-18T10:38:19
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388529 sequence=37 arrival2020-01-18T10:38:50
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388530 sequence=38 arrival2020-01-18T10:40:22
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10845522 sequence=39 arrival2020-01-18T10:40:59
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533280 sequence=40 arrival2020-01-18T10:41:36
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33301348 sequence=41 arrival2020-01-18T10:42:47
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388532 sequence=42 arrival2020-01-18T10:45:26
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388533 sequence=43 arrival2020-01-18T10:45:43
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388535 sequence=44 arrival2020-01-18T10:46:30
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33301358 sequence=45 arrival2020-01-18T10:47:25
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33301356 sequence=46 arrival2020-01-18T10:47:42
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388536 sequence=47 arrival2020-01-18T10:48:07
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388537 sequence=48 arrival2020-01-18T10:48:28
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388540 sequence=49 arrival2020-01-18T10:49:39
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388542 sequence=50 arrival2020-01-18T10:49:59
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388544 sequence=51 arrival2020-01-18T10:50:27
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390098 sequence=52 arrival2020-01-18T10:50:43
+08:44:32.727 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37386881 sequence=53 arrival2020-01-18T10:51:05
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:57 status=IN_TRANSIT_TO stopSequence=0, position=32.041706,34.751575, vid=-142430654~5487827, tripId=1885609626
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609349"
+start_time: "09:30:00"
+start_date: "20200118"
+, vehicle=id: "-142449742~5523923"
+, 3 StopTime Updates
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390036 sequence=38 arrival2020-01-18T10:14:29
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390096 sequence=39 arrival2020-01-18T10:16:45
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387082 sequence=40 arrival2020-01-18T10:17:54
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:59 status=IN_TRANSIT_TO stopSequence=0, position=32.045406,34.80682, vid=-142449742~5523923, tripId=1885609349
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609351"
+start_time: "10:00:00"
+start_date: "20200118"
+, vehicle=id: "-142449978~5557213"
+, 26 StopTime Updates
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387124 sequence=18 arrival2020-01-18T10:15:24
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390095 sequence=19 arrival2020-01-18T10:17:12
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387126 sequence=20 arrival2020-01-18T10:17:55
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33301296 sequence=21 arrival2020-01-18T10:18:50
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33301288 sequence=22 arrival2020-01-18T10:20:12
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=34086409 sequence=23 arrival2020-01-18T10:21:49
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387098 sequence=24 arrival2020-01-18T10:23:11
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=34086165 sequence=25 arrival2020-01-18T10:25:06
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=34086164 sequence=26 arrival2020-01-18T10:25:55
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390072 sequence=27 arrival2020-01-18T10:27:03
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390076 sequence=28 arrival2020-01-18T10:27:34
+08:44:32.728 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387103 sequence=29 arrival2020-01-18T10:29
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390074 sequence=30 arrival2020-01-18T10:29:45
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390012 sequence=31 arrival2020-01-18T10:33:07
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390128 sequence=32 arrival2020-01-18T10:33:31
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390127 sequence=33 arrival2020-01-18T10:34:02
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390232 sequence=34 arrival2020-01-18T10:34:30
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390136 sequence=35 arrival2020-01-18T10:35:10
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390149 sequence=36 arrival2020-01-18T10:35:32
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390168 sequence=37 arrival2020-01-18T10:37:08
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390142 sequence=38 arrival2020-01-18T10:37:48
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390280 sequence=39 arrival2020-01-18T10:39:18
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387134 sequence=40 arrival2020-01-18T10:40:27
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387114 sequence=41 arrival2020-01-18T10:42:30
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390175 sequence=42 arrival2020-01-18T10:43:31
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390245 sequence=43 arrival2020-01-18T10:45:46
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:59 status=IN_TRANSIT_TO stopSequence=0, position=32.065254,34.787285, vid=-142449978~5557213, tripId=1885609351
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609603"
+start_time: "09:40:00"
+start_date: "20200118"
+, vehicle=id: "-142427196~5523881"
+, 24 StopTime Updates
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388515 sequence=30 arrival2020-01-18T10:14:28
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388512 sequence=31 arrival2020-01-18T10:16:58
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388511 sequence=32 arrival2020-01-18T10:18:53
+08:44:32.729 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913816 sequence=33 arrival2020-01-18T10:19:28
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388509 sequence=34 arrival2020-01-18T10:20:13
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388508 sequence=35 arrival2020-01-18T10:20:39
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388506 sequence=36 arrival2020-01-18T10:21:37
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388504 sequence=37 arrival2020-01-18T10:22:44
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388502 sequence=38 arrival2020-01-18T10:23:38
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388499 sequence=39 arrival2020-01-18T10:24:07
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388497 sequence=40 arrival2020-01-18T10:25
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388496 sequence=41 arrival2020-01-18T10:25:29
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388493 sequence=42 arrival2020-01-18T10:26:25
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388491 sequence=43 arrival2020-01-18T10:27
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388489 sequence=44 arrival2020-01-18T10:27:47
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388488 sequence=45 arrival2020-01-18T10:28:36
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913692 sequence=46 arrival2020-01-18T10:30:19
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388486 sequence=47 arrival2020-01-18T10:30:25
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913830 sequence=48 arrival2020-01-18T10:30:37
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388485 sequence=49 arrival2020-01-18T10:30:55
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388482 sequence=50 arrival2020-01-18T10:31:25
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388479 sequence=51 arrival2020-01-18T10:32
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388477 sequence=52 arrival2020-01-18T10:32:32
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390190 sequence=53 arrival2020-01-18T10:34:10
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:58 status=IN_TRANSIT_TO stopSequence=0, position=32.073215,34.768394, vid=-142427196~5523881, tripId=1885609603
+08:44:32.730 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609397"
+start_time: "10:00:00"
+start_date: "20200118"
+, vehicle=id: "-142445272~5523932"
+, 27 StopTime Updates
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533262 sequence=13 arrival2020-01-18T10:15:27
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387021 sequence=14 arrival2020-01-18T10:16:50
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37533474 sequence=15 arrival2020-01-18T10:17:55
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387023 sequence=16 arrival2020-01-18T10:18:46
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913804 sequence=17 arrival2020-01-18T10:19:22
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=34086409 sequence=18 arrival2020-01-18T10:20:33
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387098 sequence=19 arrival2020-01-18T10:21:56
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=34086165 sequence=20 arrival2020-01-18T10:23:50
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=34086164 sequence=21 arrival2020-01-18T10:24:39
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390072 sequence=22 arrival2020-01-18T10:25:47
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390076 sequence=23 arrival2020-01-18T10:26:19
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387103 sequence=24 arrival2020-01-18T10:27:44
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390074 sequence=25 arrival2020-01-18T10:28:30
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37389145 sequence=26 arrival2020-01-18T10:31:24
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37386970 sequence=27 arrival2020-01-18T10:32:25
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37389144 sequence=28 arrival2020-01-18T10:32:55
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842022 sequence=29 arrival2020-01-18T10:33:36
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842020 sequence=30 arrival2020-01-18T10:33:53
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842018 sequence=31 arrival2020-01-18T10:34:11
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842015 sequence=32 arrival2020-01-18T10:34:44
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842012 sequence=33 arrival2020-01-18T10:35:04
+08:44:32.731 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842009 sequence=34 arrival2020-01-18T10:35:21
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842008 sequence=35 arrival2020-01-18T10:36:42
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842005 sequence=36 arrival2020-01-18T10:37:16
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842004 sequence=37 arrival2020-01-18T10:37:29
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842002 sequence=38 arrival2020-01-18T10:37:50
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10841999 sequence=39 arrival2020-01-18T10:38:43
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:59 status=IN_TRANSIT_TO stopSequence=0, position=32.061527,34.77372, vid=-142445272~5523932, tripId=1885609397
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609297"
+start_time: "10:00:00"
+start_date: "20200118"
+, vehicle=id: "-142435658~5523927"
+, 27 StopTime Updates
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37155827 sequence=11 arrival2020-01-18T10:14:27
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390317 sequence=12 arrival2020-01-18T10:15:34
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390015 sequence=13 arrival2020-01-18T10:16:11
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390172 sequence=14 arrival2020-01-18T10:16:59
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533296 sequence=15 arrival2020-01-18T10:17:47
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390287 sequence=16 arrival2020-01-18T10:20:06
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37386912 sequence=17 arrival2020-01-18T10:22:04
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10845518 sequence=18 arrival2020-01-18T10:22:38
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390104 sequence=19 arrival2020-01-18T10:23:12
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390113 sequence=20 arrival2020-01-18T10:23:54
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390294 sequence=21 arrival2020-01-18T10:24:17
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390040 sequence=22 arrival2020-01-18T10:25:06
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390121 sequence=23 arrival2020-01-18T10:26:05
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390129 sequence=24 arrival2020-01-18T10:26:17
+08:44:32.732 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390164 sequence=25 arrival2020-01-18T10:27:04
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390097 sequence=26 arrival2020-01-18T10:27:59
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390099 sequence=27 arrival2020-01-18T10:28:32
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390025 sequence=28 arrival2020-01-18T10:29:17
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390021 sequence=29 arrival2020-01-18T10:29:54
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390275 sequence=30 arrival2020-01-18T10:33:55
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390214 sequence=31 arrival2020-01-18T10:36:54
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390081 sequence=32 arrival2020-01-18T10:38:07
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390089 sequence=33 arrival2020-01-18T10:38:50
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390108 sequence=34 arrival2020-01-18T10:39:39
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390167 sequence=35 arrival2020-01-18T10:40:32
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390106 sequence=36 arrival2020-01-18T10:41:39
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390137 sequence=37 arrival2020-01-18T10:42:58
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:57 status=IN_TRANSIT_TO stopSequence=0, position=32.083023,34.780384, vid=-142435658~5523927, tripId=1885609297
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609604"
+start_time: "10:00:00"
+start_date: "20200118"
+, vehicle=id: "-142434686~5487828"
+, 45 StopTime Updates
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388534 sequence=9 arrival2020-01-18T10:14:35
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388531 sequence=10 arrival2020-01-18T10:15:11
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33433616 sequence=11 arrival2020-01-18T10:16:13
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533279 sequence=12 arrival2020-01-18T10:17:07
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10845521 sequence=13 arrival2020-01-18T10:17:24
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33323283 sequence=14 arrival2020-01-18T10:18:12
+08:44:32.733 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388528 sequence=15 arrival2020-01-18T10:19:18
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=34086097 sequence=16 arrival2020-01-18T10:19:42
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388526 sequence=17 arrival2020-01-18T10:21:09
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913797 sequence=18 arrival2020-01-18T10:21:40
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913798 sequence=19 arrival2020-01-18T10:22:39
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913800 sequence=20 arrival2020-01-18T10:23:11
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390273 sequence=21 arrival2020-01-18T10:24:33
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=34086161 sequence=22 arrival2020-01-18T10:26:06
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388524 sequence=23 arrival2020-01-18T10:26:56
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388523 sequence=24 arrival2020-01-18T10:27:32
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388521 sequence=25 arrival2020-01-18T10:28:49
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388520 sequence=26 arrival2020-01-18T10:29:43
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388519 sequence=27 arrival2020-01-18T10:30:45
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33301284 sequence=28 arrival2020-01-18T10:32:25
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33301282 sequence=29 arrival2020-01-18T10:32:52
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388515 sequence=30 arrival2020-01-18T10:35:09
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388512 sequence=31 arrival2020-01-18T10:37:55
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388511 sequence=32 arrival2020-01-18T10:39:50
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913816 sequence=33 arrival2020-01-18T10:40:25
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388509 sequence=34 arrival2020-01-18T10:41:10
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388508 sequence=35 arrival2020-01-18T10:41:36
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388506 sequence=36 arrival2020-01-18T10:42:34
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388504 sequence=37 arrival2020-01-18T10:43:41
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388502 sequence=38 arrival2020-01-18T10:44:35
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388499 sequence=39 arrival2020-01-18T10:45:04
+08:44:32.734 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388497 sequence=40 arrival2020-01-18T10:45:57
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388496 sequence=41 arrival2020-01-18T10:46:26
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388493 sequence=42 arrival2020-01-18T10:47:22
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388491 sequence=43 arrival2020-01-18T10:47:57
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388489 sequence=44 arrival2020-01-18T10:48:44
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388488 sequence=45 arrival2020-01-18T10:49:33
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913692 sequence=46 arrival2020-01-18T10:51:16
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388486 sequence=47 arrival2020-01-18T10:51:22
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913830 sequence=48 arrival2020-01-18T10:51:34
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388485 sequence=49 arrival2020-01-18T10:51:52
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388482 sequence=50 arrival2020-01-18T10:52:22
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388479 sequence=51 arrival2020-01-18T10:52:57
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388477 sequence=52 arrival2020-01-18T10:53:29
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390190 sequence=53 arrival2020-01-18T10:55:07
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:59 status=IN_TRANSIT_TO stopSequence=0, position=32.074127,34.808582, vid=-142434686~5487828, tripId=1885609604
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609274"
+start_time: "09:30:00"
+start_date: "20200118"
+, vehicle=id: "-142436686~5523907"
+, 10 StopTime Updates
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390051 sequence=30 arrival2020-01-18T10:14:30
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37422235 sequence=31 arrival2020-01-18T10:14:55
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390009 sequence=32 arrival2020-01-18T10:15:32
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37533498 sequence=33 arrival2020-01-18T10:15:55
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37389145 sequence=34 arrival2020-01-18T10:18:08
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37386970 sequence=35 arrival2020-01-18T10:19:09
+08:44:32.735 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37389144 sequence=36 arrival2020-01-18T10:19:40
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842022 sequence=37 arrival2020-01-18T10:20:21
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842020 sequence=38 arrival2020-01-18T10:20:37
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842018 sequence=39 arrival2020-01-18T10:20:56
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:14 status=IN_TRANSIT_TO stopSequence=0, position=32.089005,34.773655, vid=-142436686~5523907, tripId=1885609274
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609487"
+start_time: "09:40:00"
+start_date: "20200118"
+, vehicle=id: "-142440086~5523890"
+, 10 StopTime Updates
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387001 sequence=32 arrival2020-01-18T10:14:29
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387002 sequence=33 arrival2020-01-18T10:15:22
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387003 sequence=34 arrival2020-01-18T10:16:25
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390143 sequence=35 arrival2020-01-18T10:17:50
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390141 sequence=36 arrival2020-01-18T10:18:15
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390119 sequence=37 arrival2020-01-18T10:20:21
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390080 sequence=38 arrival2020-01-18T10:21:57
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390306 sequence=39 arrival2020-01-18T10:23:17
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390303 sequence=40 arrival2020-01-18T10:24:49
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390218 sequence=41 arrival2020-01-18T10:26:26
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:59 status=IN_TRANSIT_TO stopSequence=0, position=32.06259,34.773273, vid=-142440086~5523890, tripId=1885609487
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609624"
+start_time: "09:20:00"
+start_date: "20200118"
+, vehicle=id: "-142437295~5523903"
+, 1 StopTime Updates
+08:44:32.736 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37386881 sequence=53 arrival2020-01-18T10:09:55
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:09:25 status=IN_TRANSIT_TO stopSequence=0, position=32.05963,34.80784, vid=-142437295~5523903, tripId=1885609624
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609625"
+start_time: "09:40:00"
+start_date: "20200118"
+, vehicle=id: "-142438717~5523886"
+, 26 StopTime Updates
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388522 sequence=28 arrival2020-01-18T10:14:26
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388525 sequence=29 arrival2020-01-18T10:14:58
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=34086162 sequence=30 arrival2020-01-18T10:16:12
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37155827 sequence=31 arrival2020-01-18T10:17:39
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913799 sequence=32 arrival2020-01-18T10:19:46
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533301 sequence=33 arrival2020-01-18T10:20:21
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913796 sequence=34 arrival2020-01-18T10:21:34
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=34087236 sequence=35 arrival2020-01-18T10:22:14
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=34086096 sequence=36 arrival2020-01-18T10:22:49
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388529 sequence=37 arrival2020-01-18T10:23:21
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388530 sequence=38 arrival2020-01-18T10:24:52
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10845522 sequence=39 arrival2020-01-18T10:25:29
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533280 sequence=40 arrival2020-01-18T10:26:07
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33301348 sequence=41 arrival2020-01-18T10:27:17
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388532 sequence=42 arrival2020-01-18T10:29:56
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388533 sequence=43 arrival2020-01-18T10:30:13
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388535 sequence=44 arrival2020-01-18T10:31
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33301358 sequence=45 arrival2020-01-18T10:31:55
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33301356 sequence=46 arrival2020-01-18T10:32:13
+08:44:32.737 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388536 sequence=47 arrival2020-01-18T10:32:37
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388537 sequence=48 arrival2020-01-18T10:32:58
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388540 sequence=49 arrival2020-01-18T10:34:09
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388542 sequence=50 arrival2020-01-18T10:34:29
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388544 sequence=51 arrival2020-01-18T10:34:57
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390098 sequence=52 arrival2020-01-18T10:35:14
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37386881 sequence=53 arrival2020-01-18T10:35:35
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:56 status=IN_TRANSIT_TO stopSequence=0, position=32.08317,34.77156, vid=-142438717~5523886, tripId=1885609625
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609417"
+start_time: "09:30:00"
+start_date: "20200118"
+, vehicle=id: "-142447440~5523922"
+, 1 StopTime Updates
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10841999 sequence=39 arrival2020-01-18T10:14:26
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:56 status=IN_TRANSIT_TO stopSequence=0, position=32.111286,34.83864, vid=-142447440~5523922, tripId=1885609417
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609556"
+start_time: "10:00:00"
+start_date: "20200118"
+, vehicle=id: "-142446421~5523908"
+, 41 StopTime Updates
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10938583 sequence=12 arrival2020-01-18T10:14:27
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33301288 sequence=13 arrival2020-01-18T10:15:42
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387025 sequence=14 arrival2020-01-18T10:18:14
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37013884 sequence=15 arrival2020-01-18T10:19:34
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913799 sequence=16 arrival2020-01-18T10:22:09
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533301 sequence=17 arrival2020-01-18T10:22:44
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913796 sequence=18 arrival2020-01-18T10:23:57
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913794 sequence=19 arrival2020-01-18T10:25:21
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390047 sequence=20 arrival2020-01-18T10:26:57
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390308 sequence=21 arrival2020-01-18T10:28:47
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390135 sequence=22 arrival2020-01-18T10:29:55
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390277 sequence=23 arrival2020-01-18T10:31:47
+08:44:32.738 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387182 sequence=24 arrival2020-01-18T10:32:13
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390044 sequence=25 arrival2020-01-18T10:33:32
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387184 sequence=26 arrival2020-01-18T10:33:54
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387185 sequence=27 arrival2020-01-18T10:34:34
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387186 sequence=28 arrival2020-01-18T10:36:16
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390296 sequence=29 arrival2020-01-18T10:38:03
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390311 sequence=30 arrival2020-01-18T10:39:05
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390031 sequence=31 arrival2020-01-18T10:39:45
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390177 sequence=32 arrival2020-01-18T10:40:10
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390312 sequence=33 arrival2020-01-18T10:41:02
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390115 sequence=34 arrival2020-01-18T10:41:31
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390100 sequence=35 arrival2020-01-18T10:41:54
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390204 sequence=36 arrival2020-01-18T10:43:32
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390208 sequence=37 arrival2020-01-18T10:43:48
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387051 sequence=38 arrival2020-01-18T10:44:15
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390200 sequence=39 arrival2020-01-18T10:44:53
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390049 sequence=40 arrival2020-01-18T10:45:24
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390282 sequence=41 arrival2020-01-18T10:46:22
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390153 sequence=42 arrival2020-01-18T10:48:05
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390154 sequence=43 arrival2020-01-18T10:48:26
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390019 sequence=44 arrival2020-01-18T10:49:16
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390285 sequence=45 arrival2020-01-18T10:49:40
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390297 sequence=46 arrival2020-01-18T10:50:02
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390090 sequence=47 arrival2020-01-18T10:50:33
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390300 sequence=48 arrival2020-01-18T10:51:50
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390302 sequence=49 arrival2020-01-18T10:52:43
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390111 sequence=50 arrival2020-01-18T10:53:34
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390092 sequence=51 arrival2020-01-18T10:54:08
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390191 sequence=52 arrival2020-01-18T10:55:14
+08:44:32.739 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:57 status=IN_TRANSIT_TO stopSequence=0, position=32.06969,34.778526, vid=-142446421~5523908, tripId=1885609556
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609419"
+start_time: "10:00:00"
+start_date: "20200118"
+, vehicle=id: "-142446703~5523931"
+, 17 StopTime Updates
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533307 sequence=20 arrival2020-01-18T10:15:13
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913805 sequence=21 arrival2020-01-18T10:16:33
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37386997 sequence=22 arrival2020-01-18T10:17
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37533475 sequence=23 arrival2020-01-18T10:18:37
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37386999 sequence=24 arrival2020-01-18T10:19:18
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387000 sequence=25 arrival2020-01-18T10:20:47
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387001 sequence=26 arrival2020-01-18T10:21:18
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390169 sequence=27 arrival2020-01-18T10:22:56
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390251 sequence=28 arrival2020-01-18T10:24:39
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390258 sequence=29 arrival2020-01-18T10:25:10
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390260 sequence=30 arrival2020-01-18T10:25:33
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37436977 sequence=31 arrival2020-01-18T10:27:34
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37438768 sequence=32 arrival2020-01-18T10:28:14
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37436978 sequence=33 arrival2020-01-18T10:28:35
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390102 sequence=34 arrival2020-01-18T10:29:44
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390101 sequence=35 arrival2020-01-18T10:30:20
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390190 sequence=36 arrival2020-01-18T10:30:53
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:57 status=IN_TRANSIT_TO stopSequence=0, position=32.078693,34.774, vid=-142446703~5523931, tripId=1885609419
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609275"
+start_time: "10:00:00"
+start_date: "20200118"
+, vehicle=id: "-142436117~5523915"
+, 30 StopTime Updates
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390023 sequence=10 arrival2020-01-18T10:14:30
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390026 sequence=11 arrival2020-01-18T10:14:37
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390098 sequence=12 arrival2020-01-18T10:15:19
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37386881 sequence=13 arrival2020-01-18T10:15:41
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390165 sequence=14 arrival2020-01-18T10:17:19
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390126 sequence=15 arrival2020-01-18T10:18:04
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390120 sequence=16 arrival2020-01-18T10:18:25
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390122 sequence=17 arrival2020-01-18T10:18:37
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390295 sequence=18 arrival2020-01-18T10:19:13
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390114 sequence=19 arrival2020-01-18T10:19:26
+08:44:32.740 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390103 sequence=20 arrival2020-01-18T10:20:22
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=4544733 sequence=21 arrival2020-01-18T10:21:19
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37533471 sequence=22 arrival2020-01-18T10:22:47
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390027 sequence=23 arrival2020-01-18T10:24:01
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37386892 sequence=24 arrival2020-01-18T10:24:44
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390014 sequence=25 arrival2020-01-18T10:25:20
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390318 sequence=26 arrival2020-01-18T10:26:32
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390263 sequence=27 arrival2020-01-18T10:28:30
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37388522 sequence=28 arrival2020-01-18T10:31:48
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37533489 sequence=29 arrival2020-01-18T10:32:59
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390051 sequence=30 arrival2020-01-18T10:33:21
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37422235 sequence=31 arrival2020-01-18T10:34:15
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390009 sequence=32 arrival2020-01-18T10:34:52
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37533498 sequence=33 arrival2020-01-18T10:35:15
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37389145 sequence=34 arrival2020-01-18T10:37:28
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37386970 sequence=35 arrival2020-01-18T10:38:29
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37389144 sequence=36 arrival2020-01-18T10:38:59
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842022 sequence=37 arrival2020-01-18T10:39:40
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842020 sequence=38 arrival2020-01-18T10:39:57
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10842018 sequence=39 arrival2020-01-18T10:40:15
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:14 status=IN_TRANSIT_TO stopSequence=0, position=32.059196,34.818676, vid=-142436117~5523915, tripId=1885609275
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609488"
+start_time: "10:00:00"
+start_date: "20200118"
+, vehicle=id: "-142439003~5523891"
+, 23 StopTime Updates
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390173 sequence=19 arrival2020-01-18T10:14:28
+08:44:32.741 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390010 sequence=20 arrival2020-01-18T10:17:07
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=3810204 sequence=21 arrival2020-01-18T10:18:11
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390017 sequence=22 arrival2020-01-18T10:18:48
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390013 sequence=23 arrival2020-01-18T10:20:02
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37155827 sequence=24 arrival2020-01-18T10:21:08
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37583595 sequence=25 arrival2020-01-18T10:21:50
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37386995 sequence=26 arrival2020-01-18T10:23:56
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33913805 sequence=27 arrival2020-01-18T10:25:21
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37386997 sequence=28 arrival2020-01-18T10:25:49
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37533475 sequence=29 arrival2020-01-18T10:27:25
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37386999 sequence=30 arrival2020-01-18T10:28:06
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387000 sequence=31 arrival2020-01-18T10:29:36
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387001 sequence=32 arrival2020-01-18T10:30:06
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387002 sequence=33 arrival2020-01-18T10:31:28
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387003 sequence=34 arrival2020-01-18T10:32:32
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390143 sequence=35 arrival2020-01-18T10:33:56
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390141 sequence=36 arrival2020-01-18T10:34:22
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390119 sequence=37 arrival2020-01-18T10:36:27
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390080 sequence=38 arrival2020-01-18T10:38:04
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390306 sequence=39 arrival2020-01-18T10:39:23
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390303 sequence=40 arrival2020-01-18T10:40:55
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390218 sequence=41 arrival2020-01-18T10:42:33
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:58 status=IN_TRANSIT_TO stopSequence=0, position=32.101555,34.80092, vid=-142439003~5523891, tripId=1885609488
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - tripUpdate, trip=trip_id: "1885609329"
+start_time: "10:00:00"
+start_date: "20200118"
+, vehicle=id: "-142450277~5557208"
+, 27 StopTime Updates
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390077 sequence=14 arrival2020-01-18T10:14:50
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390073 sequence=15 arrival2020-01-18T10:15:34
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390071 sequence=16 arrival2020-01-18T10:16:33
+08:44:32.742 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390070 sequence=17 arrival2020-01-18T10:17:16
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387067 sequence=18 arrival2020-01-18T10:18:21
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=34086407 sequence=19 arrival2020-01-18T10:19:19
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533307 sequence=20 arrival2020-01-18T10:21:05
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533271 sequence=21 arrival2020-01-18T10:22:25
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387117 sequence=22 arrival2020-01-18T10:24:11
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=33433617 sequence=23 arrival2020-01-18T10:25:42
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387119 sequence=24 arrival2020-01-18T10:27:01
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390313 sequence=25 arrival2020-01-18T10:27:37
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390250 sequence=26 arrival2020-01-18T10:28:11
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10533286 sequence=27 arrival2020-01-18T10:28:39
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=10845527 sequence=28 arrival2020-01-18T10:29:06
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390160 sequence=29 arrival2020-01-18T10:29:49
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390159 sequence=30 arrival2020-01-18T10:30:44
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390162 sequence=31 arrival2020-01-18T10:31:11
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390124 sequence=32 arrival2020-01-18T10:31:59
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390132 sequence=33 arrival2020-01-18T10:32:29
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390116 sequence=34 arrival2020-01-18T10:33:29
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390133 sequence=35 arrival2020-01-18T10:34:02
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390006 sequence=36 arrival2020-01-18T10:35:10
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390022 sequence=37 arrival2020-01-18T10:36:14
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390036 sequence=38 arrival2020-01-18T10:37:26
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37390096 sequence=39 arrival2020-01-18T10:40:09
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - stop details id=37387082 sequence=40 arrival2020-01-18T10:41:18
+08:44:32.743 [main] INFO org.hasadna.gtfs.service.GtfsRtReaderTest - Vehicle, timestamp=2020-01-18T10:13:58 status=IN_TRANSIT_TO stopSequence=0, position=32.096302,34.775963, vid=-142450277~5557208, tripId=1885609329
+
