@@ -1,23 +1,34 @@
 import datetime
 import logging
+import zipfile
+from typing import List
+
+import gtfstk
 import pandas as pd
 import partridge as ptg
-import zipfile
-import gtfstk
-from .constants import *
+
 from .aggregations import generate_trip_stats_aggregation, generate_route_stats_aggregation
+from .constants import *
+
+
+def _read_almost_valid_csv_to_df(zip_path, file_name_in_zip, real_columns):
+    """ Read almost-valid csv files, which are not actually valid, while jiggling the columns a bit. """
+
+    cols = real_columns + ['EXTRA']
+    with zipfile.ZipFile(zip_path) as zf:
+        with zf.open(file_name_in_zip) as file_in_zip:
+            df = pd.read_csv(file_in_zip, header=None, skiprows=[0], names=cols) \
+                    .drop(columns=['EXTRA'])
+
+    return df
 
 
 def get_zones_df(local_tariff_zip_path):
-    # not a true csv, so we need to jiggle it a bit, hence the 'EXTRA' field
-    tariff_cols = ['ShareCode', 'ShareCodeDesc', 'ZoneCodes', 'Daily', 'Weekly', 'Monthly', 'FromDate', 'ToDate',
-                   'EXTRA']
-    reform_cols = ['StationId', 'ReformZoneCode', 'FromDate', 'ToDate', 'EXTRA']
-    with zipfile.ZipFile(local_tariff_zip_path) as zf:
-        tariff_df = (pd.read_csv(zf.open(TARIFF_TXT_NAME), header=None, skiprows=[0], names=tariff_cols)
-                     .drop(columns=['EXTRA']))
-        reform_df = (pd.read_csv(zf.open(TARIFF_TO_REFORM_ZONE), header=None, skiprows=[0], names=reform_cols)
-                     .drop(columns=['EXTRA']))
+    tariff_cols = ['ShareCode', 'ShareCodeDesc', 'ZoneCodes', 'Daily', 'Weekly', 'Monthly', 'FromDate', 'ToDate']
+    tariff_df = _read_almost_valid_csv_to_df(local_tariff_zip_path, TARIFF_TXT_NAME, tariff_cols)
+
+    reform_cols = ['StationId', 'ReformZoneCode', 'FromDate', 'ToDate']
+    reform_df = _read_almost_valid_csv_to_df(local_tariff_zip_path, TARIFF_TO_REFORM_ZONE, reform_cols)
 
     # remove ShareCodes which contain multiple zones  e.g. גוש דן מורחב
     tariff_df = (tariff_df[~ tariff_df.ZoneCodes.str.contains(';')]
@@ -30,15 +41,33 @@ def get_zones_df(local_tariff_zip_path):
     return zones
 
 
+def get_clusters_df(local_cluster_zip_path):
+    cluster_cols = ['OperatorName', 'OfficeLineId', 'OperatorLineId', 'ClusterName', 'FromDate', 'ToDate', 'ClusterId',
+                    'LineType', 'LineTypeDesc', 'ClusterSubDesc']
+
+    clusters_df = _read_almost_valid_csv_to_df(local_cluster_zip_path, CLUSTER_TO_LINE_TXT_NAME, cluster_cols)
+
+    clusters_df = clusters_df.rename(columns={
+        'ClusterId': 'cluster_id',
+        'ClusterName': 'cluster_name',
+        'ClusterSubDesc': 'cluster_sub_desc',
+        'LineType': 'line_type',
+        'LineTypeDesc': 'line_type_desc',
+        'OfficeLineId': 'route_mkt'
+    }).drop(columns=['OperatorName', 'OperatorLineId', 'FromDate', 'ToDate'])
+
+    return clusters_df
+
 def compute_trip_stats(feed: ptg.feed,
                        zones: pd.DataFrame,
+                       clusters: pd.DataFrame,
                        date: datetime.date,
-                       gtfs_file_name: str) -> pd.DataFrame:
+                       source_files_base_name: List[str]) -> pd.DataFrame:
     """
     :param feed: Partridge feed for the specific date
     :param zones: DataFrame with stop_code to zone_name mapping
     :param date: The original schedule date
-    :param gtfs_file_name: The original GTFS (zip) file name
+    :param source_files_base_name: The original zips the data is based on (GTFS, Tariff, etc.)
     :returns: A DataFrame with columns as described below
 
     Trip stats table has the following columns:
@@ -46,12 +75,16 @@ def compute_trip_stats(feed: ptg.feed,
     - ``agency_id`` - Agency identifier, as specified in `agency.txt` file.
     - ``agency_name`` - The full name of the agency, as specified in `agency.txt` file.
     - ``all_stop_code`` - All stop codes (as specified in `stops.txt` file), separated by semicolons.
-    - ``all_stop_desc_city`` - The city of the last stop of the trip (as described in `stop_desc` field in `stops.txt` \
+    - ``all_stop_desc_city`` - Cities of all stops of the trip (as described in `stop_desc` field in `stops.txt` \
         file), separated by semicolons.
     - ``all_stop_id`` - All stop identifiers (as specified in `stops.txt` file), separated by \
         semicolons.
     - ``all_stop_latlon`` - All stop waypoints (`stop_lat` and `stop_lon` as specified in `stops.txt` file), formatted \
         as `lat,lon` and separated by semicolons.
+    - ``cluster_id`` - Cluster code, as in `ClusterId` in `ClusterToLine` file.
+    - ``cluster_name`` - The name of the cluster to which the line belongs, as in `ClusterName` in `ClusterToLine` file.
+    - ``cluster_sub_desc`` - A sub-cluster name to which the line is associated, as in `ClusterSubDesc` in \
+        `ClusterToLine` file.
     - ``date`` - The original schedule date
     - ``direction_id`` - Indicates the direction of travel for a trip, as specified in `trips.txt` file.
     - ``distance`` - The full travel distance of the trip in meters, which is the maximal `shape_dist_traveled`, as \
@@ -67,8 +100,14 @@ def compute_trip_stats(feed: ptg.feed,
     - ``end_stop_name`` - Stop name of the last stop of the trip
     - ``end_time`` - Departure time of the last stop of the trip
     - ``end_zone`` - Zone name of the last stop of the trip
-    - ``gtfs_file_name`` - The original GTFS (zip) file name
+    - ``source_files`` - The original the data is based on (GTFS, Tariff, etc.)
     - ``is_loop`` - 1 if the start and end stop are less than 400m apart, otherwise 0
+    - ``line_type`` - Line type code, as in `LineType` in `ClusterToLine` file.
+    - ``line_type_desc`` - Line type description, as in `LineTypeDesc` in `ClusterToLine` file. \
+        The options for this fields are:
+        * "עירוני" - Urban
+        * "בינעירוני" - Intercity
+        * "אזורי" - Regional
     - ``num_stops`` - Number of stops in trip
     - ``num_zones`` - Number of zones where the trip stops are. Zones are defined in the files in `Tariff.zip`.
     - ``num_zones_missing`` - Number of stops whose identifier is missing from the files in `Tariff.zip`.
@@ -104,7 +143,9 @@ def compute_trip_stats(feed: ptg.feed,
     - ``trip_id`` - Trip identifier, as specified in `trips.txt` file.
     """
 
-    logging.info(f'Starting compute_trip_stats for {date} from {gtfs_file_name}')
+    source_files_str = '\n'.join(source_files_base_name)
+    logging.info((f'Starting compute_trip_stats for {date} from files: \n' 
+                  f'{source_files_str}'))
 
     f = feed.trips
     f = (f[['route_id', 'trip_id', 'direction_id', 'shape_id']]
@@ -120,6 +161,9 @@ def compute_trip_stats(feed: ptg.feed,
     # parse route_desc
     f[['route_mkt', 'route_direction', 'route_alternative']] = f['route_desc'].str.split('-', expand=True)
     f = f.drop('route_desc', axis=1)
+    f['route_mkt'] = f['route_mkt'].astype(int)
+
+    f = f.merge(clusters, how='left', on='route_mkt')
 
     # parse stop_desc
     stop_desc_fields = {'street': 'רחוב',
@@ -151,16 +195,17 @@ def compute_trip_stats(feed: ptg.feed,
 
     h['date'] = date
     h['date'] = pd.Categorical(h['date'])
-    h['gtfs_file_name'] = gtfs_file_name
+    h['source_files'] = ';'.join(source_files_base_name)
 
-    logging.debug(f'finished compute_trip_stats for {date} from {gtfs_file_name}')
+    logging.debug((f'finished compute_trip_stats for {date} from: \n' 
+                   f'{source_files_str}'))
 
     return h
 
 
 def compute_route_stats(trip_stats_subset: pd.DataFrame,
                         date: datetime.date,
-                        gtfs_file_name: str,
+                        source_files_base_name: List[str],
                         headway_start_time: str = '07:00:00',
                         headway_end_time: str = '19:00:00') -> pd.DataFrame:
     """
@@ -168,7 +213,7 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
 
     :param trip_stats_subset: Subset of the output of :func:`compute_trip_stats`
     :param date: The original schedule date
-    :param gtfs_file_name: The original GTFS (zip) file name
+    :param source_files_base_name: The original zips the data is based on (GTFS, Tariff, etc.)
     :param headway_start_time: HH:MM:SS time string indicating the start time for computing \
     headway stats
     :param headway_end_time: HH:MM:SS time string indicating the end time for computing headway \
@@ -185,8 +230,13 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     - ``all_stop_desc_city`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``all_stop_id`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``all_stop_latlon`` - Same as in :func:`gtfs_utils.compute_trip_stats`
-    - ``all_trip_id`` -All of the identifiers (``trip_id``, as specified in `trips.txt` file) of \
+    - ``all_stop_name`` - Names of all stops of the trip (as described in `stop_name` field in \
+        `stops.txt` file), separated by semicolons.
+    - ``all_trip_id`` - All of the identifiers (``trip_id``, as specified in `trips.txt` file) of \
         the trips in the route, separated by semicolons
+    - ``cluster_id`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``cluster_name`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``cluster_sub_desc`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``date`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``end_stop_city`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``end_stop_desc`` - Same as in :func:`gtfs_utils.compute_trip_stats`
@@ -197,9 +247,11 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     - ``end_time`` - Same as in :func:`gtfs_utils.compute_trip_stats`, referring to the last trip \
     of the route
     - ``end_zone`` - Same as in :func:`gtfs_utils.compute_trip_stats`
-    - ``gtfs_file_name`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``source_files`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``is_bidirectional`` - 1 if the route has trips in both directions, otherwise 0
     - ``is_loop`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``line_type`` - Same as in :func:`gtfs_utils.compute_trip_stats`
+    - ``line_type_desc`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``max_headway`` - The maximal duration (in minutes) between trip starts on the route between \
         ``headway_start_time`` and ``headway_end_time``
     - ``mean_headway`` - The mean duration (in minutes) between trip starts on the route between \
@@ -246,7 +298,7 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     If ``trip_stats_subset`` is empty, return an empty DataFrame.
 
     """
-
+    source_files_str = ';'.join(source_files_base_name)
     logging.info(f'Starting compute_route_stats from trip stats result')
 
     f = trip_stats_subset.copy()
@@ -267,26 +319,21 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     # Convert m/h to km/h
     g['service_speed'] = g.service_speed / 1000
 
-    g = g[['route_id', 'route_short_name', 'agency_id', 'agency_name',
-           'route_long_name', 'route_type', 'route_mkt', 'route_direction', 'route_alternative',
-           'num_trips', 'num_trip_starts',
-           'num_trip_ends', 'is_loop', 'is_bidirectional', 'start_time',
-           'end_time', 'max_headway', 'min_headway', 'mean_headway',
-           'peak_num_trips', 'peak_start_time', 'peak_end_time',
-           'service_distance', 'service_duration', 'service_speed',
-           'mean_trip_distance', 'mean_trip_duration', 'start_stop_id',
-           'end_stop_id', 'start_stop_name', 'end_stop_name',
-           'start_stop_city', 'end_stop_city',
-           'start_stop_desc', 'end_stop_desc',
-           'start_stop_lat', 'start_stop_lon', 'end_stop_lat',
-           'end_stop_lon', 'num_stops', 'start_zone', 'end_zone',
-           'num_zones', 'num_zones_missing',
-           'all_stop_latlon', 'all_stop_code', 'all_stop_id', 'all_stop_desc_city', 'all_start_time', 'all_trip_id',
-           ]]
+    g = g[[
+        'route_id', 'route_short_name', 'agency_id', 'agency_name', 'route_long_name', 'route_type', 'route_mkt',
+        'route_direction', 'route_alternative', 'num_trips', 'num_trip_starts', 'num_trip_ends', 'is_loop',
+        'is_bidirectional', 'start_time', 'end_time', 'max_headway', 'min_headway', 'mean_headway',
+        'peak_num_trips', 'peak_start_time', 'peak_end_time', 'service_distance', 'service_duration', 'service_speed',
+        'mean_trip_distance', 'mean_trip_duration', 'start_stop_id', 'end_stop_id', 'start_stop_name', 'end_stop_name',
+        'start_stop_city', 'end_stop_city', 'start_stop_desc', 'end_stop_desc', 'start_stop_lat', 'start_stop_lon',
+        'end_stop_lat', 'end_stop_lon', 'num_stops', 'start_zone', 'end_zone', 'num_zones', 'num_zones_missing',
+        'all_stop_latlon', 'all_stop_code', 'all_stop_id', 'all_stop_desc_city', 'all_start_time', 'all_trip_id',
+        'all_stop_name', 'line_type', 'line_type_desc', 'cluster_id', 'cluster_name', 'cluster_sub_desc',
+    ]]
 
     g['date'] = date
     g['date'] = pd.Categorical(g['date'])
-    g['gtfs_file_name'] = gtfs_file_name
+    g['source_files'] = source_files_str
 
     logging.debug(f'Finished compute_route_stats from trip stats result')
 

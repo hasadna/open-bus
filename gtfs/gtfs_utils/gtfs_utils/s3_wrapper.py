@@ -9,7 +9,8 @@ import boto3
 import botocore.exceptions
 from types import MappingProxyType
 from typing import Callable, List, Tuple
-from .configuration import S3Configuration
+#FIXME: faild to load parent module when executing from other path
+#from .configuration import S3Configuration
 
 _AWS = 'aws'
 _DIGITALOCEAN_PUBLIC = 'dig-public'
@@ -34,7 +35,7 @@ class S3Crud:
         self.client = boto3.session.Session().client('s3', **conn_args)
 
     @classmethod
-    def from_configuration(cls, s3_configuration: S3Configuration):
+    def from_configuration(cls, s3_configuration):
         return cls(aws_access_key_id=s3_configuration.access_key_id,
                    aws_secret_access_key=s3_configuration.secret_access_key,
                    bucket_name=s3_configuration.bucket_name,
@@ -44,7 +45,8 @@ class S3Crud:
         self.client.upload_file(Filename=local_file, Key=cloud_key, Bucket=self.bucket_name)
 
     def download_one_file(self, local_file: str, cloud_key: str, callback: Callable = None) -> None:
-        logging.info(f'Downloading { cloud_key } into { local_file }')
+        logging.info('Downloading {cloud_key} into {local_file}'.format(cloud_key=cloud_key,
+                                                                        local_file=local_file))
         os.makedirs(os.path.split(local_file)[0], exist_ok=True)
         self.client.download_file(Filename=local_file,
                                   Key=cloud_key,

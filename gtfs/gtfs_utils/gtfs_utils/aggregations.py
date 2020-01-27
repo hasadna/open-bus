@@ -15,7 +15,8 @@ def generate_trip_stats_aggregation(feed):
         keys = [
             'route_id', 'route_short_name', 'route_long_name', 'route_mkt', 'route_direction',
             'route_alternative', 'agency_id', 'agency_name', 'route_type', 'direction_id',
-            'shape_id'
+            'shape_id', 'line_type', 'line_type_desc', 'cluster_id',
+            'cluster_name', 'cluster_sub_desc',
         ]
         for key in keys:
             d[key] = group[key].iat[0]
@@ -28,6 +29,11 @@ def generate_trip_stats_aggregation(feed):
         keys_for_start_and_end = [
             'stop_id', 'stop_code', 'stop_name', 'stop_desc', 'stop_lat', 'stop_lon',
         ]
+
+        keys_for_all = [
+            'stop_code', 'stop_id', 'stop_desc_city', 'stop_name',
+        ]
+
         for key in keys_for_start_and_end:
             d[f'start_{key}'] = group[key].iat[0]
             d[f'end_{key}'] = group[key].iat[-1]
@@ -47,9 +53,8 @@ def generate_trip_stats_aggregation(feed):
         d['all_stop_latlon'] = ';'.join(str(x) + ',' + str(y) for x, y in
                                         zip(group['stop_lat'].tolist(), group['stop_lon'].tolist()))
 
-        d['all_stop_code'] = ';'.join(group['stop_code'].tolist())
-        d['all_stop_id'] = ';'.join(group['stop_id'].tolist())
-        d['all_stop_desc_city'] = ';'.join(group['stop_desc_city'].tolist())
+        for key in keys_for_all:
+            d[f'all_{key}'] = ';'.join(group[key].tolist())
 
         return pd.Series(d)
 
@@ -70,11 +75,11 @@ def generate_route_stats_aggregation(headway_start_time, headway_end_time):
             'start_stop_lat', 'start_stop_lon', 'end_stop_lat', 'end_stop_lon', 'start_stop_city',
             'end_stop_city', 'num_stops', 'start_zone', 'end_zone', 'num_zones',
             'num_zones_missing', 'all_stop_latlon', 'all_stop_code', 'all_stop_id',
-            'all_stop_desc_city'
+            'all_stop_desc_city', 'all_stop_name', 'line_type', 'line_type_desc', 'cluster_id',
+            'cluster_name', 'cluster_sub_desc',
         ]
         for key in keys:
             d[key] = group[key].iat[0]
-
 
         d['num_trips'] = group.shape[0]
         d['num_trip_starts'] = group['start_time'].count()
@@ -112,7 +117,6 @@ def generate_route_stats_aggregation(headway_start_time, headway_end_time):
 
         d['service_distance'] = group['distance'].sum()
         d['service_duration'] = group['duration'].sum()
-
 
         d['all_start_time'] = ';'.join([gtfstk.helpers.timestr_to_seconds(x, inverse=True)
                                         for x in group['start_time'].tolist()])

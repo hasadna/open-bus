@@ -24,7 +24,9 @@ def save_dataframe_to_file(df: pd.DataFrame,
     if output_file_type == 'pkl.gz':
         df.to_pickle(output_path, compression='gzip')
     elif output_file_type == 'csv.gz':
-        df.to_csv(output_path, compression='gzip')
+        df.to_csv(output_path, index=False, compression='gzip')
+    elif output_file_type == 'csv':
+        df.to_csv(output_path, index=False)
     else:
         err = NotImplementedError(f'Saving dataframe as {output_file_type} is not supported')
         logging.error(err)

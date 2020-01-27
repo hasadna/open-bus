@@ -25,7 +25,7 @@ matrix:
         - ./mvnw install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
         - docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD}
         - docker build -t siri-collector .
-        - export DOCKER_TAG=$(sed 's/\//_/' <<< ${TRAVIS_BRANCH}) # Replacing a slash in branch name with an underscore
+        - export DOCKER_TAG=$(sed 's/\//_/g' <<< ${TRAVIS_BRANCH}) # Replacing slashes in branch name with underscores
         - docker tag siri-collector openbus1/siri-collector:${DOCKER_TAG}
         - docker push openbus1/siri-collector:${DOCKER_TAG}
     - language: java
@@ -36,7 +36,7 @@ matrix:
         - cd ./siri/gtfs_reader
         - mvn install
         - docker build -t gtfs-collector .
-        - export DOCKER_TAG=$(sed 's/\//_/' <<< ${TRAVIS_BRANCH}) # Replacing a slash in branch name with an underscore
+        - export DOCKER_TAG=$(sed 's/\//_/g' <<< ${TRAVIS_BRANCH}) # Replacing slashes in branch name with underscores
         - docker tag gtfs-collector openbus1/gtfs-collector:${DOCKER_TAG}
         - docker push openbus1/gtfs-collector:${DOCKER_TAG}
 
