@@ -24,6 +24,23 @@ def _read_almost_valid_csv_to_df(zip_path, file_name_in_zip, real_columns):
     return df
 
 
+def _fix_trip_to_date_columns(trip_date_df: pd.DataFrame) -> None:
+    """
+    Parse date and time columns and fix rows where departure time is after midnight
+    """
+    DATE_FORMAT = '%d/%m/%Y 00:00:00'
+    trip_date_df['FromDate'] = pd.to_datetime(trip_date_df.FromDate, format=DATE_FORMAT)
+    trip_date_df['ToDate'] = pd.to_datetime(trip_date_df.ToDate, format=DATE_FORMAT)
+    trip_date_df['departure_time'] = trip_date_df.departure_time_str.apply(parse_time_no_seconds_column)
+    series = trip_date_df['departure_time'] >= 24 * 3600
+    trip_date_df.loc[series, 'FromDate'] = trip_date_df[series]['FromDate'] + datetime.timedelta(days=1)
+    trip_date_df.loc[series, 'ToDate'] = trip_date_df[series]['ToDate'] + datetime.timedelta(days=1)
+    trip_date_df.loc[series, 'DayInWeek'] = trip_date_df[series]['DayInWeek'] + 1
+    # fix dates to be from 0 o six (Sunday should be 1, Saturday 0)
+    trip_date_df['DayInWeek'] = trip_date_df['DayInWeek'] % 7
+    trip_date_df.loc[series, 'departure_time'] = trip_date_df[series]['departure_time'] % (24 * 3600)
+
+
 def get_trip_id_to_date_df(local_file_path: str, date: datetime.date) -> pd.DataFrame:
     """
     returns the TripIdToDate information that matches the given date
@@ -31,22 +48,20 @@ def get_trip_id_to_date_df(local_file_path: str, date: datetime.date) -> pd.Data
     :param date: The date to filter by
     :return: A DataFrame with the columns `route_id`, `trip_id_to_date` and `start_time`
     """
-    DATE_FORMAT = '%d/%m/%Y 00:00:00'
     trip_id_to_date_cols = ['route_id', 'OfficeLineId', 'Direction', 'LineAlternative', 'FromDate',
-                            'ToDate', 'trip_id_to_date', 'DayInWeek', 'departure_time']
+                            'ToDate', 'trip_id_to_date', 'DayInWeek', 'departure_time_str']
     trip_date_df = _read_almost_valid_csv_to_df(local_file_path, TRIP_ID_TO_DATE_TXT_NAME, trip_id_to_date_cols)
-    trip_date_df['FromDate'] = pd.to_datetime(trip_date_df.FromDate, format=DATE_FORMAT)
-    trip_date_df['ToDate'] = pd.to_datetime(trip_date_df.ToDate, format=DATE_FORMAT)
+    _fix_trip_to_date_columns(trip_date_df)
     # filter to a specific date
-    trip_date_df = trip_date_df[(trip_date_df['FromDate'] <= date) &
-                                (trip_date_df['ToDate'] >= date) &
-                                (trip_date_df['DayInWeek'] == date.weekday())]
+    trip_date_df = trip_date_df[(trip_date_df['FromDate'] <= pd.Timestamp(date)) &
+                                (trip_date_df['ToDate'] >= pd.Timestamp(date)) &
+                                # Fix date.isoweekday to match israel counting (Sunday is 1, Saturday=0)
+                                (trip_date_df['DayInWeek'] == ((date.isoweekday() + 1) % 7))
+                                ]
     # remove all columns except 'route_id' and 'trip_id_to_date'
     trip_date_df = trip_date_df[['route_id', 'trip_id_to_date', 'departure_time']]
     # change column type because feed returns route_id as object (and not int64)
     trip_date_df = trip_date_df.assign(route_id=trip_date_df.route_id.astype(str))
-    # Change departure time to float(64) to match partridge return type
-    trip_date_df.departure_time = trip_date_df.departure_time.apply(parse_time_no_seconds_column)
     return trip_date_df
 
 
@@ -194,7 +209,6 @@ def compute_trip_stats(feed: ptg.feed,
     f['route_mkt'] = f['route_mkt'].astype(int)
 
     f = f.merge(clusters, how='left', on='route_mkt')
-    f = f.merge(trip_to_date, how='inner', on=['route_id', 'departure_time'])
 
     # parse stop_desc
     stop_desc_fields = {'street': 'רחוב',
@@ -224,6 +238,7 @@ def compute_trip_stats(feed: ptg.feed,
             lambda x: gtfstk.helpers.timestr_to_seconds(x, inverse=True))
     )
 
+    # h = h.merge(trip_to_date, how='inner', on=['route_id', 'start_time'])
     h['date'] = date
     h['date'] = pd.Categorical(h['date'])
     h['source_files'] = ';'.join(source_files_base_name)
