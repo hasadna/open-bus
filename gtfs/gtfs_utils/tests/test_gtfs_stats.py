@@ -2,7 +2,7 @@ import datetime
 import os
 import filecmp
 from os.path import dirname, join
-from ..gtfs_utils.constants import GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME
+from ..gtfs_utils.constants import GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME, TRIP_ID_TO_DATE_ZIP_NAME
 from ..gtfs_utils.gtfs_stats import analyze_gtfs_date
 
 
@@ -14,11 +14,12 @@ INPUT_LOCAL_FULL_PATHS = {
     GTFS_FILE_NAME: join(TEST_ASSETS_DIR, 'inputs', '2019-03-07-israel-public-transportation.zip'),
     TARIFF_ZIP_NAME: join(TEST_ASSETS_DIR, 'inputs', '2019-03-07-Tariff.zip'),
     CLUSTER_TO_LINE_ZIP_NAME: join(TEST_ASSETS_DIR, 'inputs', '2019-03-07-ClusterToLine.zip'),
+    TRIP_ID_TO_DATE_ZIP_NAME: join(TEST_ASSETS_DIR, 'inputs', '2019-03-07-TripIdToDate.zip'),
 }
 OUTPUT_FILE_TYPE = 'csv'
 OUTPUT_FILE_NAMES = [
+    f'trip_stats_{TEST_FILE_DATE_STR}.{OUTPUT_FILE_TYPE}',
     f'route_stats_{TEST_FILE_DATE_STR}.{OUTPUT_FILE_TYPE}',
-    f'trip_stats_{TEST_FILE_DATE_STR}.{OUTPUT_FILE_TYPE}'
 ]
 
 
