@@ -243,7 +243,8 @@ def compute_trip_stats(feed: ptg.feed,
     del h['numeric_trip_id']
     del h['trip_id_rank']
 
-    h['speed'] = round(h['distance'] / h['duration'] / 1000 - 5e-9, 9)
+    # Calculate speed for the trip
+    h['speed'] = h['distance'] / h['duration'] / 1000
     h[['start_time', 'end_time']] = (
         h[['start_time', 'end_time']].applymap(
             lambda x: gtfstk.helpers.timestr_to_seconds(x, inverse=True))
