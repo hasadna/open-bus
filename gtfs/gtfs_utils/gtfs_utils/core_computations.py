@@ -63,8 +63,6 @@ def get_trip_id_to_date_df(local_file_path: str, date: datetime.date) -> pd.Data
     trip_date_df = trip_date_df[['route_id', 'trip_id_to_date', 'start_time']]
     # Rank duplicate trip_ids
     trip_date_df['trip_id_rank'] = trip_date_df.groupby(['route_id', 'start_time']).rank(method='dense')
-    # change column type because feed returns route_id as object (and not int64)
-    trip_date_df = trip_date_df.assign(route_id=trip_date_df.route_id.astype(str))
     return trip_date_df
 
 
@@ -79,10 +77,17 @@ def get_zones_df(local_tariff_zip_path):
     tariff_df = (tariff_df[~ tariff_df.ZoneCodes.str.contains(';')]
                  .rename(columns={'ShareCodeDesc': 'zone_name',
                                   'ZoneCodes': 'zone_id'}))
-    rs = reform_df[['StationId', 'ReformZoneCode']].drop_duplicates().applymap(str).set_index('StationId').iloc[:, 0]
+    rs = (reform_df[['StationId', 'ReformZoneCode']]
+          .drop_duplicates()
+          .set_index('StationId')
+          .iloc[:, 0])
+    ts = (tariff_df[['zone_id', 'zone_name']]
+          .drop_duplicates()
+          .set_index('zone_id')
+          .iloc[:, 0])
 
-    ts = (tariff_df[['zone_id', 'zone_name']].drop_duplicates().set_index('zone_id').iloc[:, 0])
     zones = rs.map(ts).reset_index().rename(columns={'StationId': 'stop_code', 'ReformZoneCode': 'zone_name'})
+    zones['zone_name'] = pd.Categorical(zones['zone_name'])
     return zones
 
 

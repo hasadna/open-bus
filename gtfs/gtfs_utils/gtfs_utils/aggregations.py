@@ -54,7 +54,7 @@ def generate_trip_stats_aggregation(feed):
                                         zip(group['stop_lat'].tolist(), group['stop_lon'].tolist()))
 
         for key in keys_for_all:
-            d[f'all_{key}'] = ';'.join(group[key].tolist())
+            d[f'all_{key}'] = ';'.join(map(str, group[key].tolist()))
 
         return pd.Series(d)
 
