@@ -25,9 +25,10 @@ def create_partridge_config():
                       'service_id': pd.to_numeric,
                   }),
                   ('fare_rules.txt', {
-                      'origin_id': pd.to_numeric,
-                      'destination_id': pd.to_numeric,
                       'contains_id': pd.to_numeric,
+                      'destination_id': pd.to_numeric,
+                      'fare_id': pd.to_numeric,
+                      'origin_id': pd.to_numeric,
                       'route_id': pd.to_numeric,
                   }),
                   ('fare_attributes.txt', {
@@ -90,13 +91,16 @@ def get_partridge_filter_for_date(zip_path: str, date: datetime.date):
 
 
 def get_partridge_feed_by_date(zip_path: str, date: datetime.date):
-    return ptg.feed(zip_path,
-                    view=get_partridge_filter_for_date(zip_path, date),
-                    config=CONF)
+    return ptg.load_feed(zip_path,
+                         view=get_partridge_filter_for_date(zip_path, date),
+                         config=CONF)
 
 
 def write_filtered_feed_by_date(zip_path: str, date: datetime.date, output_path: str):
-    ptg.writers.extract_feed(zip_path, output_path, get_partridge_filter_for_date(zip_path, date))
+    ptg.writers.extract_feed(zip_path,
+                             output_path,
+                             view=get_partridge_filter_for_date(zip_path, date),
+                             config=CONF)
 
 
 def prepare_partridge_feed(date: datetime.date,
@@ -110,7 +114,7 @@ def prepare_partridge_feed(date: datetime.date,
         write_filtered_feed_by_date(gtfs_file_full_path, date, filtered_gtfs_path)
 
         logging.info(f'Reading filtered feed for file from path {filtered_gtfs_path}')
-        feed = ptg.feed(filtered_gtfs_path, config=CONF)
+        feed = ptg.load_feed(filtered_gtfs_path, config=CONF)
     else:
         logging.info(f'Creating daily partridge feed for {date} from {gtfs_file_full_path}')
         feed = get_partridge_feed_by_date(gtfs_file_full_path, date)

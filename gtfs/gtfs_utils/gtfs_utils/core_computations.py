@@ -5,7 +5,7 @@ from typing import List
 
 import gtfstk
 import pandas as pd
-import partridge as ptg
+from partridge.gtfs import Feed
 
 from .aggregations import generate_trip_stats_aggregation, generate_route_stats_aggregation
 from .partridge_helper import parse_time_no_seconds_column
@@ -109,7 +109,7 @@ def get_clusters_df(local_cluster_zip_path):
     return clusters_df
 
 
-def compute_trip_stats(feed: ptg.feed,
+def compute_trip_stats(feed: Feed,
                        zones: pd.DataFrame,
                        clusters: pd.DataFrame,
                        trip_to_date: pd.DataFrame,

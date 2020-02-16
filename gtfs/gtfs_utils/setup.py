@@ -15,7 +15,7 @@ requirements = [
     'python-dateutil==2.8.0',
     'botocore==1.13.39',
     'boto3==1.10.13',
-    'partridge==0.11.0',
+    'partridge==1.1.2',
     'gtfstk==9.6.3',
     'numpy==1.17.3',
     'pandas==0.24.2',
