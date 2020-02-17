@@ -11,63 +11,67 @@ from partridge import config as ptg_config
 from .configuration import configuration
 
 
-def create_partridge_config():
+def create_partridge_config() -> ptg_config.nx.DiGaph:
+    """Create a partridge config that convert more columns to numbers
+    the configuration is based on partridge default config"""
+    def to_int(series: pd.Series) -> pd.Series:
+        return pd.to_numeric(series, downcast='integer')
     default_conf = ptg_config.default_config()
     converters = [
                   ('agency.txt', {
-                      'agency_id': pd.to_numeric,
+                      'agency_id': to_int,
                       'agency_name': pd.Categorical,
                   }),
                   ('calendar.txt', {
-                      'service_id': pd.to_numeric,
+                      'service_id': to_int,
                   }),
                   ('calendar_dates.txt', {
-                      'service_id': pd.to_numeric,
+                      'service_id': to_int,
                   }),
                   ('fare_rules.txt', {
-                      'contains_id': pd.to_numeric,
-                      'destination_id': pd.to_numeric,
-                      'fare_id': pd.to_numeric,
-                      'origin_id': pd.to_numeric,
-                      'route_id': pd.to_numeric,
+                      'contains_id': to_int,
+                      'destination_id': to_int,
+                      'fare_id': to_int,
+                      'origin_id': to_int,
+                      'route_id': to_int,
                   }),
                   ('fare_attributes.txt', {
-                      'fare_id': pd.to_numeric,
+                      'fare_id': to_int,
                   }),
                   ('frequencies.txt', {
-                      # 'trip_id': pd.to_numeric,
+                      'trip_id': pd.Categorical,
                   }),
                   ('trips.txt', {
-                      'direction_id': pd.to_numeric,
-                      # 'trip_id': pd.to_numeric,
-                      'route_id': pd.to_numeric,
-                      'service_id': pd.to_numeric,
-                      'shape_id': pd.to_numeric,
+                      'direction_id': to_int,
+                      'trip_id': pd.Categorical,
+                      'route_id': to_int,
+                      'service_id': to_int,
+                      'shape_id': to_int,
                   }),
                   ('routes.txt', {
-                      'agency_id': pd.to_numeric,
-                      'route_id': pd.to_numeric,
-                      'route_type': pd.to_numeric,
+                      'agency_id': to_int,
+                      'route_id': to_int,
+                      'route_type': to_int,
                   }),
                   ('shapes.txt', {
-                      'shape_id': pd.to_numeric,
+                      'shape_id': to_int,
                   }),
                   ('stops.txt', {
-                      'fare_id': pd.to_numeric,
-                      'stop_id': pd.to_numeric,
-                      'stop_code': pd.to_numeric,
-                      'zone_id': pd.to_numeric,
+                      'fare_id': to_int,
+                      'stop_id': to_int,
+                      'stop_code': to_int,
+                      'zone_id': to_int,
                   }),
                   ('stop_times.txt', {
-                     'stop_id': pd.to_numeric,
-                     'stop_sequence': pd.to_numeric,
-                     'pickup_type': pd.to_numeric,
-                     'drop_off_type': pd.to_numeric,
-                     # 'trip_id': pd.to_numeric,
+                     'stop_id': to_int,
+                     'stop_sequence': to_int,
+                     'pickup_type': to_int,
+                     'drop_off_type': to_int,
+                     'trip_id': pd.Categorical,
                   }),
                   ('transfers.txt', {
-                      'from_stop_id': pd.to_numeric,
-                      'to_stop_id': pd.to_numeric,
+                      'from_stop_id': to_int,
+                      'to_stop_id': to_int,
                   })
                   ]
     for node, fields in converters:
