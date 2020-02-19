@@ -32,39 +32,48 @@ def _fix_trip_to_date_columns(trip_date_df: pd.DataFrame) -> None:
     !! Does changes in place
     """
     DATE_FORMAT = '%d/%m/%Y 00:00:00'
-    trip_date_df['FromDate'] = pd.to_datetime(trip_date_df.FromDate, format=DATE_FORMAT)
-    trip_date_df['ToDate'] = pd.to_datetime(trip_date_df.ToDate, format=DATE_FORMAT)
+    trip_date_df['from_date'] = pd.to_datetime(trip_date_df.from_date, format=DATE_FORMAT)
+    trip_date_df['to_date'] = pd.to_datetime(trip_date_df.to_date, format=DATE_FORMAT)
     trip_date_df['start_time'] = trip_date_df['start_time_str'].apply(parse_time_no_seconds_column)
     series = trip_date_df['start_time'] >= 24 * 3600
-    trip_date_df.loc[series, 'DayInWeek'] = trip_date_df[series]['DayInWeek'] + 1
+    trip_date_df.loc[series, 'week_day'] = trip_date_df[series]['week_day'] + 1
     # fix dates to be from 0 o six (Sunday should be 1, Saturday 0)
-    trip_date_df['DayInWeek'] = trip_date_df['DayInWeek'] % 7
+    trip_date_df['week_day'] = trip_date_df['week_day'] % 7
     trip_date_df.loc[series, 'start_time'] = trip_date_df[series]['start_time'] % (24 * 3600)
 
 
-def get_trip_id_to_date_df(local_file_path: str, date: datetime.date) -> pd.DataFrame:
+def get_trip_id_to_date_df(local_file_path: str,
+                           date: datetime.date,
+                           columns: List[str] = None) -> pd.DataFrame:
     """
     returns the TripIdToDate information that matches the given date
     :param local_file_path: The path if the zip file
     :param date: The date to filter by
+    :param columns: list of the columns names for the return DataFrame, if invalid column name raises ValueError
     :return: A DataFrame with the columns `route_id`, `trip_id_to_date` and `start_time`
     """
-    trip_id_to_date_cols = ['route_id', 'OfficeLineId', 'Direction', 'LineAlternative', 'FromDate',
-                            'ToDate', 'trip_id_to_date', 'DayInWeek', 'start_time_str']
+    trip_id_to_date_cols = ['route_id', 'route_mkt', 'direction', 'alternative_id', 'from_date',
+                            'to_date', 'trip_id_to_date', 'week_day', 'start_time_str']
+    if columns is None:
+        columns = ['route_id', 'trip_id_to_date', 'start_time']
+    elif columns not in trip_id_to_date_cols:
+        raise ValueError(f"column names {set(columns) - set(trip_id_to_date_cols)} are not in {trip_id_to_date_cols}")
     trip_date_df = _read_almost_valid_csv_to_df(local_file_path, TRIP_ID_TO_DATE_TXT_NAME, trip_id_to_date_cols)
     _fix_trip_to_date_columns(trip_date_df)
     # filter to a specific date
-    trip_date_df = trip_date_df[(trip_date_df['FromDate'] <= pd.Timestamp(date)) &
-                                (trip_date_df['ToDate'] >= pd.Timestamp(date)) &
+    trip_date_df = trip_date_df[(trip_date_df['from_date'] <= pd.Timestamp(date)) &
+                                (trip_date_df['to_date'] >= pd.Timestamp(date)) &
                                 # Fix date.isoweekday to match israel counting (Sunday is 1, Saturday=0)
-                                (trip_date_df['DayInWeek'] == ((date.isoweekday() + 1) % 7))
+                                (trip_date_df['week_day'] == ((date.isoweekday() + 1) % 7))
                                 ]
-    # remove all columns except 'route_id' and 'trip_id_to_date'
-    trip_date_df = trip_date_df[['route_id', 'trip_id_to_date', 'start_time']]
+    # remove all unused columns
+    trip_date_df = trip_date_df[columns]
     # Rank duplicate trip_ids
-    trip_date_df['trip_id_rank'] = trip_date_df.groupby(['route_id', 'start_time']).rank(method='dense')
+    trip_date_df['trip_id_rank'] = (trip_date_df
+                                    .groupby(['route_id', 'start_time'])
+                                    .trip_id_to_date.rank(method='dense'))
     # change column type because feed returns route_id as object (and not int64)
-    trip_date_df = trip_date_df.assign(route_id=trip_date_df.route_id.astype(str))
+    trip_date_df['route_id'] = trip_date_df.route_id.astype(str)
     return trip_date_df
 
 
@@ -116,6 +125,7 @@ def compute_trip_stats(feed: ptg.feed,
     :param trip_to_date: trip_id_to_date information to match with the feed data
     :param date: The original schedule date
     :param source_files_base_name: The original zips the data is based on (GTFS, Tariff, etc.)
+    :raise: pandas.MergeError if trip_id_to_date will not merge as 1:1 with trip data
     :returns: A DataFrame with columns as described below
 
     Trip stats table has the following columns:
@@ -176,6 +186,7 @@ def compute_trip_stats(feed: ptg.feed,
         * 3 for bus
         * 715 for Flexible Service Line ("קו בשירות גמיש")
     - ``shape_id`` - Shape identifier, as specified in `shapes.txt` file.
+    - ``source_files`` - base name of the files the data is based on (as they are saved on S3).
     - ``speed`` - Average speed of the trip in meters per hour (calculated as `distance/duration`).
     - ``start_stop_city`` - The city of the first stop of the trip, as specified in `stop_desc` field in `stops.txt` \
         file.
@@ -189,6 +200,7 @@ def compute_trip_stats(feed: ptg.feed,
     - ``start_time`` - Departure time of the first stop of the trip
     - ``start_zone`` - Zone name of the first stop of the trip
     - ``trip_id`` - Trip identifier, as specified in `trips.txt` file.
+    - ``trip_id_to_date`` - Trip identifier that is unique for each day in week and departure hour.
     """
 
     source_files_str = '\n'.join(source_files_base_name)
@@ -236,7 +248,7 @@ def compute_trip_stats(feed: ptg.feed,
     # Reset index and compute final stats
     h = h.reset_index()
 
-    # Add rank to duplicate trips and add trip_id_to_date data
+    # Add rank to duplicate trips and add trip_id_to_date data (can't rank on non-numerical columns)
     h['numeric_trip_id'] = h['trip_id'].apply(lambda s: int(s.replace('_', '')))
     h['trip_id_rank'] = h.groupby(['route_id', 'start_time'])['numeric_trip_id'].rank(method='dense')
     h = h.merge(trip_to_date, how='inner', on=['route_id', 'start_time', 'trip_id_rank'], validate='one_to_one')
@@ -287,9 +299,10 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
     - ``all_stop_id`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``all_stop_latlon`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``all_stop_name`` - Names of all stops of the trip (as described in `stop_name` field in \
-        `stops.txt` file), separated by semicolons.
+        `stops.txt` file), separated by semicolons
     - ``all_trip_id`` - All of the identifiers (``trip_id``, as specified in `trips.txt` file) of \
         the trips in the route, separated by semicolons
+    - ``all_trip_id_to_date`` - all the ``trip_id_to_date`` ids that match this route, separated by semicolon
     - ``cluster_id`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``cluster_name`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``cluster_sub_desc`` - Same as in :func:`gtfs_utils.compute_trip_stats`
@@ -341,6 +354,7 @@ def compute_route_stats(trip_stats_subset: pd.DataFrame,
         is the maximal `shape_dist_traveled`, as specified in `stop_times.txt` file.
     - ``service_duration`` - Total duration of all trips on the route in hours
     - ``service_speed`` - Average speed each trip on the route in km/h
+    - ``source_files`` - base name of the files the data is based on (as they are saved on S3).
     - ``start_stop_city`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``start_stop_desc`` - Same as in :func:`gtfs_utils.compute_trip_stats`
     - ``start_stop_id`` - Same as in :func:`gtfs_utils.compute_trip_stats`
