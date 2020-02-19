@@ -91,17 +91,18 @@ def analyze_gtfs_date(date: datetime.date,
 def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> List[datetime.date]:
     if use_data_from_today:
         return [datetime.datetime.now().date()]
-    else:
-        if len(date_range) != 2:
+    elif len(date_range) == 1:
+        return [datetime.datetime.strptime(date_range[0], '%Y-%m-%d').date()]
+    elif len(date_range) != 2:
             raise ValueError('Use "date_range" or set "use_data_from_today" to true if the configuration.')
 
-        min_date, max_date = [datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-                              for date_str
-                              in date_range]
-        delta = max_date - min_date
-        return [min_date + datetime.timedelta(days=days_delta)
-                for days_delta
-                in range(delta.days + 1)]
+    min_date, max_date = [datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+                          for date_str
+                          in date_range]
+    delta = max_date - min_date
+    return [min_date + datetime.timedelta(days=days_delta)
+            for days_delta
+            in range(delta.days + 1)]
 
 
 def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,

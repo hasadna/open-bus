@@ -35,9 +35,11 @@ def _fix_trip_to_date_columns(trip_date_df: pd.DataFrame) -> None:
     trip_date_df['from_date'] = pd.to_datetime(trip_date_df.from_date, format=DATE_FORMAT)
     trip_date_df['to_date'] = pd.to_datetime(trip_date_df.to_date, format=DATE_FORMAT)
     trip_date_df['start_time'] = trip_date_df['start_time_str'].apply(parse_time_no_seconds_column)
+    assert all((4*3600 <= trip_date_df['start_time']) & (trip_date_df['start_time'] < 28*3600)),\
+        "Departure time in `TripIdToDate` should always between 04:00 and 28:00. Please check the input file."
     series = trip_date_df['start_time'] >= 24 * 3600
     trip_date_df.loc[series, 'week_day'] = trip_date_df[series]['week_day'] + 1
-    # fix dates to be from 0 o six (Sunday should be 1, Saturday 0)
+    # fix dates to be from 0 to 6 (Sunday should be 1, Saturday 0)
     trip_date_df['week_day'] = trip_date_df['week_day'] % 7
     trip_date_df.loc[series, 'start_time'] = trip_date_df[series]['start_time'] % (24 * 3600)
 
