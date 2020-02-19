@@ -1,7 +1,11 @@
 import datetime
 import logging
-import partridge as ptg
+from functools import lru_cache
 from os.path import join, basename
+
+import numpy as np
+import partridge as ptg
+
 from .configuration import configuration
 
 
@@ -41,3 +45,26 @@ def prepare_partridge_feed(date: datetime.date,
 
     logging.debug(f'Finished creating daily partridge feed for {date} from {gtfs_file_full_path}')
     return feed
+
+
+# Copied from partridge parsers, with a deletion of the seconds field
+# it is used to to parse TripIdToDate since the departure time is in HH:MM format
+# Why 2^17? See https://git.io/vxB2P.
+@lru_cache(maxsize=2 ** 17)
+def parse_time_no_seconds(val: str) -> np.float64:
+    if val is np.nan:
+        return val
+
+    val = val.strip()
+
+    if val == "":
+        return np.nan
+
+    h, m = val.split(":")
+    ssm = int(h) * 3600 + int(m) * 60
+
+    # pandas doesn't have a NaN int, use floats
+    return np.float64(ssm)
+
+
+parse_time_no_seconds_column = np.vectorize(parse_time_no_seconds)

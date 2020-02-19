@@ -57,7 +57,14 @@
       "console_verbosity": {
         "description": "Lowest logging level to be printed to console.",
         "type": "string",
-        "default": "'ERROR'"
+        "default": "'ERROR'",
+        "enum": [
+          "DEBUG",
+          "INFO",
+          "WARNING",
+          "ERROR",
+          "CRITICAL"
+        ]
       }
     },
     "anyOf": [

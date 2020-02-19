@@ -4,6 +4,9 @@ MOT_FTP = 'gtfs.mot.gov.il'
 
 GTFS_FILE_NAME = 'israel-public-transportation.zip'
 
+TRIP_ID_TO_DATE_ZIP_NAME = 'TripIdToDate.zip'
+TRIP_ID_TO_DATE_TXT_NAME = 'TripIdToDate.txt'
+
 TARIFF_ZIP_NAME = 'Tariff.zip'
 TARIFF_TXT_NAME = 'Tariff.txt'
 TARIFF_TO_REFORM_ZONE = 'StationToReformZone.txt'
