@@ -137,7 +137,7 @@ def validate_configuration_schema(configuration_dict: dict) -> None:
     validate(instance=configuration_dict, schema=schema)
 
 
-@lru_cache
+@lru_cache()
 def load_configuration(config_path: str = CONFIGURATION_FILE_PATH) -> Configuration:
     with open(config_path, 'r') as configuration_file:
         configuration_dict = json.load(configuration_file)
