@@ -3,7 +3,7 @@ import re
 from os import listdir
 from os.path import split, join, exists
 from typing import Tuple, List
-from .configuration import configuration
+from .configuration import load_configuration
 
 
 def _get_existing_output_files(output_folder: str) -> List[Tuple[datetime.date, str]]:
@@ -15,6 +15,7 @@ def _get_existing_output_files(output_folder: str) -> List[Tuple[datetime.date, 
     if not exists(output_folder):
         return []
 
+    configuration = load_configuration()
     file_name_re = configuration.files.output_file_name_regexp
     file_type_re = configuration.files.output_file_type.replace('.', '\\.')
     regexp = file_name_re + '\\.' + file_type_re
@@ -50,6 +51,7 @@ def get_dates_without_output(dates: List[datetime.date], output_folder: str) -> 
 
 def remote_key_to_local_path(date: datetime.date, remote_key: str) -> str:
     local_file_name = split(remote_key)[-1]
+    configuration = load_configuration()
     local_full_path = join(configuration.files.full_paths.gtfs_feeds,
                            date.strftime('%Y-%m-%d'),
                            local_file_name)

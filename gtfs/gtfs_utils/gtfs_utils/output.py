@@ -1,6 +1,6 @@
 import logging
+
 import pandas as pd
-from .configuration import configuration
 
 
 def __extract_file_type(file_path: str):

@@ -1,12 +1,13 @@
 import logging
 import os
 from datetime import datetime
-from .configuration import configuration
+from .configuration import load_configuration
 
 
 def configure_logger():
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
+    configuration = load_configuration()
 
     datetime_string = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     log_file_name = f'gtfs_stats_{datetime_string}.log'
