@@ -22,3 +22,13 @@ On the production machine (Ocean Digital 139.59.136.13), the running versions (o
 * git status
 * kill currently running process
 * execute the process again (using the sh file - either runSiri.sh or runGtfsReader.sh)
+
+## Plans for near future
+
+### phase #2
+The 2 processes will run as 2 docker containers on the same sub-network.
+
+### phase 1.5
+The Gtfs-Reader process will run in a docker container on the host network.
+
+The reason is that this process is less critical. In geberal it needs to run only once every day. And its output is clearly defined. So we can compare the output of the dockerized version to that of the previous (non-docker) version.
