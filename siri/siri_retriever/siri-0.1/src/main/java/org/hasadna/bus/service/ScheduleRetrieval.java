@@ -68,7 +68,7 @@ public class ScheduleRetrieval {
 
     @PostConstruct
     public void init() {
-        logger.debug("init started");
+        logger.info("Schedule retrieval starting");
         List<Command> data = readSchedulingDataAllFiles(dataFileFullPath);
         //addDepartures(data, LocalDate.now(DEFAULT_CLOCK));
         // we currently don't filter out entries - only log warnings

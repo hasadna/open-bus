@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+    stages {
+        stage('GIT Checkout') {
+            steps {
+                git branch: '${REPO_VERSION}', url: 'https://github.com/hasadna/open-bus.git'
+            }
+        }
+        stage('Setup') {
+            steps {
+                dir('gtfs/retriever') {
+                    sh "pip3 install -r requirements.txt"
+                }
+            }
+        }
+        stage('Download') {
+            steps {
+                dir('retrieved_data') {
+                    sh "python3 ../gtfs/retriever/gtfs_retrieve.py -d ."
+                }
+            }
+        }
+
+        stage('Upload') {
+            when { 
+                expression {
+                    dir('retrieved_data') {
+                        return (sh (script: 'ls *.zip | wc -l', returnStdout: true).trim() as Integer) > 0 
+                    }
+                } 
+            }
+            steps {
+                dir('retrieved_data') {
+                    withCredentials([usernamePassword(credentialsId: 'digitalocean_s3', passwordVariable: 'mypass', usernameVariable: 'mykey')]) {
+                        sh "python3 ../gtfs/gtfs_utils/gtfs_utils/s3_wrapper.py upload --access-key-id $mykey --secret-access-key $mypass --access-preset dig-public --key gtfs/" + new Date().format("yyyy/MM/dd") + " --local-file . --folder --path-filter '*.zip'"
+                    }
+                
+                    sh "rm -f *.zip"
+                    sh "rm -f *aspnet_client"
+                }
+            }
+        }
+    }
+}

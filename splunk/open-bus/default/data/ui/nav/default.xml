@@ -1,0 +1,13 @@
+<nav search_view="search" color="#4388d6">
+  <view name="siri_investigator" default="true"/>
+  <view name="vehicle_investigator" />
+  <view name="siri_trips" />
+  <view name="data_exporter" />
+  <view name="search_by_stop" />
+  <view name="late_rides" />
+  <view name="gtfs_compare" />
+  <view name="search" />
+  <collection label="All reports">
+    <saved source="all" />
+  </collection>
+</nav>

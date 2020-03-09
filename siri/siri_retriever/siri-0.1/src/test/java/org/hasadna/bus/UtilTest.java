@@ -1,7 +1,7 @@
 package org.hasadna.bus;
 
 import org.assertj.core.api.Assertions;
-import org.hasadna.bus.util.Util;
+import org.hasadna.bus.util.SoapUtils;
 import org.junit.Test;
 
 
@@ -19,7 +19,7 @@ public class UtilTest {
                 .contains("Body")
                 .contains("</S:Body></S:Envelope>");
 
-        String xmlWithoutEnvelope = Util.removeSoapEnvelope(soapResponse);
+        String xmlWithoutEnvelope = SoapUtils.removeSoapEnvelope(soapResponse);
         Assertions.assertThat(xmlWithoutEnvelope)
                 .doesNotStartWith("<?xml version='1.0' encoding='UTF-8'?>")
                 .doesNotStartWith("<S:Envelope")

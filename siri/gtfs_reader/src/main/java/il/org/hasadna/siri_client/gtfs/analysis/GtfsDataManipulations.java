@@ -9,8 +9,12 @@ import java.util.stream.Stream;
 
 import il.org.hasadna.siri_client.gtfs.crud.*;
 import il.org.hasadna.siri_client.gtfs.crud.Calendar;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GtfsDataManipulations {
+
+	private static Logger logger = LoggerFactory.getLogger(GtfsDataManipulations.class);
 
 	private GtfsCrud gtfsCrud;
 
@@ -108,14 +112,6 @@ public class GtfsDataManipulations {
 				filter(r -> routesOfTrips.contains(r.getRouteId())).
 				collect(Collectors.toMap(Route::getRouteId, r -> r));
 		return routesByRouteId;
-//		Map<String, List<Trip>> tripsByRouteId = trips.values().stream().collect(Collectors.groupingBy(Trip::getRouteId));
-//		Map<String, Route> routesByTripId = new HashMap<>();
-//		for (String routeId : tripsByRouteId.keySet()) {
-//			tripsByRouteId.get(routeId).forEach( trip ->
-//					routesByTripId.put(trip.getTripId(), routesByRouteId.get(routeId))
-//			);
-//		}
-//		return routesByTripId;
 	}
 
 	public Collection<GtfsRecord> combine(LocalDate date) throws IOException {
@@ -123,7 +119,15 @@ public class GtfsDataManipulations {
 		return getTrips().values().stream().map(this::createGtfsRecord).collect(Collectors.toList());
 	}
 
+	public Collection<GtfsRecord> combineForSpecificRoute(LocalDate date, String routeId) throws IOException {
+		filterGtfs(date);
+		return getTrips().values().stream()
+				.filter(trip-> trip.getRouteId().equals(routeId))
+				.map(this::createGtfsRecord).collect(Collectors.toList());
+	}
+
 	private GtfsRecord createGtfsRecord(Trip currTrip) {
+		try {
 		Calendar currCalendar = getCalendars().get(currTrip.getServiceId());
 
 		List<StopTime> tmpStopTimes = getStopTimes().get(currTrip.getTripId());
@@ -134,6 +138,12 @@ public class GtfsDataManipulations {
 		StopTime currFirstStopTime = tmpStopTimes.stream().min(Comparator.comparing(StopTime::getStopSequence)).get();
 		Stop currFirstStop = getStops().get(currFirstStopTime.getStopId());
 		return new GtfsRecord(currTrip, currCalendar, currFirstStopTime, currFirstStop, currLastStopTime, currLastStop);
+		}
+		catch (Exception ex) {
+			logger.error("unexpected exception in createGtfsRecord", ex);
+			logger.error("currTrip: {}", currTrip.toString());
+			return null;
+		}
 	}
 
 }

@@ -1,0 +1,33 @@
+{
+  "files": {
+    "base_directory": "/home/travis/build/open-bus-files/",
+    "child_directories": {
+      "gtfs_feeds": "gtfs_feeds",
+      "output": "output",
+      "filtered_feeds": "filtered_feeds",
+      "logs": "logs"
+    },
+    "output_file_name_regexp": "^(?P<date_str>[^_]+?)_(?P<type>\\w+)",
+    "output_file_type": "csv.gz"
+  },
+
+  "s3": {
+    "access_key_id": "Your S3 access key ID",
+    "secret_access_key": "Your S3 secret access key",
+    "s3_endpoint_url": "https://ams3.digitaloceanspaces.com",
+    "bucket_name": "obus-do2",
+    "upload_results": false,
+    "results_path_prefix": "gtfs_stats_results/"
+  },
+
+  "use_data_from_today": false,
+  "date_range": ["2019-03-07", "2019-03-07"],
+  
+  "display_download_progress_bar": false,
+  "display_size_on_progress_bar": false,
+
+  "delete_downloaded_gtfs_zip_files": false,
+  "write_filtered_feed": false,
+
+  "console_verbosity": "ERROR"
+}

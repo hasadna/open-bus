@@ -1,841 +1,212 @@
 # coding: utf-8
-
-# Using a mix of `partridge` and `gtfstk` with some of my own additions to 
+# Using a mix of `partridge` and `gtfstk` with some of my own additions to
 # create daily statistical DataFrames for trips, routes and stops. 
 # This will later become a module which we will run on our historical 
-# MoT GTFS archive and schedule for nightly runs. 
+# MoT GTFS archive and schedule for nightly runs.
 
-# ## Imports and config
+import datetime
+import logging
+import os
+from os.path import join, dirname, basename, split
+from typing import List, Dict
 
 import pandas as pd
-import numpy as np
-import datetime
-import time
-import gtfs_utils as gu
-import gtfstk
-from collections import OrderedDict, defaultdict
-import os
-import boto3
-import logging
-from zipfile import BadZipFile
-import itertools
 from tqdm import tqdm
-from partridge import feed as ptg_feed
-from gtfs_stats_conf import *
 
-
-def compute_trip_stats_partridge(feed, zones):
-    """
-    Parameters
-    ----------
-    feed : partridge feed
-    zones: DataFrame with stop_code to zone_name mapping
-    
-    Returns
-    -------
-    DataFrame with the following columns:
-
-    - ``'trip_id'``
-    - ``'route_id'``
-    - ``'route_short_name'``
-    - ``'route_short_name'``
-    - ``'agency_id'``
-    - ``'agency_name'``
-    - ``'route_long_name'``
-    - ``'route_type'``
-    - ``'direction_id'``
-    - ``'shape_id'``
-    - ``'num_stops'``: number of stops on trip
-    - ``'start_time'``: first departure time of the trip
-    - ``'end_time'``: last departure time of the trip
-    - ``'start_stop_id'``: stop ID of the first stop of the trip
-    - ``'end_stop_id'``: stop ID of the last stop of the trip
-    - ``'start_stop_name'``: stop name of the first stop of the trip
-    - ``'end_stop_name'``: stop name of the last stop of the trip
-    - ``'start_stop_code'``: stop code of the first stop of the trip
-    - ``'end_stop_code'``: stop code of the last stop of the trip
-    - ``'start_stop_lat'``: ``start_stop_lat`` of the first stop of the trip
-    - ``'start_stop_lon'``: ``start_stop_lon`` of the first stop of the trip
-    - ``'end_stop_lat'``: ``end_stop_lat`` of the last stop of the trip
-    - ``'end_stop_lon'``: ``end_stop_lon`` of the last stop of the trip
-    - ``'start_zone'``: zone name of the first stop of the trip
-    - ``'end_zone'``: zone name of the last stop of the trip
-    - ``'num_zones'``:  ``num_zones`` of the first stop of the trip
-    - ``'num_zones_missing'``:  ``num_zones_missing`` of the first stop of the trip
-    - ``'is_loop'``: 1 if the start and end stop are less than 400m apart and
-      0 otherwise
-    - ``'distance'``: distance of the trip in ``feed.dist_units``;
-      contains all ``np.nan`` entries if ``feed.shapes is None``
-    - ``'duration'``: duration of the trip in hours
-    - ``'speed'``: distance/duration
-
-    TODO: this is not true here, we're only using shape_dist_traveled
-    TODO: implement or drop from docs
-    If ``feed.stop_times`` has a ``shape_dist_traveled`` column with at
-    least one non-NaN value and ``compute_dist_from_shapes == False``,
-    then use that column to compute the distance column.
-    Else if ``feed.shapes is not None``, then compute the distance
-    column using the shapes and Shapely.
-    Otherwise, set the distances to NaN.
-
-    If route IDs are given, then restrict to trips on those routes.
-
-    Notes
-    -----
-    - Assume the following feed attributes are not ``None``:
-
-        * ``feed.trips``
-        * ``feed.routes``
-        * ``feed.stop_times``
-        * ``feed.shapes`` (optionally)
-        * Those used in :func:`.stops.build_geometry_by_stop`
-
-    - Calculating trip distances with ``compute_dist_from_shapes=True``
-      seems pretty accurate.  For example, calculating trip distances on
-      `this Portland feed
-      <https://transitfeeds.com/p/trimet/43/1400947517>`_
-      using ``compute_dist_from_shapes=False`` and
-      ``compute_dist_from_shapes=True``,
-      yields a difference of at most 0.83km from the original values.
-
-    """
-    f = feed.trips
-    f = (f[['route_id', 'trip_id', 'direction_id', 'shape_id']]
-         .merge(feed.routes[['route_id', 'route_short_name', 'route_long_name',
-                             'route_type', 'agency_id']])
-         .merge(feed.agency[['agency_id', 'agency_name']], how='left', on='agency_id')
-         .merge(feed.stop_times)
-         .merge(feed.stops[['stop_id', 'stop_name', 'stop_lat', 'stop_lon', 'stop_code']])
-         .merge(zones, how='left')
-         .sort_values(['trip_id', 'stop_sequence'])
-         # .assign(departure_time=lambda x: x['departure_time'].map(
-         #    hp.timestr_to_seconds)
-         #       )
-         )
-    geometry_by_stop = gtfstk.build_geometry_by_stop(feed, use_utm=True)
-
-    g = f.groupby('trip_id')
-
-    def my_agg(group):
-        d = OrderedDict()
-        d['route_id'] = group['route_id'].iat[0]
-        d['route_short_name'] = group['route_short_name'].iat[0]
-        d['route_long_name'] = group['route_long_name'].iat[0]
-        d['agency_id'] = group['agency_id'].iat[0]
-        d['agency_name'] = group['agency_name'].iat[0]
-        d['route_type'] = group['route_type'].iat[0]
-        d['direction_id'] = group['direction_id'].iat[0]
-        d['shape_id'] = group['shape_id'].iat[0]
-        d['num_stops'] = group.shape[0]
-        d['start_time'] = group['departure_time'].iat[0]
-        d['end_time'] = group['departure_time'].iat[-1]
-        d['start_stop_id'] = group['stop_id'].iat[0]
-        d['end_stop_id'] = group['stop_id'].iat[-1]
-        d['start_stop_code'] = group['stop_code'].iat[0]
-        d['end_stop_code'] = group['stop_code'].iat[-1]
-        d['start_stop_name'] = group['stop_name'].iat[0]
-        d['end_stop_name'] = group['stop_name'].iat[-1]
-        d['start_stop_lat'] = group['stop_lat'].iat[0]
-        d['start_stop_lon'] = group['stop_lon'].iat[0]
-        d['end_stop_lat'] = group['stop_lat'].iat[-1]
-        d['end_stop_lon'] = group['stop_lon'].iat[-1]
-        d['start_zone'] = group['zone_name'].iat[0]
-        d['end_zone'] = group['zone_name'].iat[-1]
-        d['num_zones'] = group.zone_name.nunique()
-        d['num_zones_missing'] = group.zone_name.isnull().sum()
-        dist = geometry_by_stop[d['start_stop_id']].distance(
-            geometry_by_stop[d['end_stop_id']])
-        d['is_loop'] = int(dist < 400)
-        d['duration'] = (d['end_time'] - d['start_time']) / 3600
-        return pd.Series(d)
-
-    h = g.apply(my_agg)
-    h['distance'] = g.shape_dist_traveled.max()
-
-    # Reset index and compute final stats
-    h = h.reset_index()
-    h['speed'] = h['distance'] / h['duration'] / 1000
-    h[['start_time', 'end_time']] = (
-        h[['start_time', 'end_time']].applymap(
-            lambda x: gtfstk.helpers.timestr_to_seconds(x, inverse=True))
-    )
-    return h
-
-
-def get_active_trips_df(trip_times):
-    """
-    Count the number of trips in ``trip_times`` that are active
-    at any given time.
-
-    Parameters
-    ----------
-    trip_times : DataFrame
-        Contains columns
-
-        - start_time: start time of the trip in seconds past midnight
-        - end_time: end time of the trip in seconds past midnight
-
-    Returns
-    -------
-    Series
-        index is times from midnight when trips start and end, values are number of active trips for that time
-
-    """
-    active_trips = pd.concat([pd.Series(1, trip_times.start_time),  # departed add 1
-                              pd.Series(-1, trip_times.end_time)  # arrived subtract 1
-                              ]).groupby(level=0, sort=True).sum().cumsum().ffill()
-    return active_trips
-
-
-def compute_route_stats_base_partridge(trip_stats_subset,
-                                       headway_start_time='07:00:00', headway_end_time='19:00:00', *,
-                                       split_directions=False):
-    """
-    Compute stats for the given subset of trips stats.
-
-    Parameters
-    ----------
-    trip_stats_subset : DataFrame
-        Subset of the output of :func:`.trips.compute_trip_stats`
-    split_directions : boolean
-        If ``True``, then separate the stats by trip direction (0 or 1);
-        otherwise aggregate trips visiting from both directions. 
-        Default: ``False``
-    headway_start_time : string
-        HH:MM:SS time string indicating the start time for computing
-        headway stats
-        Default: ``'07:00:00'``
-    headway_end_time : string
-        HH:MM:SS time string indicating the end time for computing
-        headway stats.
-        Default: ``'19:00:00'``
-
-    Returns
-    -------
-    DataFrame
-        Columns are
-
-        - ``'route_id'``
-        - ``'route_short_name'``
-        - ``'agency_id'``
-        - ``'agency_name'``
-        - ``'route_long_name'``
-        - ``'route_type'``
-        - ``'direction_id'``: 1/0
-        - ``'num_trips'``: number of trips on the route in the subset
-        - ``'num_trip_starts'``: number of trips on the route with
-          nonnull start times
-        - ``'num_trip_ends'``: number of trips on the route with nonnull
-          end times that end before 23:59:59
-        - ``'is_loop'``: 1 if at least one of the trips on the route has
-          its ``is_loop`` field equal to 1; 0 otherwise
-        - ``'is_bidirectional'``: 1 if the route has trips in both
-          directions; 0 otherwise
-        - ``'start_time'``: start time of the earliest trip on the route
-        - ``'end_time'``: end time of latest trip on the route
-        - ``'max_headway'``: maximum of the durations (in minutes)
-          between trip starts on the route between
-          ``headway_start_time`` and ``headway_end_time`` on the given
-          dates
-        - ``'min_headway'``: minimum of the durations (in minutes)
-          mentioned above
-        - ``'mean_headway'``: mean of the durations (in minutes)
-          mentioned above
-        - ``'peak_num_trips'``: maximum number of simultaneous trips in
-          service (for the given direction, or for both directions when
-          ``split_directions==False``)
-        - ``'peak_start_time'``: start time of first longest period
-          during which the peak number of trips occurs
-        - ``'peak_end_time'``: end time of first longest period during
-          which the peak number of trips occurs
-        - ``'service_duration'``: total of the duration of each trip on
-          the route in the given subset of trips; measured in hours
-        - ``'service_distance'``: total of the distance traveled by each
-          trip on the route in the given subset of trips; measured in
-          whatever distance units are present in ``trip_stats_subset``;
-          contains all ``np.nan`` entries if ``feed.shapes is None``
-        - ``'service_speed'``: service_distance/service_duration;
-          measured in distance units per hour
-        - ``'mean_trip_distance'``: service_distance/num_trips
-        - ``'mean_trip_duration'``: service_duration/num_trips
-        - ``'start_stop_id'``: ``start_stop_id`` of the first trip for the route
-        - ``'end_stop_id'``: ``end_stop_id`` of the first trip for the route
-        - ``'start_stop_lat'``: ``start_stop_lat`` of the first trip for the route
-        - ``'start_stop_lon'``: ``start_stop_lon`` of the first trip for the route
-        - ``'end_stop_lat'``: ``end_stop_lat`` of the first trip for the route
-        - ``'end_stop_lon'``: ``end_stop_lon`` of the first trip for the route
-        - ``'num_stops'``: ``num_stops`` of the first trip for the route
-        - ``'start_zone'``: ``start_zone`` of the first trip for the route
-        - ``'end_zone'``: ``end_zone`` of the first trip for the route
-        - ``'num_zones'``:  ``num_zones`` of the first trip for the route
-        - ``'num_zones_missing'``:  ``num_zones_missing`` of the first trip for the route
-
-        TODO: actually implement split_directions
-        If not ``split_directions``, then remove the
-        direction_id column and compute each route's stats,
-        except for headways, using
-        its trips running in both directions.
-        In this case, (1) compute max headway by taking the max of the
-        max headways in both directions; (2) compute mean headway by
-        taking the weighted mean of the mean headways in both
-        directions.
-        
-        If ``trip_stats_subset`` is empty, return an empty DataFrame.
-
-    """
-    f = trip_stats_subset.copy()
-    f[['start_time', 'end_time']] = f[['start_time', 'end_time']].applymap(gtfstk.helpers.timestr_to_seconds)
-
-    headway_start = gtfstk.helpers.timestr_to_seconds(headway_start_time)
-    headway_end = gtfstk.helpers.timestr_to_seconds(headway_end_time)
-
-    def compute_route_stats(group):
-        d = OrderedDict()
-        d['route_short_name'] = group['route_short_name'].iat[0]
-        d['route_long_name'] = group['route_long_name'].iat[0]
-        d['agency_id'] = group['agency_id'].iat[0]
-        d['agency_name'] = group['agency_name'].iat[0]
-        d['route_type'] = group['route_type'].iat[0]
-        d['num_trips'] = group.shape[0]
-        d['num_trip_starts'] = group['start_time'].count()
-        d['num_trip_ends'] = group.loc[
-            group['end_time'] < 24 * 3600, 'end_time'].count()
-        d['is_loop'] = int(group['is_loop'].any())
-        d['is_bidirectional'] = int(group['direction_id'].unique().size > 1)
-        d['start_time'] = group['start_time'].min()
-        d['end_time'] = group['end_time'].max()
-
-        # Compute headway stats
-        headways = np.array([])
-        for direction in [0, 1]:
-            stimes = group[group['direction_id'] == direction][
-                'start_time'].values
-            stimes = sorted([stime for stime in stimes
-                             if headway_start <= stime <= headway_end])
-            headways = np.concatenate([headways, np.diff(stimes)])
-        if headways.size:
-            d['max_headway'] = np.max(headways) / 60  # minutes
-            d['min_headway'] = np.min(headways) / 60  # minutes
-            d['mean_headway'] = np.mean(headways) / 60  # minutes
-        else:
-            d['max_headway'] = np.nan
-            d['min_headway'] = np.nan
-            d['mean_headway'] = np.nan
-
-        # Compute peak num trips
-        active_trips = get_active_trips_df(group[['start_time', 'end_time']])
-        times, counts = active_trips.index.values, active_trips.values
-        start, end = gtfstk.helpers.get_peak_indices(times, counts)
-        d['peak_num_trips'] = counts[start]
-        d['peak_start_time'] = times[start]
-        d['peak_end_time'] = times[end]
-
-        d['service_distance'] = group['distance'].sum()
-        d['service_duration'] = group['duration'].sum()
-
-        # Added by cjer
-        d['start_stop_id'] = group['start_stop_id'].iat[0]
-        d['end_stop_id'] = group['end_stop_id'].iat[0]
-
-        d['start_stop_lat'] = group['start_stop_lat'].iat[0]
-        d['start_stop_lon'] = group['start_stop_lon'].iat[0]
-        d['end_stop_lat'] = group['end_stop_lat'].iat[0]
-        d['end_stop_lon'] = group['end_stop_lon'].iat[0]
-
-        d['num_stops'] = group['num_stops'].iat[0]
-
-        d['start_zone'] = group['start_zone'].iat[0]
-        d['end_zone'] = group['end_zone'].iat[0]
-        d['num_zones'] = group['num_zones'].iat[0]
-        d['num_zones_missing'] = group['num_zones_missing'].iat[0]
-
-        return pd.Series(d)
-
-    g = f.groupby('route_id').apply(
-        compute_route_stats).reset_index()
-
-    # Compute a few more stats
-    g['service_speed'] = g['service_distance'] / g['service_duration']
-    g['mean_trip_distance'] = g['service_distance'] / g['num_trips']
-    g['mean_trip_duration'] = g['service_duration'] / g['num_trips']
-
-    # Convert route times to time strings
-    time_cols = ['start_time', 'end_time', 'peak_start_time', 'peak_end_time']
-    g[time_cols] = g[time_cols].applymap(lambda x: gtfstk.helpers.timestr_to_seconds(x, inverse=True))
-
-    g['service_speed'] = g.service_speed / 1000
-
-    g = g[['route_id', 'route_short_name', 'agency_id', 'agency_name',
-           'route_long_name', 'route_type', 'num_trips', 'num_trip_starts',
-           'num_trip_ends', 'is_loop', 'is_bidirectional', 'start_time',
-           'end_time', 'max_headway', 'min_headway', 'mean_headway',
-           'peak_num_trips', 'peak_start_time', 'peak_end_time',
-           'service_distance', 'service_duration', 'service_speed',
-           'mean_trip_distance', 'mean_trip_duration', 'start_stop_id',
-           'end_stop_id', 'start_stop_lat', 'start_stop_lon', 'end_stop_lat',
-           'end_stop_lon', 'num_stops', 'start_zone', 'end_zone',
-           'num_zones', 'num_zones_missing'
-           ]]
-
-    return g
-
-
-def retry(delays=(0, 1, 5, 30, 180, 600, 3600),
-          exception=Exception):
-    """
-Decorator which performs retries with dynamic intervals set by given delays tuple. Also pulls report kwarg from the
-wrapped function call for logging.
-    :param delays: tuple of wait time (seconds)
-    :type delays: tuple
-    :param exception: what exception to catch for retries
-    :type exception: type
-    :return: wrapped function
-    :rtype: function
-    """
-
-    def wrapper(func):
-        def wrapped(*args, **kwargs):
-            report = kwargs['report']
-            problems = []
-            for delay in itertools.chain(delays, [None]):
-                try:
-                    return func(*args, **kwargs)
-                except exception as problem:
-                    problems.append(problem)
-                    if delay is None:
-                        report("retryable failed definitely:", problems)
-                        raise
-                    else:
-                        report("retryable failed:", problem,
-                               "-- delaying for %ds" % delay)
-                        time.sleep(delay)
-
-        return wrapped
-
-    return wrapper
-
-
-@retry()
-def s3_download(bucket, key, output_path, report=print):
-    """
-Download file from s3 bucket. Retry using decorator, and report to logger given in report parameter.
-    :param bucket: s3 boto bucket object
-    :type bucket: boto3.resources.factory.s3.Bucket
-    :param key: key of the file to download
-    :type key: str
-    :param output_path: output path to download the file to
-    :type output_path: str
-    :param report: callable to use for logging (e.g. logging logger object)
-    :type report: callable
-    """
-
-    def hook(t):
-        def inner(bytes_amount):
-            t.update(bytes_amount)
-
-        return inner
-
-    if DOWNLOAD_PBAR:
-        # TODO: this is an S3 anti-pattern, and is inefficient - so defaulting to not doing this
-        if SIZE_FOR_DOWNLOAD_PBAR:
-            size = [obj.size for obj in bucket.objects.filter(Prefix=key, MaxKeys=1)][0]
-        else:
-            size = None
-
-        with tqdm(total=size, unit='B', unit_scale=True, desc='download ' + key, leave=True) as t:
-            bucket.download_file(key, output_path, Callback=hook(t))
-    else:
-        bucket.download_file(key, output_path)
-
-
-def batch_stats(folder=GTFS_FEEDS_PATH, output_folder=OUTPUT_DIR):
-    for file in os.listdir(folder):
-        date_str = file.split('.')[0]
-        date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-        feed = gu.get_partridge_feed_by_date(output_folder + file, date)
-        zones = gu.get_zones_df(LOCAL_TARIFF_PATH)
-        ts = compute_trip_stats_partridge(feed, zones)
-        ts.to_pickle(output_folder + date_str + '_trip_stats.pkl.gz', compression='gzip')
-        rs = compute_route_stats_base_partridge(ts)
-        rs.to_pickle(output_folder + date_str + '_route_stats.pkl.gz', compression='gzip')
-
-
-def _get_existing_output_files(output_folder):
-    """
-Get existing output files in the given folder, in a list containing tuples of dates and output types.
-    :param output_folder: a folder to check for
-    :type output_folder:
-    :return: list of 2-tuples (date_str, output_file_type)
-    :rtype: list
-    """
-    return [(g[0], g[1]) for g in
-            (re.match(OUTPUT_FILE_NAME_RE, file).groups()
-             for file in os.listdir(output_folder))]
-
-
-def get_bucket_valid_files(bucket_objects):
-    """
-Get list of valid files from bucket, as set by BUCKET_VALID_FILES_RE
-    :param bucket_objects: collection of bucket objects
-    :type bucket_objects: s3.Bucket.objectsCollection
-    :return: list of valid file keys
-    :rtype: list of str
-    """
-    return [obj.key for obj in bucket_objects
-            if re.match(BUCKET_VALID_FILES_RE, obj.key)]
-
-
-def get_dates_without_output(valid_files, existing_output_files):
-    """
-Get list of dates without output files (currently just route_stats is considered)
-    :param valid_files: list of valid file keys
-    :rtype: list of str
-    :param existing_output_files: list of 2-tuples as returned by _get_existing_output_files
-    :type existing_output_files: list
-    :return: list of valid file keys for stat computation
-    :rtype: list
-    """
-    return [parse_date(file)[1] for file in valid_files
-            if file not in [g[0] + '.zip'
-                            for g in existing_output_files
-                            if g[1] == 'route_stats']]
-
-
-def get_forward_fill_dict(valid_files, future_days=FUTURE_DAYS):
-    """
-get a dictionary mapping gtfs file names to a list of dates for forward fill by scanning for missing dates for files
-    :param valid_files: list of valid file keys
-    :rtype: list of str
-    :return dictionary mapping file names to dates
-    :rtype defaultdict of lists (defaults to empty list)
-    """
-    existing_dates = pd.DatetimeIndex([parse_date(file)[0] for file in valid_files])
-    expected_dates = pd.DatetimeIndex(start=existing_dates.min(), end=existing_dates.max()+datetime.timedelta(days=future_days), freq='D')
-    date_df = pd.Series(pd.NaT, expected_dates)
-    date_df[existing_dates] = existing_dates
-    date_df = date_df.fillna(method='ffill', limit=59)
-    # TODO: remove dates that aren't in the 59 day gap
-    # BUG: will act unexcpectedly if more than 59 day gap
-    ffill = defaultdict(list)
-    for file_date, stats_date in zip(date_df.dt.strftime('%Y-%m-%d'), date_df.index.strftime('%Y-%m-%d')):
-        ffill[file_date + '.zip'].append(stats_date)
-
-    return ffill
-
-
-def get_valid_file_dates_dict(bucket_objects, existing_output_files, logger, forward_fill):
-    logger.info(f'BUCKET_VALID_FILES_RE={BUCKET_VALID_FILES_RE}')
-    bucket_valid_files = get_bucket_valid_files(bucket_objects)
-    if forward_fill:
-        logger.info(f'applying forward fill')
-        ffill_dict = get_forward_fill_dict(bucket_valid_files)
-        logger.info(f'found {sum([len(l) for l in ffill_dict.values()]) - len(bucket_valid_files)} missing dates for '
-                    'forward fill.')
-
-        files_for_stats = defaultdict(list)
-        for file in ffill_dict:
-            files_for_stats[file] = get_dates_without_output([date_str + '.zip' for date_str in ffill_dict[file]],
-                                                             existing_output_files)
-
-    else:
-        files_for_stats = defaultdict(list)
-        for date in get_dates_without_output(bucket_valid_files, existing_output_files):
-            files_for_stats[date + '.zip'].append(date)
-
-    logger.info(f'found {len([key for key in files_for_stats if len(files_for_stats[key])>0])} GTFS files valid for '
-                'stats calculations in bucket')
-    logger.debug(f'Files: { {key: value for key, value in files_for_stats.items() if len(files_for_stats[key])>0} }')
-    return files_for_stats
-
-
-def parse_date(file_name):
-    """
-Parse date from file name
-    :param file_name: file name in YYYY-mm-dd.zip format
-    :type file_name: str
-    :return: date object and date string
-    :rtype: tuple
-    """
-    date_str = file_name.split('.')[0]
-    date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-    return date, date_str
-
-
-def get_gtfs_file(file, gtfs_folder, bucket, logger, force=False):
-    """
-
-    :param file: gtfs file name (currently only YYYY-mm-dd.zip)
-    :type file: str
-    :param gtfs_folder: local path containing GTFS feeds
-    :type gtfs_folder: str
-    :param bucket: s3 boto bucket object
-    :type bucket: boto3.resources.factory.s3.Bucket
-    :param logger: logger to write to
-    :type logger: logging.Logger
-    :param force: force download or not
-    :type force: bool
-    :return: whether file was downloaded or not
-    :rtype: bool
-    """
-    if not force and os.path.exists(gtfs_folder + file):
-        logger.info(f'found file "{file}" in local folder "{gtfs_folder}"')
-        downloaded = False
-    else:
-        logger.info(f'starting file download with retries (key="{file}", local path="{gtfs_folder+file}")')
-        s3_download(bucket, file, gtfs_folder + file, report=logger.error)
-        logger.debug(f'finished file download (key="{file}", local path="{gtfs_folder+file}")')
-        downloaded = True
-    # TODO: log file size
-    return downloaded
-
-
-def handle_gtfs_date(date_str, file, bucket, output_folder=OUTPUT_DIR,
-                     gtfs_folder=GTFS_FEEDS_PATH, logger=None):
-    """
-Handle a single date for a single GTFS file. Download if necessary compute and save stats files (currently trip_stats
-and route_stats).
-    :param date_str: %Y-%m-%d
-    :type date_str: str
-    :param file: gtfs file name (currently only YYYY-mm-dd.zip)
-    :type file: str
-    :param bucket: s3 boto bucket object
-    :type bucket: boto3.resources.factory.s3.Bucket
-    :param output_folder: local path to write output files to
-    :type output_folder: str
-    :param gtfs_folder: local path containing GTFS feeds
-    :type gtfs_folder: str
-    :param logger: logger to write to
-    :type logger: logging.Logger
-    """
-    date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-
-    downloaded = False
-
-    trip_stats_output_path = output_folder + date_str + '_trip_stats.pkl.gz'
-    if os.path.exists(trip_stats_output_path):
-        logger.info(f'found trip stats result DF gzipped pickle "{trip_stats_output_path}"')
-        ts = pd.read_pickle(trip_stats_output_path, compression='gzip')
-    else:
-        downloaded = get_gtfs_file(file, gtfs_folder, bucket, logger)
-
-        if WRITE_FILTERED_FEED:
-            filtered_out_path = FILTERED_FEEDS_PATH + date_str + '.zip'
-            logger.info(f'writing filtered gtfs feed for file "{gtfs_folder+file}" with date "{date}" in path '
-                        f'{filtered_out_path}')
-            gu.write_filtered_feed_by_date(gtfs_folder + file, date, filtered_out_path)
-            logger.info(f'reading filtered feed for file from path {filtered_out_path}')
-            feed = ptg_feed(filtered_out_path)
-
-        else:
-            logger.info(f'creating daily partridge feed for file "{gtfs_folder+file}" with date "{date}"')
-            try:
-                feed = gu.get_partridge_feed_by_date(gtfs_folder + file, date)
-            except BadZipFile:
-                logger.error('Bad local zip file', exc_info=True)
-                downloaded = get_gtfs_file(file, gtfs_folder, bucket, logger, force=True)
-                feed = gu.get_partridge_feed_by_date(gtfs_folder + file, date)
-
-        logger.debug(f'finished creating daily partridge feed for file "{gtfs_folder+file}" with date "{date}"')
-
-        # TODO: add changing zones from archive
-        logger.info(f'creating zones DF from "{LOCAL_TARIFF_PATH}"')
-        zones = gu.get_zones_df(LOCAL_TARIFF_PATH)
-
-        logger.info(
-            f'starting compute_trip_stats_partridge for file "{gtfs_folder+file}" with date "{date}" and zones '
-            f'"{LOCAL_TARIFF_PATH}"')
-        ts = compute_trip_stats_partridge(feed, zones)
-        logger.debug(
-            f'finished compute_trip_stats_partridge for file "{gtfs_folder+file}" with date "{date}" and zones '
-            f'"{LOCAL_TARIFF_PATH}"')
-        # TODO: log this
-        ts['date'] = date_str
-        ts['date'] = pd.Categorical(ts.date)
-
-        logger.info(f'saving trip stats result DF to gzipped pickle "{trip_stats_output_path}"')
-        ts.to_pickle(trip_stats_output_path, compression='gzip')
-
+from .configuration import configuration
+from .constants import GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME, TRIP_ID_TO_DATE_ZIP_NAME
+from .core_computations import get_zones_df, compute_route_stats, compute_trip_stats, get_clusters_df, \
+    get_trip_id_to_date_df
+from .environment import init_conf
+from .local_files import get_dates_without_output, remote_key_to_local_path
+from .logging_config import configure_logger
+from .output import save_trip_stats, save_route_stats
+from .partridge_helper import prepare_partridge_feed
+from .s3 import get_latest_file, fetch_remote_file, validate_download_size
+from .s3_wrapper import S3Crud
+
+
+def log_trip_stats(ts: pd.DataFrame):
     # TODO: log more stats
-    logger.debug(
-        f'ts.shape={ts.shape}, dc_trip_id={ts.trip_id.nunique()}, dc_route_id={ts.route_id.nunique()}, '
-        f'num_start_zones={ts.start_zone.nunique()}, num_agency={ts.agency_name.nunique()}')
+    logging.debug(f'ts.shape={ts.shape}')
+    logging.debug(f'dc_trip_id={ts.trip_id.nunique()}')
+    logging.debug(f'dc_route_id={ts.route_id.nunique()}')
+    logging.debug(f'num_start_zones={ts.start_zone.nunique()}')
+    logging.debug(f'num_agency={ts.agency_name.nunique()}')
 
-    logger.info(f'starting compute_route_stats_base_partridge from trip stats result')
-    rs = compute_route_stats_base_partridge(ts)
-    logger.debug(f'finished compute_route_stats_base_partridge from trip stats result')
-    # TODO: log this
-    rs['date'] = date_str
-    rs['date'] = pd.Categorical(rs.date)
 
+def log_route_stats(rs: pd.DataFrame):
     # TODO: log more stats
-    logger.debug(
-        f'rs.shape={rs.shape}, num_trips_sum={rs.num_trips.sum()}, dc_route_id={rs.route_id.nunique()}, '
-        f'num_start_zones={rs.start_zone.nunique()}, num_agency={rs.agency_name.nunique()}')
-
-    route_stats_output_path = output_folder + date_str + '_route_stats.pkl.gz'
-    logger.info(f'saving route stats result DF to gzipped pickle "{route_stats_output_path}"')
-    rs.to_pickle(route_stats_output_path, compression='gzip')
-
-    return downloaded
+    logging.debug(f'rs.shape={rs.shape}')
+    logging.debug(f'num_trips_sum={rs.num_trips.sum()}')
+    logging.debug(f'dc_route_id={rs.route_id.nunique()}')
+    logging.debug(f'num_start_zones={rs.start_zone.nunique()}')
+    logging.debug(f'num_agency={rs.agency_name.nunique()}')
 
 
-def handle_gtfs_file(file, bucket, stats_dates, output_folder=OUTPUT_DIR,
-                     gtfs_folder=GTFS_FEEDS_PATH, delete_downloaded_gtfs_zips=False,
-                     logger=None):
+def analyze_gtfs_date(date: datetime.date,
+                      local_full_paths: Dict[str, str],
+                      output_folder: str = configuration.files.full_paths.output,
+                      output_file_type: str = configuration.files.output_file_type) -> List[str]:
     """
-Handle a single GTFS file. Download if necessary compute and save stats files (currently trip_stats and route_stats).
-    :param file: gtfs file name (currently only YYYY-mm-dd.zip)
-    :type file: str
-    :param bucket: s3 boto bucket object
-    :type bucket: boto3.resources.factory.s3.Bucket
+    Handles analysis of a single date for GTFS. Computes and saves stats files (currently trip_stats
+    and route_stats).
+    :param date: the analyzed date
+    :param local_full_paths: a dict where keys are the required MOT file names, and values are full local paths
     :param output_folder: local path to write output files to
-    :type output_folder: str
-    :param gtfs_folder: local path containing GTFS feeds
-    :type gtfs_folder: str
-    :param delete_downloaded_gtfs_zips: whether to delete GTFS feed files that have been downloaded by the function.
-    :type delete_downloaded_gtfs_zips: bool
-    :param logger: logger to write to
-    :type logger: logging.Logger
+    :param output_file_type: The file type for the outputs (for example, csv.gz)
     """
 
-    downloaded = False
-    with tqdm(stats_dates, postfix='initializing', unit='date', desc='dates', leave=False) as t:
-        for date_str in t:
-            t.set_postfix_str(date_str)
-            downloaded = handle_gtfs_date(date_str, file, bucket, output_folder=output_folder,
-                                          gtfs_folder=gtfs_folder, logger=logger)
+    date_str = date.strftime('%Y-%m-%d')
+    trip_stats_output_path = join(output_folder, f'trip_stats_{date_str}.{output_file_type}')
+    route_stats_output_path = join(output_folder, f'route_stats_{date_str}.{output_file_type}')
 
-    if delete_downloaded_gtfs_zips and downloaded:
-        logger.info(f'deleting gtfs zip file "{gtfs_folder+file}"')
-        os.remove(gtfs_folder + file)
-    else:
-        logger.debug(f'keeping gtfs zip file "{gtfs_folder+file}"')
+    feed = prepare_partridge_feed(date, local_full_paths[GTFS_FILE_NAME])
+
+    tariff_file_path = local_full_paths[TARIFF_ZIP_NAME]
+    logging.info(f'Creating zones DF from {tariff_file_path}')
+    zones = get_zones_df(tariff_file_path)
+
+    cluster_file_path = local_full_paths[CLUSTER_TO_LINE_ZIP_NAME]
+    clusters = get_clusters_df(cluster_file_path)
+
+    trip_id_to_date_path = local_full_paths[TRIP_ID_TO_DATE_ZIP_NAME]
+    trip_id_to_date_df = get_trip_id_to_date_df(trip_id_to_date_path, date)
+
+    source_files_base_name = []
+    for file_name in sorted(local_full_paths.keys()):
+        source_files_base_name += [basename(local_full_paths[file_name])]
+
+    ts = compute_trip_stats(feed, zones, clusters, trip_id_to_date_df, date, source_files_base_name)
+    save_trip_stats(ts, trip_stats_output_path)
+    log_trip_stats(ts)
+
+    rs = compute_route_stats(ts, date, source_files_base_name)
+    save_route_stats(rs, route_stats_output_path)
+    log_route_stats(rs)
+
+    return [route_stats_output_path, trip_stats_output_path]
 
 
-def batch_stats_s3(bucket_name=BUCKET_NAME, output_folder=OUTPUT_DIR,
-                   gtfs_folder=GTFS_FEEDS_PATH, delete_downloaded_gtfs_zips=False,
-                   forward_fill=FORWARD_FILL, logger=None):
+def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> List[datetime.date]:
+    if use_data_from_today:
+        return [datetime.datetime.now().date()]
+    elif len(date_range) == 1:
+        return [datetime.datetime.strptime(date_range[0], '%Y-%m-%d').date()]
+    elif len(date_range) != 2:
+            raise ValueError('Use "date_range" or set "use_data_from_today" to true if the configuration.')
+
+    min_date, max_date = [datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+                          for date_str
+                          in date_range]
+    delta = max_date - min_date
+    return [min_date + datetime.timedelta(days=days_delta)
+            for days_delta
+            in range(delta.days + 1)]
+
+
+def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
+                   delete_downloaded_gtfs_zips: bool = False):
     """
-Create daily trip_stats and route_stats DataFrame pickles, based on the files in an S3 bucket and
-their dates - `YYYY-mm-dd.zip`.
-Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
-    :param bucket_name: name of s3 bucket with GTFS feeds
-    :type bucket_name: str
+    Create daily trip_stats and route_stats DataFrame pickles, based on the files in an S3 bucket
+    and their dates.
+    Will look for downloaded GTFS feeds with matching names in given gtfs_folder.
     :param output_folder: local path to write output files to
-    :type output_folder: str
-    :param gtfs_folder: local path containing GTFS feeds
-    :type gtfs_folder: str
-    :param delete_downloaded_gtfs_zips: whether to delete GTFS feed files that have been downloaded by the function.
-    :type delete_downloaded_gtfs_zips: bool
-    :param forward_fill: flag for performing forward fill for missing dates using existing files
-    :type forward_fill: bool
-    :param logger: logger to write to
-    :type logger: logging.Logger
+    :param delete_downloaded_gtfs_zips: Whether to delete GTFS feed files that have been downloaded by the function.
     """
+
+    dates_to_analyze = get_dates_to_analyze(configuration.use_data_from_today,
+                                            configuration.date_range)
+    logging.debug(f'dates_to_analyze={dates_to_analyze}')
+
     try:
-        existing_output_files = []
-        if os.path.exists(output_folder):
-            existing_output_files = _get_existing_output_files(output_folder)
-            logger.info(f'found {len(existing_output_files)} output files in output folder {output_folder}')
-        else:
-            logger.info(f'creating output folder {output_folder}')
-            os.makedirs(output_folder)
+        os.makedirs(output_folder, exist_ok=True)
+        dates_without_output = get_dates_without_output(dates_to_analyze, output_folder)
 
-        s3 = boto3.resource('s3')
-        bucket = s3.Bucket(bucket_name)
+        crud = S3Crud.from_configuration(configuration.s3)
+        logging.info(f'Connected to S3 bucket {configuration.s3.bucket_name}')
 
-        logger.info(f'connected to S3 bucket {bucket_name}')
+        file_types_to_download = [GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME, TRIP_ID_TO_DATE_ZIP_NAME]
+        remote_files_mapping = {}
+        all_remote_files = []
+        all_local_full_paths = []
 
-        bucket_objects = bucket.objects.all()
-        logger.info(f'number of objects in bucket: {sum(1 for _ in bucket_objects)}')
+        for desired_date in dates_without_output:
+            for mot_file_name in file_types_to_download:
+                if desired_date not in remote_files_mapping:
+                    remote_files_mapping[desired_date] = {}
 
-        if forward_fill:
-            file_dates_dict = get_valid_file_dates_dict(bucket_objects, existing_output_files, logger,
-                                                        forward_fill=True)
-        else:
-            file_dates_dict = get_valid_file_dates_dict(bucket_objects, existing_output_files, logger,
-                                                        forward_fill=False)
+                date_and_key = get_latest_file(crud, mot_file_name, desired_date)
+                remote_files_mapping[desired_date][mot_file_name] = date_and_key
+                all_remote_files.append(date_and_key)
 
-        non_empty_file_dates = {key: value for key, value in file_dates_dict.items() if len(file_dates_dict[key]) > 0}
-        with tqdm(non_empty_file_dates, postfix='initializing', unit='file', desc='files') as t:
-            for file in t:
-                t.set_postfix_str(file)
-                handle_gtfs_file(file, bucket, output_folder=output_folder,
-                                 gtfs_folder=gtfs_folder, delete_downloaded_gtfs_zips=delete_downloaded_gtfs_zips,
-                                 stats_dates=file_dates_dict[file], logger=logger)
+        files_size = validate_download_size([date_key[1] for date_key in all_remote_files], crud)
+        logging.info(f'Starting files download, downloading {len(all_remote_files)} files, '
+                     f'with total size {files_size/(1024**2)} MB')
+        with tqdm(all_remote_files, unit='file', desc='Downloading') as progress_bar:
+            for date, remote_file_key in progress_bar:
+                progress_bar.set_postfix_str(remote_file_key)
+                local_file_full_path = remote_key_to_local_path(date, remote_file_key)
+                fetch_remote_file(remote_file_key, local_file_full_path, crud)
+                all_local_full_paths.append(local_file_full_path)
+        logging.info(f'Finished files download')
 
-        logger.info(f'starting synchronous gtfs file download and stats computation from s3 bucket {bucket_name}')
+        logging.info(f'Starting analyzing files for {len(dates_without_output)} dates')
+        all_result_files = []
+        with tqdm(dates_without_output, unit='date', desc='Analyzing') as progress_bar:
+            for current_date in progress_bar:
+                progress_bar.set_postfix_str(current_date)
+                local_full_paths = {
+                    mot_file_name: remote_key_to_local_path(date, remote_key)
+                    for mot_file_name, (date, remote_key)
+                    in remote_files_mapping[current_date].items()
+                }
+                current_result_files = analyze_gtfs_date(current_date,
+                                                         local_full_paths,
+                                                         output_folder=output_folder)
+                all_result_files.extend(current_result_files)
+        logging.info(f'Finished analyzing files')
 
-        logger.info(f'finished synchronous gtfs file download and stats computation from s3 bucket {bucket_name}')
+        if configuration.s3.upload_results:
+            logging.info(f'Starting upload of {len(all_result_files)} result files')
+            with tqdm(all_result_files, unit='file', desc='Uploading') as progress_bar:
+                for current_file in progress_bar:
+                    progress_bar.set_postfix_str(current_file)
+                    cloud_results_path_prefix = configuration.s3.results_path_prefix.rstrip('/')
+                    cloud_key = f'{cloud_results_path_prefix}/{split(current_file)[1]}'
+                    logging.info(f'Uploading {current_file} to {cloud_key}')
+                    crud.upload_one_file(current_file, cloud_key)
+            logging.info(f'Finished upload of result files')
+
+        if delete_downloaded_gtfs_zips:
+            logging.info(f'Starting removal of downloaded files')
+            with tqdm(all_local_full_paths, unit='file', desc='Removing') as progress_bar:
+                for local_full_path in progress_bar:
+                    os.remove(local_full_path)
+                    if len(os.listdir(dirname(local_full_path))) == 0:
+                        os.removedirs(dirname(local_full_path))
+            logging.info(f'Finished removal of downloaded files')
     except:
-        logger.error('Failed', exc_info=True)
-
-
-def get_logger():
-    """
-Returns a logger object. Writes all (up to DEBUG) to a file in the configured `LOG_FOLDER`. Errors are also written to
-stdout.
-TODO: use logging conf file
-TODO: use __name__ and call this from each function
-TODO: decorate
-    :return: logger object
-    :rtype: logging.Logger
-    """
-    # create logger with 'gtfs_stats'
-    logger = logging.getLogger('gtfs_stats')
-    logger.setLevel(logging.DEBUG)
-    # create file handler which logs even debug messages
-    fh = logging.FileHandler(LOG_FOLDER + f'gtfs_stats_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.log')
-    fh.setLevel(logging.DEBUG)
-    # create console handler with a higher log level
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.ERROR)
-    # create formatter and add it to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    fh.setFormatter(formatter)
-    ch.setFormatter(formatter)
-    # add the handlers to the logger
-    logger.addHandler(fh)
-    logger.addHandler(ch)
-    return logger
+        logging.error('Failed', exc_info=True)
 
 
 def main():
-    logger = get_logger()
-    logger.info(f'starting batch_stats_s3 with default config')
-    batch_stats_s3(delete_downloaded_gtfs_zips=DELETE_DOWNLOADED_GTFS_ZIPS, logger=logger)
+    init_conf()
+    configure_logger()
+    logging.info(f'starting batch_stats_s3 with default config')
+    batch_stats_s3(delete_downloaded_gtfs_zips=configuration.delete_downloaded_gtfs_zip_files)
 
 
-if __name__ == '__main__':
-    if PROFILE:
-        import cProfile
-
-        cProfile.run('main()', filename=PROFILE_PATH)
-    else:
-        main()
-
-# ## What's next
-# 
 # TODO List
-# 
 # 1. add a function for handling today's file only (download from ftp)
 # 1. remove zone and extra route details from trip_stats
 #   1. add them by merging to route_stats
 # 1. separate to modules - run, conf, stats, utils...
 # 1. logging - 
 #   1. logging config and call in every function
-#   1. BUG: logger not logging retries
+#   1. BUG: logger not lsgging retries
 #   1. log __name__ with decorator
 #   1. add ids to every record - process, file
 # 1. run older files with older tariff file
 # 1. write tests
-# 1. add split_directions
 # 1. add time between stops - max, min, mean (using delta)
-# 1. add day and night headways and num_trips (maybe noon also)
-# 1. create a function for reading all the pickles and 
-#   make necessary conversions (make it a timeseries good for pandas)
-#   1. times to proper datetimes, date to time period
-#   1. bools to bools
-#   1. add day of week
-# 1. insert to sql
-# 1. mean_headway doesn't mean much when num_trips low (maybe num_trips cutoffs will be enough)

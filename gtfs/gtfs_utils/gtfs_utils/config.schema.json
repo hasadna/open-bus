@@ -1,0 +1,171 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://example.com/config.schema.json",
+    "title": "Main configuration object parameter",
+    "description": "The configuration for a gtfs_stats run",
+    "type": "object",
+    "properties": {
+      "files": {
+        "$ref": "#/definitions/files"
+      },
+      "s3": {
+        "$ref": "#/definitions/s3"
+      },
+      "date_range": {
+        "$$description": ["First and last date of the gtfs files to be download from bucket.",
+                         "only relevant if ``use_data_from_today`` is set to false. {Format: *YYYY-MM-DD*}"],
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "maxLength": 2,
+        "minLength": 2
+      },
+      "use_data_from_today": {
+        "description": "Download only gtfs data from today (overrides date_range).",
+        "type": "boolean",
+        "default": false
+      },
+      "max_gtfs_size_in_mb": {
+        "$$description": ["Limit the maximum size of the downloaded gtfs files (in MB).",
+                          "If not set, the limit is only free disk space."],
+        "type": "integer",
+        "default": "sys.maxsize"
+      },
+      "display_download_progress_bar": {
+        "description": "If true, displays a proggress bar while downloading.",
+        "type": "boolean",
+        "default": false
+      },
+      "display_size_on_progress_bar": {
+        "description": "If true, displays file size on the download status bar.",
+        "type": "boolean",
+        "default": false
+      },
+      "delete_downloaded_gtfs_zip_files": {
+        "description": "If true, delete the gtfs files after parsing them.",
+        "type": "boolean",
+        "default": true
+      },
+      "write_filtered_feed": {
+        "description": "If true, writes a filtered version of the gtfs for the specific dates.",
+        "type": "boolean",
+        "default": false
+      },
+      "console_verbosity": {
+        "description": "Lowest logging level to be printed to console.",
+        "type": "string",
+        "default": "'ERROR'",
+        "enum": [
+          "DEBUG",
+          "INFO",
+          "WARNING",
+          "ERROR",
+          "CRITICAL"
+        ]
+      }
+    },
+    "anyOf": [
+        {"required": ["date_range"]},
+        {"required": ["use_data_from_today"]}
+      ],
+    "required": [
+        "files",
+        "s3"
+    ],
+    "additionalProperties": false
+  },
+  "$comment": "The definitions are separated to a different key so it won't appear in the main doc",
+  "definitions": {
+    "files": {
+      "title": "Files object parameters",
+      "$$target": "#/definitions/files",
+      "description": "files info would be under the `files` tag.",
+      "type": "object",
+      "properties": {
+        "base_directory": {
+          "description": "base directory for the created files.",
+          "type": "string"
+        },
+        "output_file_name_regexp": {
+          "description": "A regular expression used to find existing output files.",
+          "type": "string"
+        },
+        "output_file_type": {
+          "description": "The file type for the outputs.",
+          "type": "string",
+          "enum": [
+            "pkl.gz",
+            "csv.gz",
+            "csv"
+          ]
+        },
+        "child_directories": {
+          "type": "object",
+          "description": "Names of dirs that will be used (name is relative to ``base_directory``",
+          "properties": {
+            "gtfs_feeds": {
+              "description": "The name of the directory the GTFS files would be downloaded to.",
+              "type": "string"
+            },
+            "output": {
+              "description": "The name of the directory for the output files.",
+              "type": "string"
+            },
+            "filtered_feeds": {
+              "description": "The name of the directory for the filtered feeds, if exists.",
+              "type": "string"
+            },
+            "logs": {
+              "description": "The name of the directory for the log files.",
+              "type": "string"
+            }
+          },
+          "required": ["gtfs_feeds", "output", "filtered_feeds", "logs"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["base_directory", "child_directories", "output_file_name_regexp", "output_file_type"],
+      "additionalProperties": false
+    },
+    "s3": {
+      "title": "S3 object parameters",
+      "$$target": "#/definitions/s3",
+      "description": "All the info about S3 connection parameters would come here (under `s3` tag).",
+      "type": "object",
+      "properties": {
+        "access_key_id": {
+          "description": "Authorization access key id for S3.",
+          "type": "string"
+        },
+        "secret_access_key": {
+          "description": "Authorization secret access key for S3.",
+          "type": "string"
+        },
+        "s3_endpoint_url": {
+          "description": "Connection endpoint url for S3.",
+          "type": "string"
+        },
+        "bucket_name": {
+          "description": "Bucket name for S3.",
+          "type": "string"
+        },
+        "upload_results": {
+          "description": "If true, upload the analyzed results back to S3.",
+          "type": "boolean"
+        },
+        "results_path_prefix": {
+          "description": "Prefix path on S3 for the uploaded results.",
+          "type": "string"
+        }
+      },
+      "required": ["access_key_id", "secret_access_key", "s3_endpoint_url", "bucket_name"],
+      "dependencies": {
+        "upload_results": [ "results_path_prefix" ]
+      },
+      "additionalProperties": false
+    }
+  }
+}
