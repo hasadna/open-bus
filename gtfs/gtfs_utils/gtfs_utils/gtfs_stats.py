@@ -13,7 +13,7 @@ from typing import List, Dict
 import pandas as pd
 from tqdm import tqdm
 
-from .configuration import configuration
+from .configuration import load_configuration
 from .constants import GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME, TRIP_ID_TO_DATE_ZIP_NAME
 from .core_computations import get_zones_df, compute_route_stats, compute_trip_stats, get_clusters_df, \
     get_trip_id_to_date_df
@@ -46,8 +46,8 @@ def log_route_stats(rs: pd.DataFrame):
 
 def analyze_gtfs_date(date: datetime.date,
                       local_full_paths: Dict[str, str],
-                      output_folder: str = configuration.files.full_paths.output,
-                      output_file_type: str = configuration.files.output_file_type) -> List[str]:
+                      output_folder: str = None,
+                      output_file_type: str = None) -> List[str]:
     """
     Handles analysis of a single date for GTFS. Computes and saves stats files (currently trip_stats
     and route_stats).
@@ -56,6 +56,9 @@ def analyze_gtfs_date(date: datetime.date,
     :param output_folder: local path to write output files to
     :param output_file_type: The file type for the outputs (for example, csv.gz)
     """
+    configuration = load_configuration()
+    output_folder = output_folder or configuration.files.full_paths.output
+    output_file_type = output_file_type or configuration.files.output_file_type
 
     date_str = date.strftime('%Y-%m-%d')
     trip_stats_output_path = join(output_folder, f'trip_stats_{date_str}.{output_file_type}')
@@ -105,7 +108,7 @@ def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> Li
             in range(delta.days + 1)]
 
 
-def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
+def batch_stats_s3(output_folder: str = None,
                    delete_downloaded_gtfs_zips: bool = False):
     """
     Create daily trip_stats and route_stats DataFrame pickles, based on the files in an S3 bucket
@@ -114,6 +117,8 @@ def batch_stats_s3(output_folder: str = configuration.files.full_paths.output,
     :param output_folder: local path to write output files to
     :param delete_downloaded_gtfs_zips: Whether to delete GTFS feed files that have been downloaded by the function.
     """
+    configuration = load_configuration()
+    output_folder = output_folder or configuration.files.full_paths.output
 
     dates_to_analyze = get_dates_to_analyze(configuration.use_data_from_today,
                                             configuration.date_range)
@@ -194,6 +199,7 @@ def main():
     init_conf()
     configure_logger()
     logging.info(f'starting batch_stats_s3 with default config')
+    configuration = load_configuration()
     batch_stats_s3(delete_downloaded_gtfs_zips=configuration.delete_downloaded_gtfs_zip_files)
 
 

@@ -2,7 +2,7 @@ import ctypes
 import os
 import platform
 
-from .configuration import configuration
+from .configuration import load_configuration
 
 
 def mkdir_if_not_exists(dir_path):
@@ -13,6 +13,7 @@ def mkdir_if_not_exists(dir_path):
 
 def init_conf():
     """ Initializes directories from configuration file """
+    configuration = load_configuration()
     mkdir_if_not_exists(configuration.files.base_directory)
 
     for dir_path in configuration.files.full_paths.all():

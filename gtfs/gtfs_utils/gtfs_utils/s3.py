@@ -5,7 +5,7 @@ from typing import List, Tuple, Union
 
 from tqdm import tqdm
 
-from .configuration import configuration
+from .configuration import load_configuration
 from .environment import get_free_space_bytes
 from .retry import retry
 from .s3_wrapper import list_content, S3Crud
@@ -22,6 +22,7 @@ Download file from s3 bucket. Retry using decorator.
     :param output_path: output path to download the file to
     :type output_path: str
     """
+    configuration = load_configuration()
 
     def hook(t):
         def inner(bytes_amount):
@@ -116,6 +117,7 @@ def validate_download_size(all_remote_keys: List[str], crud: S3Crud,
     :param crud: crud
     :return: the total size of the file, IOError if the files are to big
     """
+    configuration = load_configuration()
     if download_dir is None:
         download_dir = configuration.files.full_paths.gtfs_feeds
     free_space = get_free_space_bytes(download_dir)

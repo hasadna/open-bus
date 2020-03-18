@@ -3,6 +3,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass, fields, is_dataclass, field
+from functools import lru_cache
 from inspect import isclass
 from typing import Dict, List
 
@@ -136,11 +137,9 @@ def validate_configuration_schema(configuration_dict: dict) -> None:
     validate(instance=configuration_dict, schema=schema)
 
 
-def load_configuration() -> Configuration:
-    with open(CONFIGURATION_FILE_PATH, 'r') as configuration_file:
+@lru_cache()
+def load_configuration(config_path: str = CONFIGURATION_FILE_PATH) -> Configuration:
+    with open(config_path, 'r') as configuration_file:
         configuration_dict = json.load(configuration_file)
     validate_configuration_schema(configuration_dict)
     return dict_to_dataclass(configuration_dict, Configuration)
-
-
-configuration = load_configuration()

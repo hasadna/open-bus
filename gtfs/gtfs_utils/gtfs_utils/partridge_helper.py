@@ -6,7 +6,7 @@ from os.path import join, basename
 import numpy as np
 import partridge as ptg
 
-from .configuration import configuration
+from .configuration import load_configuration
 
 
 def get_partridge_filter_for_date(zip_path: str, date: datetime.date):
@@ -29,7 +29,9 @@ def write_filtered_feed_by_date(zip_path: str, date: datetime.date, output_path:
 
 def prepare_partridge_feed(date: datetime.date,
                            gtfs_file_full_path: str,
-                           filtered_feeds_directory=configuration.files.full_paths.filtered_feeds):
+                           filtered_feeds_directory=None):
+    configuration = load_configuration()
+    filtered_feeds_directory = filtered_feeds_directory or configuration.files.full_paths.filtered_feeds
 
     if configuration.write_filtered_feed:
         filtered_gtfs_path = join(filtered_feeds_directory, basename(gtfs_file_full_path))
