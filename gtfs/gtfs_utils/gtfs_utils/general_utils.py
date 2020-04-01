@@ -15,5 +15,3 @@ Parse date from file name
     date_str = datetime_str.split('T')[0]
     datetime_value = datetime.datetime.strptime(datetime_str, '%Y-%m-%dT%H-%M-%S')
     return datetime_value, date_str
-
-
