@@ -8,7 +8,7 @@ import datetime
 import logging
 import os
 from os.path import join, dirname, basename, split
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 import pandas as pd
 from tqdm import tqdm
@@ -22,7 +22,7 @@ from .local_files import get_dates_without_output, remote_key_to_local_path
 from .logging_config import configure_logger
 from .output import save_trip_stats, save_route_stats
 from .partridge_helper import prepare_partridge_feed
-from .s3 import get_latest_file, fetch_remote_file, validate_download_size
+from .s3 import get_latest_file, validate_download_size, fetch_remote_file
 from .s3_wrapper import S3Crud
 
 
@@ -131,30 +131,9 @@ def batch_stats_s3(output_folder: str = None,
         crud = S3Crud.from_configuration(configuration.s3)
         logging.info(f'Connected to S3 bucket {configuration.s3.bucket_name}')
 
-        file_types_to_download = [GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME, TRIP_ID_TO_DATE_ZIP_NAME]
-        remote_files_mapping = {}
-        all_remote_files = []
-        all_local_full_paths = []
+        all_remote_files, remote_files_mapping = get_remote_keys(crud, dates_without_output)
 
-        for desired_date in dates_without_output:
-            for mot_file_name in file_types_to_download:
-                if desired_date not in remote_files_mapping:
-                    remote_files_mapping[desired_date] = {}
-
-                date_and_key = get_latest_file(crud, mot_file_name, desired_date)
-                remote_files_mapping[desired_date][mot_file_name] = date_and_key
-                all_remote_files.append(date_and_key)
-
-        files_size = validate_download_size([date_key[1] for date_key in all_remote_files], crud)
-        logging.info(f'Starting files download, downloading {len(all_remote_files)} files, '
-                     f'with total size {files_size/(1024**2)} MB')
-        with tqdm(all_remote_files, unit='file', desc='Downloading') as progress_bar:
-            for date, remote_file_key in progress_bar:
-                progress_bar.set_postfix_str(remote_file_key)
-                local_file_full_path = remote_key_to_local_path(date, remote_file_key)
-                fetch_remote_file(remote_file_key, local_file_full_path, crud)
-                all_local_full_paths.append(local_file_full_path)
-        logging.info(f'Finished files download')
+        all_local_full_paths = download_date_files(all_remote_files, crud)
 
         logging.info(f'Starting analyzing files for {len(dates_without_output)} dates')
         all_result_files = []
@@ -193,6 +172,61 @@ def batch_stats_s3(output_folder: str = None,
             logging.info(f'Finished removal of downloaded files')
     except:
         logging.error('Failed', exc_info=True)
+
+
+def download_date_files(all_remote_files, crud) -> List[str]:
+    """
+    Download keys and return a list of the local paths
+    :param all_remote_files:
+    :param crud:
+    :return:  A list of all the files local paths
+    """
+    all_local_full_paths = []
+    files_size = validate_download_size([date_key[1] for date_key in all_remote_files], crud)
+    logging.info(f'Starting files download, downloading {len(all_remote_files)} files, '
+                 f'with total size {files_size/(1024**2)} MB')
+    with tqdm(all_remote_files, unit='file', desc='Downloading') as progress_bar:
+        for date, remote_file_key in progress_bar:
+            progress_bar.set_postfix_str(remote_file_key)
+            local_file_full_path = remote_key_to_local_path(date, remote_file_key)
+            fetch_remote_file(remote_file_key, local_file_full_path, crud)
+            all_local_full_paths.append(local_file_full_path)
+    logging.info(f'Finished files download')
+    return all_local_full_paths
+
+
+def get_remote_keys(crud, dates_without_output: List[datetime.date]) \
+        -> Tuple[List[Tuple[datetime.date, str]],
+                 Dict[datetime.date, Dict[str, Tuple[datetime.date, str]]]]:
+    """
+
+    :param crud:
+    :param dates_without_output: list of date
+    :return: A list of all `date_and_key` tuples of all the file to download
+             and a dict like this: {`date`: {`mot_file_name`: `date_and_key tuple`}}
+    """
+
+    remote_files_mapping = {}
+    all_remote_files = []
+    for desired_date in dates_without_output:
+        remote_keys = get_remote_keys_for_date(crud, desired_date)
+        remote_files_mapping[desired_date] = remote_keys
+        all_remote_files.extend(remote_keys.items())
+    return all_remote_files, remote_files_mapping
+
+
+def get_remote_keys_for_date(crud, desired_date):
+    """
+    returns a dict mapping an MOT file type to it's newest version before `desired_date`
+    :param crud:
+    :param desired_date:
+    :return:
+    """
+    file_types_to_download = [GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME, TRIP_ID_TO_DATE_ZIP_NAME]
+    remote_files_mapping = {}
+    for mot_file_name in file_types_to_download:
+        remote_files_mapping[mot_file_name] = get_latest_file(crud, mot_file_name, desired_date)
+    return remote_files_mapping
 
 
 def main():

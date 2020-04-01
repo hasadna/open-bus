@@ -63,6 +63,14 @@ def get_latest_file(crud: S3Crud,
                     mot_file_name: str,
                     desired_date: Union[datetime.datetime, datetime.date],
                     past_days_to_try: int = 100) -> Tuple[datetime.date, str]:
+    """
+    for mot file type return it's newest version before `desired_date`
+    :param crud: S3Crud object
+    :param mot_file_name: Original name of the file from MOT
+    :param desired_date: the newest date acceptable
+    :param past_days_to_try: how back to search for the file
+    :return: a tuple of the date the file found on and the file key
+    """
     for i in range(past_days_to_try):
         date = desired_date - datetime.timedelta(i)
         bucket_files_in_date = get_bucket_file_keys_for_date(crud, mot_file_name, date)

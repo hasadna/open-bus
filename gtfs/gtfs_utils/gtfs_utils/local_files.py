@@ -50,6 +50,13 @@ def get_dates_without_output(dates: List[datetime.date], output_folder: str) -> 
 
 
 def remote_key_to_local_path(date: datetime.date, remote_key: str) -> str:
+    """
+    Returns the appropriate local path for the file to be saved in
+    :param date: the date the remote file was created on
+    :param remote_key: the remote key of the file to be downloaded
+    :return: path in the form of:
+        `<configuration..gtfs_feeds>/<date>/<remote_key casename>`
+    """
     local_file_name = split(remote_key)[-1]
     configuration = load_configuration()
     local_full_path = join(configuration.files.full_paths.gtfs_feeds,
