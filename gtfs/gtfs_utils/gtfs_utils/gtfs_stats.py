@@ -138,7 +138,7 @@ def batch_stats_s3(output_folder: str = None,
         all_remote_files = generate_remote_keys_set_from_mapping(remote_files_mapping)
         all_local_full_paths = download_date_files(all_remote_files, crud,
                                                    force_existing_files=configuration.force_existing_files)
-        import pprint; pprint.pp(all_local_full_paths); exit()
+
         logging.info(f'Starting analyzing files for {len(dates_without_output)} dates')
         all_result_files = []
         with tqdm(dates_without_output, unit='date', desc='Analyzing') as progress_bar:
