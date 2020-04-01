@@ -80,6 +80,7 @@ class Configuration:
     display_download_progress_bar: bool = True
     display_size_on_progress_bar: bool = True
     delete_downloaded_gtfs_zip_files: bool = True
+    force_existing_files: bool = False
     write_filtered_feed: bool = True
     console_verbosity: str = 'ERROR'
 

@@ -136,8 +136,9 @@ def batch_stats_s3(output_folder: str = None,
                                                                 override_gtfs_date=override_date)
 
         all_remote_files = generate_remote_keys_set_from_mapping(remote_files_mapping)
-        all_local_full_paths = download_date_files(all_remote_files, crud)
-
+        all_local_full_paths = download_date_files(all_remote_files, crud,
+                                                   force_existing_files=configuration.force_existing_files)
+        import pprint; pprint.pp(all_local_full_paths); exit()
         logging.info(f'Starting analyzing files for {len(dates_without_output)} dates')
         all_result_files = []
         with tqdm(dates_without_output, unit='date', desc='Analyzing') as progress_bar:
@@ -177,11 +178,12 @@ def batch_stats_s3(output_folder: str = None,
         logging.error('Failed', exc_info=True)
 
 
-def download_date_files(all_remote_files, crud) -> List[str]:
+def download_date_files(all_remote_files, crud, force_existing_files=False) -> List[str]:
     """
     Download keys and return a list of the local paths
     :param all_remote_files:
     :param crud:
+    :param force_existing_files: if true force downloading files that already exist
     :return:  A list of all the files local paths
     """
     all_local_full_paths = []
@@ -192,7 +194,7 @@ def download_date_files(all_remote_files, crud) -> List[str]:
         for date, remote_file_key in progress_bar:
             progress_bar.set_postfix_str(remote_file_key)
             local_file_full_path = remote_key_to_local_path(date, remote_file_key)
-            fetch_remote_file(remote_file_key, local_file_full_path, crud)
+            fetch_remote_file(remote_file_key, local_file_full_path, crud, force=force_existing_files)
             all_local_full_paths.append(local_file_full_path)
     logging.info(f'Finished files download')
     return all_local_full_paths

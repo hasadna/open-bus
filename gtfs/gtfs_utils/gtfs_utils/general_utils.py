@@ -1,6 +1,7 @@
 import datetime
 import re
 
+
 def parse_date(file_name):
     """
 Parse date from file name

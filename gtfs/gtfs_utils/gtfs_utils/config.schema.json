@@ -55,6 +55,11 @@
         "type": "boolean",
         "default": true
       },
+      "force_existing_files": {
+        "description": "If true, force downloading files that already exists on disk.",
+        "type": "boolean",
+        "default": false
+      },
       "write_filtered_feed": {
         "description": "If true, writes a filtered version of the gtfs for the specific dates.",
         "type": "boolean",
