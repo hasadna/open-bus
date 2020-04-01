@@ -1,4 +1,5 @@
 import datetime
+import logging
 import re
 from os import listdir
 from os.path import split, join, exists
@@ -18,18 +19,46 @@ def _get_existing_output_files(output_folder: str) -> List[Tuple[datetime.date, 
     configuration = load_configuration()
     file_name_re = configuration.files.output_file_name_regexp
     file_type_re = configuration.files.output_file_type.replace('.', '\\.')
-    regexp = file_name_re + '\\.' + file_type_re
+    regexp = re.compile(file_name_re + '\\.' + file_type_re)
+
+    # validate that the regex used the correct group names
+    faulty_group_names = False
+    if "type" in regexp.groupindex and "date_str" in regexp.groupindex:
+        logging.info("The output file regex didn't use the correct group names: (type, date_str), "
+                     "for more information look in the configuration docs. trying unnamed groups")
+        faulty_group_names = True
 
     existing_output_files = []
 
     for file in listdir(output_folder):
         match = re.match(regexp, file)
         if match:
-            date_str, stats_type = match.groups()
-            file_type = (parse_conf_date_format(date_str), stats_type)
+            file_type = _parse_file_name_regex_match(match, faulty_group_names)
+            if file_type is None:
+                # return empty list if there was an error in one of the files
+                return []
             existing_output_files.append(file_type)
 
     return existing_output_files
+
+
+def _parse_file_name_regex_match(match, faulty_group_names=False):
+    results = match.groupdict()
+    if faulty_group_names:
+        # regex has the correct groups
+        stats_type, date_str = results.get("type"), results.get("date_str")
+    else:
+        # assume the order of the fields
+        stats_type, date_str = match.groups()
+    try:
+        # try to parse the extracted date
+        parsed_date = parse_conf_date_format(date_str)
+    except ValueError:
+        logging.info(f'failed to parse date from file name, skipping the search. '
+                     f'the date was: {date_str!r}')
+        # skip on first failure
+        return None
+    return parsed_date, stats_type
 
 
 def get_dates_without_output(dates: List[datetime.date], output_folder: str) -> List[datetime.date]:
