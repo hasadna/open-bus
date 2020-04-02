@@ -87,7 +87,7 @@ class Configuration:
 
 def parse_conf_date_format(date_str: str) -> datetime.date:
     """
-    parse the default date format we use in config.json (YYYY/mm/dd)
+    parse the default date format we use in config.json (YYYY-mm-dd)
     :param date_str: date string in the format
     :return: datetime.date object returtns None if the string is empty
     """

@@ -239,7 +239,7 @@ def get_dates_to_remote_keys_mapping(crud, dates_without_output: List[datetime.d
 def get_remote_keys_for_date(crud, desired_date):
     """
     returns a dict mapping an MOT file type to it's newest version before `desired_date`
-    :param crud: S3 Curd object
+    :param crud: S3Crudd object
     :param desired_date: the date to look for the file
     :return: (found_date, remote_key) tuple
     """
