@@ -6,7 +6,7 @@ import sys
 from dataclasses import dataclass, fields, is_dataclass, field
 from functools import lru_cache
 from inspect import isclass
-from typing import Dict, List, Union
+from typing import Dict, List, Optional
 
 from jsonschema import validate
 
@@ -85,7 +85,7 @@ class Configuration:
     console_verbosity: str = 'ERROR'
 
 
-def parse_conf_date_format(date_str: str) -> Union[datetime.date, None]:
+def parse_conf_date_format(date_str: str) -> Optional[datetime.date]:
     """
     Parse the default date format we use in config.json (YYYY-mm-dd)
     :param date_str: date string in the format

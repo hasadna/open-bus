@@ -185,7 +185,7 @@ def download_date_files(all_remote_files: Collection[DateKeyTuple], crud: S3Crud
                         force_existing_files: bool = False) -> List[str]:
     """
     Download keys and return a list of the local paths
-    :param all_remote_files: Iterable of (date, remote ket) mapping
+    :param all_remote_files: Iterable of (date, remote key) mapping
     :param crud: S3Crud
     :param force_existing_files: if true force downloading files that already exist
     :return:  A list of all the files local paths
@@ -244,7 +244,7 @@ def get_remote_keys_for_date(crud: S3Crud, desired_date: datetime.date) -> KeyMa
     returns a dict mapping an MOT file type to it's newest version before `desired_date`
     :param crud: S3Crudd object
     :param desired_date: The date to look for the file
-    :return: a dict from MOT file type fo (found_date, remote_key) tuple
+    :return: a dict from MOT file type to (found_date, remote_key) tuple
     """
     file_types_to_download = [GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME, TRIP_ID_TO_DATE_ZIP_NAME]
     remote_files_mapping = {}

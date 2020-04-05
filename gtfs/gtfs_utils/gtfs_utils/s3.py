@@ -12,7 +12,7 @@ from .s3_wrapper import list_content, S3Crud, S3FileKey
 
 MOTFileType = NewType("MOTFileType", str)
 FoundDate = NewType("FoundDate", datetime.date)
-# A shorthand for (found_date, remtoe_key)
+# A shorthand for (found_date, remote_key)
 DateKeyTuple = Tuple[FoundDate, S3FileKey]
 
 
@@ -69,7 +69,7 @@ def get_latest_file(crud: S3Crud,
                     desired_date: Union[datetime.datetime, datetime.date],
                     past_days_to_try: int = 100) -> DateKeyTuple:
     """
-    For MOT file type return it's newest version prior to `desired_date`
+    For MOT file type return its newest version prior to `desired_date`
     :param crud: S3Crud object
     :param mot_file_name: Original name of the file from MOT
     :param desired_date: The newest date acceptable
