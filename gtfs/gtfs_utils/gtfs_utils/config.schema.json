@@ -29,7 +29,7 @@
         "default": false
       },
       "override_source_data_date": {
-        "description": "if set use the data from the same date for all analyzed dates",
+        "description": "If set use the data from the same date for all analyzed dates",
         "type": "string",
         "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
         "default": ""
@@ -56,7 +56,7 @@
         "default": true
       },
       "force_existing_files": {
-        "description": "If true, force downloading files that already exists on disk.",
+        "description": "If true, force downloading files that already exist on disk.",
         "type": "boolean",
         "default": false
       },
