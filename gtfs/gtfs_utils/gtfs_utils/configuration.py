@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import re
@@ -5,12 +6,14 @@ import sys
 from dataclasses import dataclass, fields, is_dataclass, field
 from functools import lru_cache
 from inspect import isclass
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from jsonschema import validate
 
 CONFIGURATION_FILE_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
 CONFIGURATION_SCHEMA_FILE_PATH = os.path.join(os.path.dirname(__file__), 'config.schema.json')
+
+CONFIGURATION_DATE_FORMAT = '%Y-%m-%d'
 
 
 @dataclass
@@ -72,12 +75,25 @@ class Configuration:
     s3: S3Configuration = None
     use_data_from_today: bool = True
     date_range: List[str] = field(default_factory=list)
+    override_source_data_date: str = ""
     max_gtfs_size_in_mb: int = sys.maxsize
     display_download_progress_bar: bool = True
     display_size_on_progress_bar: bool = True
     delete_downloaded_gtfs_zip_files: bool = True
+    force_existing_files: bool = False
     write_filtered_feed: bool = True
     console_verbosity: str = 'ERROR'
+
+
+def parse_conf_date_format(date_str: str) -> Optional[datetime.date]:
+    """
+    Parse the default date format we use in config.json (YYYY-mm-dd)
+    :param date_str: date string in the format
+    :return: `datetime.date` object or `None` if the string is empty
+    """
+    if date_str:
+        return datetime.datetime.strptime(date_str, CONFIGURATION_DATE_FORMAT).date()
+    return None
 
 
 def dict_to_dataclass(data_dict: Dict, data_class: type) -> Configuration:

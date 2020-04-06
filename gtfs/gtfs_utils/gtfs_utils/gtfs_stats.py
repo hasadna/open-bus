@@ -8,12 +8,12 @@ import datetime
 import logging
 import os
 from os.path import join, dirname, basename, split
-from typing import List, Dict
+from typing import List, Dict, Set, Collection
 
 import pandas as pd
 from tqdm import tqdm
 
-from .configuration import load_configuration
+from .configuration import load_configuration, parse_conf_date_format
 from .constants import GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME, TRIP_ID_TO_DATE_ZIP_NAME
 from .core_computations import get_zones_df, compute_route_stats, compute_trip_stats, get_clusters_df, \
     get_trip_id_to_date_df
@@ -22,8 +22,11 @@ from .local_files import get_dates_without_output, remote_key_to_local_path
 from .logging_config import configure_logger
 from .output import save_trip_stats, save_route_stats
 from .partridge_helper import prepare_partridge_feed
-from .s3 import get_latest_file, fetch_remote_file, validate_download_size
+from .s3 import get_latest_file, validate_download_size, fetch_remote_file, DateKeyTuple, MOTFileType
 from .s3_wrapper import S3Crud
+
+# A shorthand for {MOT file type: (found date, remote key)}
+KeyMappingDict = Dict[MOTFileType, DateKeyTuple]
 
 
 def log_trip_stats(ts: pd.DataFrame):
@@ -95,11 +98,11 @@ def get_dates_to_analyze(use_data_from_today: bool, date_range: List[str]) -> Li
     if use_data_from_today:
         return [datetime.datetime.now().date()]
     elif len(date_range) == 1:
-        return [datetime.datetime.strptime(date_range[0], '%Y-%m-%d').date()]
+        return [parse_conf_date_format(date_range[0])]
     elif len(date_range) != 2:
             raise ValueError('Use "date_range" or set "use_data_from_today" to true if the configuration.')
 
-    min_date, max_date = [datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+    min_date, max_date = [parse_conf_date_format(date_str)
                           for date_str
                           in date_range]
     delta = max_date - min_date
@@ -131,30 +134,13 @@ def batch_stats_s3(output_folder: str = None,
         crud = S3Crud.from_configuration(configuration.s3)
         logging.info(f'Connected to S3 bucket {configuration.s3.bucket_name}')
 
-        file_types_to_download = [GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME, TRIP_ID_TO_DATE_ZIP_NAME]
-        remote_files_mapping = {}
-        all_remote_files = []
-        all_local_full_paths = []
+        override_date = parse_conf_date_format(configuration.override_source_data_date)
+        remote_files_mapping = get_dates_to_remote_keys_mapping(crud, dates_without_output,
+                                                                override_gtfs_date=override_date)
 
-        for desired_date in dates_without_output:
-            for mot_file_name in file_types_to_download:
-                if desired_date not in remote_files_mapping:
-                    remote_files_mapping[desired_date] = {}
-
-                date_and_key = get_latest_file(crud, mot_file_name, desired_date)
-                remote_files_mapping[desired_date][mot_file_name] = date_and_key
-                all_remote_files.append(date_and_key)
-
-        files_size = validate_download_size([date_key[1] for date_key in all_remote_files], crud)
-        logging.info(f'Starting files download, downloading {len(all_remote_files)} files, '
-                     f'with total size {files_size/(1024**2)} MB')
-        with tqdm(all_remote_files, unit='file', desc='Downloading') as progress_bar:
-            for date, remote_file_key in progress_bar:
-                progress_bar.set_postfix_str(remote_file_key)
-                local_file_full_path = remote_key_to_local_path(date, remote_file_key)
-                fetch_remote_file(remote_file_key, local_file_full_path, crud)
-                all_local_full_paths.append(local_file_full_path)
-        logging.info(f'Finished files download')
+        all_remote_files = generate_remote_keys_set_from_mapping(remote_files_mapping)
+        all_local_full_paths = download_date_files(all_remote_files, crud,
+                                                   force_existing_files=configuration.force_existing_files)
 
         logging.info(f'Starting analyzing files for {len(dates_without_output)} dates')
         all_result_files = []
@@ -162,8 +148,8 @@ def batch_stats_s3(output_folder: str = None,
             for current_date in progress_bar:
                 progress_bar.set_postfix_str(current_date)
                 local_full_paths = {
-                    mot_file_name: remote_key_to_local_path(date, remote_key)
-                    for mot_file_name, (date, remote_key)
+                    mot_file_name: remote_key_to_local_path(found_date, remote_key)
+                    for mot_file_name, (found_date, remote_key)
                     in remote_files_mapping[current_date].items()
                 }
                 current_result_files = analyze_gtfs_date(current_date,
@@ -193,6 +179,78 @@ def batch_stats_s3(output_folder: str = None,
             logging.info(f'Finished removal of downloaded files')
     except:
         logging.error('Failed', exc_info=True)
+
+
+def download_date_files(all_remote_files: Collection[DateKeyTuple], crud: S3Crud,
+                        force_existing_files: bool = False) -> List[str]:
+    """
+    Download keys and return a list of the local paths
+    :param all_remote_files: Iterable of (date, remote key) mapping
+    :param crud: S3Crud
+    :param force_existing_files: if true force downloading files that already exist
+    :return:  A list of all the files local paths
+    """
+    all_local_full_paths = []
+    files_size = validate_download_size([date_key[1] for date_key in all_remote_files], crud)
+    logging.info(f'Starting files download, downloading {len(all_remote_files)} files, '
+                 f'with total size {files_size/(1024**2)} MB')
+    with tqdm(all_remote_files, unit='file', desc='Downloading') as progress_bar:
+        for date, remote_file_key in progress_bar:
+            progress_bar.set_postfix_str(remote_file_key)
+            local_file_full_path = remote_key_to_local_path(date, remote_file_key)
+            fetch_remote_file(remote_file_key, local_file_full_path, crud, force=force_existing_files)
+            all_local_full_paths.append(local_file_full_path)
+    logging.info(f'Finished files download')
+    return all_local_full_paths
+
+
+def generate_remote_keys_set_from_mapping(remote_keys_mapping: Dict[datetime.date, KeyMappingDict]) \
+        -> Set[DateKeyTuple]:
+    """
+    Extract the tuples of the remote keys and dates from the mapping
+    :param remote_keys_mapping: remote mapping generated by get_remote_keys_mapping_for_dates
+    :return: a set of (found_date, remote_key)
+    """
+    tuples = set()
+    for desired_date in remote_keys_mapping:
+        for mot_file_type in remote_keys_mapping[desired_date]:
+            tuples.add(remote_keys_mapping[desired_date][mot_file_type])
+    return tuples
+
+
+def get_dates_to_remote_keys_mapping(crud, dates_without_output: List[datetime.date],
+                                     override_gtfs_date: datetime.date = None) \
+        -> Dict[datetime.date, KeyMappingDict]:
+    """
+    For each date in the input, search for the newest MOT files
+    :param crud: S3Crud
+    :param dates_without_output: List of dates
+    :param override_gtfs_date: If set overrides the desired date for files for all files
+    :return: A dict like this: `{desired_date: {mot_file_name: (date_of_the_file, remote_key)}}`
+    """
+    if override_gtfs_date:
+        override_date_keys = get_remote_keys_for_date(crud, override_gtfs_date)
+        return {desired_date: override_date_keys for desired_date in dates_without_output}
+
+    remote_files_mapping = {}
+    for desired_date in dates_without_output:
+        remote_keys = get_remote_keys_for_date(crud, desired_date)
+        remote_files_mapping[desired_date] = remote_keys
+    return remote_files_mapping
+
+
+def get_remote_keys_for_date(crud: S3Crud, desired_date: datetime.date) -> KeyMappingDict:
+    """
+    returns a dict mapping an MOT file type to it's newest version before `desired_date`
+    :param crud: S3Crudd object
+    :param desired_date: The date to look for the file
+    :return: a dict from MOT file type to (found_date, remote_key) tuple
+    """
+    file_types_to_download = [GTFS_FILE_NAME, TARIFF_ZIP_NAME, CLUSTER_TO_LINE_ZIP_NAME, TRIP_ID_TO_DATE_ZIP_NAME]
+    remote_files_mapping = {}
+    for mot_file_name in file_types_to_download:
+        remote_files_mapping[mot_file_name] = get_latest_file(crud, mot_file_name, desired_date)
+    return remote_files_mapping
 
 
 def main():
