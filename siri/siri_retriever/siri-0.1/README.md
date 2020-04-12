@@ -91,6 +91,92 @@ The important fields are: *linerRef* (route Id in GTFS terminology), *stopCode* 
 
 The list of *departureTimes* for each day of the week, is used by Siri-Retriever to reduce the frequency of queries for each route, when it is not "active". i.e if the first bus starts at 5:40 AM, the Siri-Retriever will start querying for that route only a few minutes before that hour.
 
+### number of intervals
+
+There is a file called data.xml
+It is imported as a resource in BusApplication.java:
+```java
+@SpringBootApplication
+@EnableCaching
+@EnableAsync
+@EnableRetry
+@ImportResource({"classpath:data.xml"})
+public class BusApplication {
+
+```
+it defines a map named "longLines". 
+This map is imported in SiriConsumeServiceImpl.java:
+```java
+@Component
+@Profile({"production", "integrationTests"})
+public class SiriConsumeServiceImpl implements SiriConsumeService {
+
+    @Value("${number.of.intervals:12}")
+    int numberOfIntervals ;
+
+    @Value("${duration.of.interval.in.minutes:5}")
+    int durationOfIntervalInMinutes ;
+
+    @Resource(name="longLines")
+    Map<String, Integer> longLines;
+
+```
+and used in method decideNumberOfIntervals()
+```java
+    private int decideNumberOfIntervals(String lineRef) {
+        return longLines.getOrDefault(lineRef, numberOfIntervals);
+    }
+
+```
+which is used in
+
+```java
+    private String buildServiceRequest(String stopCode, String previewInterval, String lineRef, int maxStopVisits) {
+        int numberOfIntervalsForThisRoute = decideNumberOfIntervals(lineRef);   // might increase number of intervals according to config
+        final String oneStopServiceRequestXml = generateStopMonitoringServiceRequestTemplate(numberOfIntervalsForThisRoute);    // 12 intervals of 5 minutes
+```
+
+number of intervals is used when generating the SOAP request to SIRI
+```java
+    private String generateStopMonitoringServiceRequestTemplate(int numberOfIntervals) {
+        String template = "" +
+                "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"\n" +
+                "                   xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:acsb=\"http://www.ifopt.org.uk/acsb\"\n" +
+                "                   xmlns:datex2=\"http://datex2.eu/schema/1_0/1_0\" xmlns:ifopt=\"http://www.ifopt.org.uk/ifopt\"\n" +
+                "                   xmlns:siri=\"http://www.siri.org.uk/siri\" xmlns:siriWS=\"http://new.webservice.namespace\"\n" +
+                "                   xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+                "                   xsi:schemaLocation=\"http://192.241.154.128/static/siri/siri.xsd\">\n" +
+                "    <SOAP-ENV:Header/>\n" +
+                "    <SOAP-ENV:Body>\n" +
+                "        <siriWS:GetStopMonitoringService>\n" +
+                "            <Request xsi:type=\"siri:ServiceRequestStructure\">\n" +
+                "                <siri:RequestTimestamp>__TIMESTAMP__</siri:RequestTimestamp>\n" +
+                "__REQUESTS__" +
+                "            </Request>\n" +
+                "        </siriWS:GetStopMonitoringService>\n" +
+                "    </SOAP-ENV:Body>\n" +
+                "</SOAP-ENV:Envelope>\n" ;
+        String s = "" ;
+        logger.trace("generating {} intervals", numberOfIntervals);
+        for (int i = 0 ; i < numberOfIntervals ; i = i + 1) {   // intervals of 5 minutes
+            s = s + generateStopMonitoringRequestTemplate(i*durationOfIntervalInMinutes);
+        }
+        return template.replace("__REQUESTS__", s);
+
+    }
+```
+
+To summarize - when creating a SOAP request to SIRI, we actually create 12 requests.
+Each request queries the __last bus-stop__.
+Each such request will query from a future time defined as interval*5 minutes. (interval is 0 to 11).
+Each request receives as response the first 3 buses that will arrive after the defined future time.
+
+For some bus lines this is not enough, so we allow them more queries into the future (currently 24 intervals of 5 minutes). These bus lines are defined in data.xml.
+This is because the length of the ride (from start point to end point) is more than 1 hour.
+Since we query the __last__ bus-stop, if we query only 1 hour into the future, we will not receive in any response the (more than 3) buses that will arrive to the last bus-stop more than a 1 hour in the future.
+
+This  limitation will be fixed by issue #316 (dynamic windows)
+
 ### CSV Output Files
 
 ## Development View
