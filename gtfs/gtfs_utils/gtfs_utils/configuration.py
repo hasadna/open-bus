@@ -75,7 +75,7 @@ class Configuration:
     s3: S3Configuration = None
     use_data_from_today: bool = False
     date_range: List[str] = field(default_factory=list)
-    skip_date_with_output: bool = True
+    skip_dates_with_output: bool = True
     override_source_data_date: str = ""
     max_gtfs_size_in_mb: int = sys.maxsize
     display_download_progress_bar: bool = True
