@@ -129,7 +129,7 @@ def batch_stats_s3(output_folder: str = None,
 
     try:
         os.makedirs(output_folder, exist_ok=True)
-        if configuration.skip_date_with_output:
+        if configuration.skip_dates_with_output:
             dates_without_output = get_dates_without_output(dates_to_analyze, output_folder)
             logging.info(f"Skipped {len(dates_to_analyze) - len(dates_without_output)} dates "
                          f"that already had output files")

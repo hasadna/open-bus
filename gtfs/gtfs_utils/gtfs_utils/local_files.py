@@ -21,19 +21,12 @@ def _get_existing_output_files(output_folder: str) -> List[Tuple[datetime.date, 
     file_type_re = configuration.files.output_file_type.replace('.', '\\.')
     regexp = re.compile(file_name_re + '\\.' + file_type_re)
 
-    # validate that the regex used the correct group names
-    faulty_group_names = False
-    if "type" in regexp.groupindex and "date_str" in regexp.groupindex:
-        logging.info("The output file regex didn't use the correct group names: (type, date_str), "
-                     "for more information look in the configuration docs. trying unnamed groups")
-        faulty_group_names = True
-
     existing_output_files = []
 
     for file in listdir(output_folder):
         match = re.match(regexp, file)
         if match:
-            file_type = _parse_file_name_regex_match(match, faulty_group_names)
+            file_type = _parse_file_name_regex_match(match)
             if file_type is None:
                 # return empty list if there was an error in one of the files
                 return []
@@ -42,14 +35,17 @@ def _get_existing_output_files(output_folder: str) -> List[Tuple[datetime.date, 
     return existing_output_files
 
 
-def _parse_file_name_regex_match(match, faulty_group_names=False):
+def _parse_file_name_regex_match(match: re.Match):
     results = match.groupdict()
-    if faulty_group_names:
-        # regex has the correct groups
-        stats_type, date_str = results.get("type"), results.get("date_str")
-    else:
+    # validate that the regex used the correct group names
+    if ("type" not in results) or ("date_str" not in results):
         # assume the order of the fields
         stats_type, date_str = match.groups()
+        logging.info("The output file regex didn't use the correct group names: (type, date_str), "
+                     "for more information look in the configuration docs. trying unnamed groups")
+    else:
+        # regex has the correct groups
+        stats_type, date_str = results.get("type"), results.get("date_str")
     try:
         # try to parse the extracted date
         parsed_date = parse_conf_date_format(date_str)
