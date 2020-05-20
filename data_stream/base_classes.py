@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple
-from datetime import datetime
+from typing import List
+from datetime import datetime, time
 
 
 class Serializable(ABC):
@@ -10,6 +10,15 @@ class Serializable(ABC):
 
     def __repr__(self):
         return str(self.__dict__)
+
+
+class GeoPoint(Serializable):
+    def __init__(self, longitude: float, latitude: float):
+        self.longitude = longitude
+        self.latitude = latitude
+
+    def to_json(self) -> dict:
+        return dict(type='Point', coordinates=[self.longitude, self.latitude])
 
 
 class SiriRideAnalytics(Serializable):
@@ -22,24 +31,26 @@ class SiriRideAnalytics(Serializable):
 
 
 class SiriRecord(Serializable):
-    def __init__(self, recorded_at, response_timestamp, expected_arrival_time, current_location):
-        self.recorded_at: datetime = recorded_at
+    def __init__(self, recorded_at: time, response_timestamp: datetime, expected_arrival_time: time,
+                 current_location: GeoPoint):
+
+        self.recorded_at: time = recorded_at
         self.response_timestamp: datetime = response_timestamp
-        self.expected_arrival_time = expected_arrival_time
-        self.current_location: Tuple[float, float] = current_location
+        self.expected_arrival_time: time = expected_arrival_time
+        self.current_location: GeoPoint = current_location
 
     def to_json(self) -> dict:
         return dict(recordedAt=self.recorded_at.strftime("%H:%M:%S"),
                     responseTimestamp=self.response_timestamp.astimezone().isoformat(),
                     expectedArrivalTime=self.expected_arrival_time.strftime("%H:%M:%S"),
-                    point=dict(type='Point', coordinates=list(self.current_location)))
+                    point=self.current_location.to_json())
 
 
 class SiriRide(Serializable):
     _type = "siri_ride"
 
-    def __init__(self, siri_ride_id, line_name, license_plate, operator_ref, line_ref, departure_time, journey_ref,
-                 siri_records, siri_ride_analytics):
+    def __init__(self, siri_ride_id: int, line_name: str, license_plate:int, operator_ref:int, line_ref:int, departure_time: datetime, journey_ref:int,
+                 siri_records: List[SiriRecord], siri_ride_analytics: SiriRideAnalytics = None):
         self.siri_ride_id = siri_ride_id
         self.line_name = line_name
         self.license_plate = license_plate
