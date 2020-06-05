@@ -1,23 +1,33 @@
-import logging
-import pandas as pd
 import datetime
-from collections import defaultdict
-from gtfs_stats_conf import *
-from retry import retry
-from general_utils import parse_date
+import logging
+import os.path
+from typing import List, Tuple, Union, NewType
+
+from tqdm import tqdm
+
+from .configuration import load_configuration
+from .environment import get_free_space_bytes
+from .retry import retry
+from .s3_wrapper import list_content, S3Crud, S3FileKey
+
+MOTFileType = NewType("MOTFileType", str)
+FoundDate = NewType("FoundDate", datetime.date)
+# A shorthand for (found_date, remote_key)
+DateKeyTuple = Tuple[FoundDate, S3FileKey]
 
 
 @retry()
-def s3_download(bucket, key, output_path):
+def s3_download(crud: S3Crud, key: S3FileKey, output_path):
     """
 Download file from s3 bucket. Retry using decorator.
-    :param bucket: s3 boto bucket object
-    :type bucket: boto3.resources.factory.s3.Bucket
+    :param crud: s3 boto bucket object
+    :type crud: s3_wrapper.S3Crud
     :param key: key of the file to download
     :type key: str
     :param output_path: output path to download the file to
     :type output_path: str
     """
+    configuration = load_configuration()
 
     def hook(t):
         def inner(bytes_amount):
@@ -25,89 +35,111 @@ Download file from s3 bucket. Retry using decorator.
 
         return inner
 
-    if DOWNLOAD_PBAR:
+    if configuration.display_download_progress_bar:
         # TODO: this is an S3 anti-pattern, and is inefficient - so defaulting to not doing this
-        if SIZE_FOR_DOWNLOAD_PBAR:
-            size = [obj.size for obj in bucket.objects.filter(Prefix=key, MaxKeys=1)][0]
+        if configuration.display_size_on_progress_bar:
+            size = crud.get_file_size(key)
         else:
             size = None
 
         with tqdm(total=size, unit='B', unit_scale=True, desc='download ' + key, leave=True) as t:
-            bucket.download_file(key, output_path, Callback=hook(t))
+            crud.download_one_file(output_path, key, callback=hook(t))
     else:
-        bucket.download_file(key, output_path)
+        crud.download_one_file(output_path, key)
 
 
-def get_bucket_valid_files(bucket_objects):
+def get_bucket_file_keys_for_date(crud: S3Crud,
+                                  mot_file_name: MOTFileType,
+                                  date: datetime.datetime) -> List[str]:
     """
-Get list of valid files from bucket, as set by BUCKET_VALID_FILES_RE
-    :param bucket_objects: collection of bucket objects
-    :type bucket_objects: s3.Bucket.objectsCollection
-    :return: list of valid file keys
-    :rtype: list of str
+    Get list of files from bucket that fit the given MOT file name and are from the given date
+    :param crud: S3Crud object
+    :param mot_file_name: Original name of the file from MOT
+    :param date: Date to use as original file date when searching
+    :return: List of file keys
     """
-    return [obj.key for obj in bucket_objects
-            if re.match(BUCKET_VALID_FILES_RE, obj.key)]
+    prefix = datetime.datetime.strftime(date, 'gtfs/%Y/%m/%d/%Y-%m-%d')
+    regexp = f'{prefix}.*{mot_file_name}'
+
+    return [obj['Key'] for obj in list_content(crud, prefix_filter=prefix, regex_argument=regexp)]
 
 
-def get_dates_without_output(valid_files, existing_output_files):
+def get_latest_file(crud: S3Crud,
+                    mot_file_name: MOTFileType,
+                    desired_date: Union[datetime.datetime, datetime.date],
+                    past_days_to_try: int = 100) -> DateKeyTuple:
     """
-Get list of dates without output files (currently just route_stats is considered)
-    :param valid_files: list of valid file keys
-    :rtype: list of str
-    :param existing_output_files: list of 2-tuples as returned by _get_existing_output_files
-    :type existing_output_files: list
-    :return: list of valid file keys for stat computation
-    :rtype: list
+    For MOT file type return its newest version prior to `desired_date`
+    :param crud: S3Crud object
+    :param mot_file_name: Original name of the file from MOT
+    :param desired_date: The newest date acceptable
+    :param past_days_to_try: How many days to search backwards for the file
+    :return: A tuple of the date the file found on and the file key
     """
-    return [parse_date(file)[1] for file in valid_files
-            if file not in [g[0] + '.zip'
-                            for g in existing_output_files
-                            if g[1] == 'route_stats']]
+    for i in range(past_days_to_try):
+        date = desired_date - datetime.timedelta(i)
+        bucket_files_in_date = get_bucket_file_keys_for_date(crud, mot_file_name, date)
+
+        if len(bucket_files_in_date) > 0:
+            bucket_files_in_date = sorted(bucket_files_in_date)
+            date_and_key = (FoundDate(date), S3FileKey(bucket_files_in_date[-1]))
+            return date_and_key
 
 
-def get_forward_fill_dict(valid_files, future_days=FUTURE_DAYS):
+def fetch_remote_file(remote_file_key: S3FileKey,
+                      local_file_full_path: str,
+                      crud: S3Crud,
+                      force: bool = False) -> bool:
     """
-get a dictionary mapping gtfs file names to a list of dates for forward fill by scanning for missing dates for files
-    :param valid_files: list of valid file keys
-    :rtype: list of str
-    :return dictionary mapping file names to dates
-    :rtype defaultdict of lists (defaults to empty list)
+    :param remote_file_key: gtfs remote file key (in S3)
+    :param local_file_full_path: gtfs local file full path
+    :param crud: S3Crud object
+    :param force: force download or not
+    :return: whether file was downloaded or not
     """
-    existing_dates = pd.DatetimeIndex([parse_date(file)[0] for file in valid_files])
-    expected_dates = pd.DatetimeIndex(start=existing_dates.min(), end=existing_dates.max()+datetime.timedelta(days=future_days), freq='D')
-    date_df = pd.Series(pd.NaT, expected_dates)
-    date_df[existing_dates] = existing_dates
-    date_df = date_df.fillna(method='ffill', limit=59)
-    # TODO: remove dates that aren't in the 59 day gap
-    # BUG: will act unexcpectedly if more than 59 day gap
-    ffill = defaultdict(list)
-    for file_date, stats_date in zip(date_df.dt.strftime('%Y-%m-%d'), date_df.index.strftime('%Y-%m-%d')):
-        ffill[file_date + '.zip'].append(stats_date)
 
-    return ffill
+    if not force and os.path.exists(local_file_full_path):
+        logging.info(f'Found local file "{local_file_full_path}"')
+        return False
+
+    logging.info(f'Starting file download with retries (key="{remote_file_key}", local path="{local_file_full_path}")')
+    s3_download(crud, remote_file_key, local_file_full_path)
+    logging.debug(f'Finished file download (key="{remote_file_key}", local path="{local_file_full_path}")')
+    return True
+    # TODO: log file size
 
 
-def get_valid_file_dates_dict(bucket_objects, existing_output_files, forward_fill):
-    logging.info(f'BUCKET_VALID_FILES_RE={BUCKET_VALID_FILES_RE}')
-    bucket_valid_files = get_bucket_valid_files(bucket_objects)
-    if forward_fill:
-        logging.info(f'applying forward fill')
-        ffill_dict = get_forward_fill_dict(bucket_valid_files)
-        logging.info(f'found {sum([len(l) for l in ffill_dict.values()]) - len(bucket_valid_files)} missing dates for '
-                    'forward fill.')
+def get_files_size(keys: List[S3FileKey],
+                   crud: S3Crud) -> int:
+    """
+    return the total size in bytes of files for the keys in the s3
 
-        files_for_stats = defaultdict(list)
-        for file in ffill_dict:
-            files_for_stats[file] = get_dates_without_output([date_str + '.zip' for date_str in ffill_dict[file]],
-                                                             existing_output_files)
+    :param keys: a list of S3 file keys
+    :param crud: S3Crud object
+    :return: the total keys size in bytes
+    """
+    return sum([crud.get_file_size(file_name) for file_name in keys])
 
-    else:
-        files_for_stats = defaultdict(list)
-        for date in get_dates_without_output(bucket_valid_files, existing_output_files):
-            files_for_stats[date + '.zip'].append(date)
 
-    logging.info(f'found {len([key for key in files_for_stats if len(files_for_stats[key])>0])} GTFS files valid for '
-                'stats calculations in bucket')
-    logging.debug(f'Files: { {key: value for key, value in files_for_stats.items() if len(files_for_stats[key])>0} }')
-    return files_for_stats
+def validate_download_size(all_remote_keys: List[S3FileKey], crud: S3Crud,
+                           download_dir: str =None) -> int:
+    """
+    validate that the gtfs file to download are not too big
+    :param download_dir: the path that the files would be saved in, default is gtfs_feed
+    :param all_remote_keys: list of keys to be downloaded
+    :param crud: crud
+    :return: the total size of the file, IOError if the files are to big
+    """
+    configuration = load_configuration()
+    if download_dir is None:
+        download_dir = configuration.files.full_paths.gtfs_feeds
+    free_space = get_free_space_bytes(download_dir)
+    files_size = get_files_size(all_remote_keys, crud)
+    max_download_size_mb = configuration.max_gtfs_size_in_mb
+    if files_size > (max_download_size_mb * (1024**2)):
+        raise IOError(f'The files to download are bigger than the max size allowed in the config file\n'
+                      f'files size - {round(files_size/(1024**2), 3)} MB , config limit - {max_download_size_mb} MB')
+    if files_size > free_space:
+        raise IOError(f'The files to download are bigger than the free disk space in the download dir\n'
+                      f'files size - {round(files_size/(1024**2), 3)} MB , free space - {free_space/1024**2} MB')
+    return files_size

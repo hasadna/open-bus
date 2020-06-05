@@ -1,31 +1,37 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""The setup script."""
 import io
-
 from setuptools import setup, find_packages
+from os.path import join, abspath, dirname
 
 # About dict to store version and package info
 about = dict()
-with io.open('gtfs_utils/__version__.py', 'r', encoding='utf-8') as f:
+with io.open(join(dirname(abspath(__file__)),
+                  'gtfs_utils',
+                  '__version__.py'), 'r', encoding='utf-8') as f:
     exec(f.read(), about)
 
 requirements = [
-    'partridge<1.0.0,>=0.11.0',
-    'gtfstk',
-    'numpy',
-    'pandas<0.24.0,>=0.23.4',
-    'boto3',
-    'tqdm',
+    'docutils==0.15.2',
+    'python-dateutil==2.8.0',
+    'botocore==1.13.39',
+    'boto3==1.10.13',
+    'partridge==0.11.0',
+    'gtfstk==9.6.3',
+    'numpy==1.17.3',
+    'pandas==0.24.2',
+    'tqdm==4.37.0',
+    'jsonschema==3.2.0',
+    'sphinx-jsonschema==1.11',
 ]
 
 setup_requirements = [
     'pytest-runner',
+    'sphinx==1.7.9',
+    'sphinx_rtd_theme==0.4.2',
 ]
 
 test_requirements = [
-    'pytest',
+    'pytest==4.0.2',
 ]
 
 setup(
@@ -33,13 +39,11 @@ setup(
     version=about['__version__'],
     description='gtfs_utils is python library for working with archives of'
                 'GTFS feeds using pandas DataFrames.',
-    #    long_description=readme + '\n\n' + history,
     author='Dan Bareket',
     author_email='dbareket@gmail.com',
-    #    url='https://github.com/remix/partridge',
     packages=find_packages(include=['.']),
     include_package_data=True,
-    install_requires=requirements,
+    install_requires=requirements + test_requirements + setup_requirements,
     license='MIT license',
     zip_safe=False,
     keywords='gtfs_utils',
@@ -47,12 +51,16 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
-    python_requires='>=3.5, <4',
+    python_requires='>=3.7, <4',
     test_suite='tests',
     tests_require=test_requirements,
     setup_requires=setup_requirements,
+    entry_points={
+        'console_scripts': [
+            'run_gtfs_stats=gtfs_utils.gtfs_stats:main',
+            'download_daily_ftp_files=gtfs_utils.download_daily_ftp_files:main',
+        ],
+    },
 )
