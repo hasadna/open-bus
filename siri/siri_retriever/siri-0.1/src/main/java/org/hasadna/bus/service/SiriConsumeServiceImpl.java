@@ -301,9 +301,6 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
             response.setXmlContent(xml);
             return response;
         }
-        catch (javax.xml.bind.UnmarshalException ex) {
-
-        }
         catch (JAXBException ex) {
             logger.error("error with following xml: " + xml, ex);
             ex.printStackTrace();
