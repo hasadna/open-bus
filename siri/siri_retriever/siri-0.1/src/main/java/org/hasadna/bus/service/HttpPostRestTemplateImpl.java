@@ -53,15 +53,16 @@ public class HttpPostRestTemplateImpl implements HttpPost {
         // http.client.requests.sum - sum of all response times in the last minute (in milliseconds)
         // it seems that currently we can't display histograms in DataDog.
         RestTemplate restTemplate = restTemplateBuilder.build();
-
         ResponseEntity<String> r = null;
         try {
+            logger.debug("url={}", url);
+            logger.debug("requestXml={}", entity.getBody().substring(0, 300));
             r = restTemplate.postForEntity(url, entity, String.class);
         } catch (ResourceAccessException ex) {
             logger.error("absorbing unhandled", ex);
             return null;
         } catch (HttpServerErrorException ex) {
-            // probably 503 Service Unavailable
+            // probably 503 Service Unavailable (but for the new 2.7 address we see 500 Internal Server Error)
             // backpressure - reduce frequency of requests until MOT Siri service is up again
             logger.error("handling exception, will retry the same request", ex);
             try {
