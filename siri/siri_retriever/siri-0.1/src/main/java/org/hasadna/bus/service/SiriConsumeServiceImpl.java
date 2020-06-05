@@ -46,7 +46,8 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
     protected final Logger responseLogger = LoggerFactory.getLogger("RESPONSE_LOGGER");
 
-    final String SIRI_SERVICES_URL = "http://siri.motrealtime.co.il:8081/Siri/SiriServices";
+    @Value("${siri.services.url}")
+    String SIRI_SERVICES_URL ;  //"http://siri.motrealtime.co.il:8081/Siri/SiriServices";
 
 
     @Override
