@@ -306,7 +306,7 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
         }
         catch (JAXBException ex) {
             logger.error("error with following xml: " + xml, ex);
-            e.printStackTrace();
+            ex.printStackTrace();
             return null;
         }
     }
