@@ -56,7 +56,7 @@ public class HttpPostRestTemplateImpl implements HttpPost {
         ResponseEntity<String> r = null;
         try {
             logger.debug("url={}", url);
-            logger.debug("requestXml={}", entity.getBody().substring(0, 300));
+            logger.debug("requestXml={}", entity.getBody().replaceAll("\n", ""));
             r = restTemplate.postForEntity(url, entity, String.class);
         } catch (ResourceAccessException ex) {
             logger.error("absorbing unhandled", ex);
