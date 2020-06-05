@@ -295,7 +295,16 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
                 localUnmarshaller.set(jaxbUnmarshaller);
             }
             StreamSource streamSource = new StreamSource(new StringReader(xml));
-            JAXBElement<GetStopMonitoringServiceResponse> je = jaxbUnmarshaller.unmarshal(streamSource, GetStopMonitoringServiceResponse.class);
+            JAXBElement<GetStopMonitoringServiceResponse> je = null;
+            try {
+                je = jaxbUnmarshaller.unmarshal(streamSource, GetStopMonitoringServiceResponse.class);
+            }
+            catch (Exception ex) {
+                logger.error("error in unmarshal", ex);
+                logger.error("xml={}", xml);
+                System.out.println(xml);
+                return null;
+            }
 
             GetStopMonitoringServiceResponse response = je.getValue();
             response.setXmlContent(xml);
