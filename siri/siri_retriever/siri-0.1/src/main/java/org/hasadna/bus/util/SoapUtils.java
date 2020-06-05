@@ -22,6 +22,8 @@ public class SoapUtils {
         else {
             // TODO log
         }
+        content = content.trim();   // trim again, because sometimes the <?xml version='1.0' encoding='UTF-8'?> is in a separate line
+
         //<?xml version="1.0" encoding="UTF-8"?>
         //<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/"><S:Body>
         final String prefix = "<S:Envelope xmlns:S=\"http://schemas.xmlsoap.org/soap/envelope/\"><S:Body>";
