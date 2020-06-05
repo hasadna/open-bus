@@ -171,38 +171,6 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
     }
 
 
-    final String sampleRequestXml = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"\n" +
-            "                   xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:acsb=\"http://www.ifopt.org.uk/acsb\"\n" +
-            "                   xmlns:datex2=\"http://datex2.eu/schema/1_0/1_0\" xmlns:ifopt=\"http://www.ifopt.org.uk/ifopt\"\n" +
-            "                   xmlns:siri=\"http://www.siri.org.uk/siri\" xmlns:siriWS=\"http://new.webservice.namespace\"\n" +
-            "                   xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
-            "                   xsi:schemaLocation=\"http://192.241.154.128/static/siri/siri.xsd\">\n" +
-            "    <SOAP-ENV:Header/>\n" +
-            "    <SOAP-ENV:Body>\n" +
-            "        <siriWS:GetStopMonitoringService>\n" +
-            "            <Request xsi:type=\"siri:ServiceRequestStructure\">\n" +
-            "                <siri:RequestTimestamp>__TIMESTAMP__</siri:RequestTimestamp>\n" +
-            "                <siri:RequestorRef xsi:type=\"siri:ParticipantRefStructure\">ML909091</siri:RequestorRef>\n" +
-            "                <siri:MessageIdentifier xsi:type=\"siri:MessageQualifierStructure\">0100700:1351669188:4684</siri:MessageIdentifier>\n" +
-            "                <siri:StopMonitoringRequest version=\"IL2.7\" xsi:type=\"siri:StopMonitoringRequestStructure\">\n" +
-            "                    <siri:RequestTimestamp>__TIMESTAMP__</siri:RequestTimestamp>\n" +
-            "                    <siri:MessageIdentifier xsi:type=\"siri:MessageQualifierStructure\"></siri:MessageIdentifier>\n" +
-            "                    <siri:PreviewInterval>PT60M</siri:PreviewInterval>\n" +
-            "                    <siri:MonitoringRef xsi:type=\"siri:MonitoringRefStructure\">42658</siri:MonitoringRef>\n" +
-            "                    <siri:MaximumStopVisits>1000</siri:MaximumStopVisits>\n" +
-            "                </siri:StopMonitoringRequest>\n" +
-            "                <siri:StopMonitoringRequest version=\"IL2.7\" xsi:type=\"siri:StopMonitoringRequestStructure\">\n" +
-            "                    <siri:RequestTimestamp>__TIMESTAMP__</siri:RequestTimestamp>\n" +
-            "                    <siri:MessageIdentifier xsi:type=\"siri:MessageQualifierStructure\"></siri:MessageIdentifier>\n" +
-            "                    <siri:PreviewInterval>PT60M</siri:PreviewInterval>\n" +
-            "                    <siri:MonitoringRef xsi:type=\"siri:MonitoringRefStructure\">42684</siri:MonitoringRef>\n" +
-            "                    <siri:MaximumStopVisits>1000</siri:MaximumStopVisits>\n" +
-            "                </siri:StopMonitoringRequest>\n" +
-            "            </Request>\n" +
-            "        </siriWS:GetStopMonitoringService>\n" +
-            "    </SOAP-ENV:Body>\n" +
-            "</SOAP-ENV:Envelope>\n" ;
-
     @Override
     public String retrieveOneStop(String stopCode, String previewInterval, int maxStopVisits) {
         final String oneStopRequestXml = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"\n" +
@@ -214,15 +182,15 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
                 "    <SOAP-ENV:Header/>\n" +
                 "    <SOAP-ENV:Body>\n" +
                 "        <siriWS:GetStopMonitoringService>\n" +
-                "            <Request xsi:type=\"siri:ServiceRequestStructure\">\n" +
+                "            <Request>\n" +
                 "                <siri:RequestTimestamp>__TIMESTAMP__</siri:RequestTimestamp>\n" +
-                "                <siri:RequestorRef xsi:type=\"siri:ParticipantRefStructure\">ML909091</siri:RequestorRef>\n" +
-                "                <siri:MessageIdentifier xsi:type=\"siri:MessageQualifierStructure\">0100700:1351669188:4684</siri:MessageIdentifier>\n" +
-                "                <siri:StopMonitoringRequest version=\"IL2.7\" xsi:type=\"siri:StopMonitoringRequestStructure\">\n" +
+                "                <siri:RequestorRef>ML909091</siri:RequestorRef>\n" +
+                "                <siri:MessageIdentifier>0100700:1351669188:4684</siri:MessageIdentifier>\n" +
+                "                <siri:StopMonitoringRequest version=\"IL2.7\">\n" +
                 "                    <siri:RequestTimestamp>__TIMESTAMP__</siri:RequestTimestamp>\n" +
-                "                    <siri:MessageIdentifier xsi:type=\"siri:MessageQualifierStructure\"></siri:MessageIdentifier>\n" +
+                "                    <siri:MessageIdentifier>0</siri:MessageIdentifier>\n" +
                 "                    <siri:PreviewInterval>__PREVIEW_INTERVAL__</siri:PreviewInterval>\n" +
-                "                    <siri:MonitoringRef xsi:type=\"siri:MonitoringRefStructure\">__STOP_CODE__</siri:MonitoringRef>\n" +
+                "                    <siri:MonitoringRef>__STOP_CODE__</siri:MonitoringRef>\n" +
                 "                    <siri:MaximumStopVisits>__MAX_STOP_VISITS__</siri:MaximumStopVisits>\n" +
                 "                </siri:StopMonitoringRequest>\n" +
                 "            </Request>\n" +
@@ -246,13 +214,13 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
 
     private String generateStopMonitoringRequestTemplate(int minutesFromNow) {
         String template =
-                "                <siri:StopMonitoringRequest version=\"IL2.7\" xsi:type=\"siri:StopMonitoringRequestStructure\">\n" +
+                "                <siri:StopMonitoringRequest version=\"IL2.7\">\n" +
                         "                    <siri:RequestTimestamp>__TIMESTAMP__</siri:RequestTimestamp>\n" +
-                        "                    <siri:MessageIdentifier xsi:type=\"siri:MessageQualifierStructure\"></siri:MessageIdentifier>\n" +
+                        "                    <siri:MessageIdentifier>0</siri:MessageIdentifier>\n" +
                         "                    <siri:PreviewInterval>__PREVIEW_INTERVAL__</siri:PreviewInterval>\n" +
                         "                    <siri:StartTime>__START__</siri:StartTime>\n" +
                         "                    <siri:LineRef>__LINE_REF__</siri:LineRef>\n" +
-                        "                    <siri:MonitoringRef xsi:type=\"siri:MonitoringRefStructure\">__STOP_CODE__</siri:MonitoringRef>\n" +
+                        "                    <siri:MonitoringRef>__STOP_CODE__</siri:MonitoringRef>\n" +
                         "                    <siri:MaximumStopVisits>__MAX_STOP_VISITS__</siri:MaximumStopVisits>\n" +
                         "                </siri:StopMonitoringRequest>\n" ;
 
@@ -270,10 +238,10 @@ public class SiriConsumeServiceImpl implements SiriConsumeService {
                 "    <SOAP-ENV:Header/>\n" +
                 "    <SOAP-ENV:Body>\n" +
                 "        <siriWS:GetStopMonitoringService>\n" +
-                "            <Request xsi:type=\"siri:ServiceRequestStructure\">\n" +
+                "            <Request>\n" +
                 "                <siri:RequestTimestamp>__TIMESTAMP__</siri:RequestTimestamp>\n" +
-                "                <siri:RequestorRef xsi:type=\"siri:ParticipantRefStructure\">ML909091</siri:RequestorRef>\n" +
-                "                <siri:MessageIdentifier xsi:type=\"siri:MessageQualifierStructure\">0100700:1351669188:4684</siri:MessageIdentifier>\n" +
+                "                <siri:RequestorRef>ML909091</siri:RequestorRef>\n" +
+                "                <siri:MessageIdentifier>0100700:1351669188:4684</siri:MessageIdentifier>\n" +
                 "__REQUESTS__" +
                 "            </Request>\n" +
                 "        </siriWS:GetStopMonitoringService>\n" +
