@@ -49,8 +49,22 @@ class SiriRecord(Serializable):
 class SiriRide(Serializable):
     _type = "siri_ride"
 
-    def __init__(self, siri_ride_id: int, line_name: str, license_plate:int, operator_ref:int, line_ref:int, departure_time: datetime, journey_ref:int,
-                 siri_records: List[SiriRecord], siri_ride_analytics: SiriRideAnalytics = None):
+    def __init__(self, siri_ride_id: int, line_name: str, license_plate: str, operator_ref: int, line_ref: int,
+                 departure_time: datetime, journey_ref: int, siri_records: List[SiriRecord],
+                 siri_ride_analytics: SiriRideAnalytics = None):
+        """
+
+        :param siri_ride_id:
+        :param line_name:
+        :param license_plate:
+        :param operator_ref:
+        :param line_ref:
+        :param departure_time:
+        :param journey_ref: The number part of trip ID. Valid value is like: 20925867. The value is reference to
+               TripId at TripIdToDate.txt file at the GTFS
+        :param siri_records:
+        :param siri_ride_analytics:
+        """
         self.siri_ride_id = siri_ride_id
         self.line_name = line_name
         self.license_plate = license_plate

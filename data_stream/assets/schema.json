@@ -49,6 +49,7 @@
 					"multipleOf": 1
 				},
 				"journeyRef": {
+					"description": "The number part of trip ID. Valid value is like: 20925867. The value is reference to TripId at TripIdToDate.txt file at the GTFS.",
 					"type": "number",
 					"multipleOf": 1
 				},
