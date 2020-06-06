@@ -5,3 +5,5 @@ gtfs/retriever/.idea/
 build
 config.log
 .idea/
+.coverage
+htmlcov

@@ -7,11 +7,11 @@ from jsonschema import validate, FormatChecker, ValidationError, SchemaError
 from data_stream.base_classes import SiriRide, SiriRecord, GeoPoint
 
 
-class MyTestCase(unittest.TestCase):
+class TestSiriRideSchema(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
 
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', "schema.json")) as f:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', "siri_ride_schema.json")) as f:
             cls.schema = json.load(f)
         # validate that strict_rfc3339 module could be imported. in case this module is not installed the validation of
         # date/time formats will return false positive

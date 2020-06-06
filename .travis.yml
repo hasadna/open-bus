@@ -16,6 +16,8 @@ matrix:
         - python setup.py test
         - cd ../retriever/
         - coverage run s3_wrapper_setup.py pytest
+        - cd -
+        - coverage run -a unittest discover data_stream
         - codecov
     - language: java
       dist: trusty
