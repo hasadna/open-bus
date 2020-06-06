@@ -20,7 +20,7 @@ class MyTestCase(unittest.TestCase):
         import strict_rfc3339
 
     def test_to_json_returns_valid_dict(self):
-        instance = SiriRide(siri_ride_id=6, line_name='25a', license_plate=1234567, operator_ref=4, line_ref=456,
+        instance = SiriRide(siri_ride_id=6, line_name='25a', license_plate='1234567', operator_ref=4, line_ref=456,
                             departure_time=datetime.now(), journey_ref=234,
                             siri_records=[SiriRecord(recorded_at=datetime.now().time(),
                                                      response_timestamp=datetime.now(),
