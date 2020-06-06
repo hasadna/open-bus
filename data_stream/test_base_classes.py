@@ -38,7 +38,7 @@ class MyTestCase(unittest.TestCase):
               "id": "12",
               "attributes": {
                 "lineName": "25B",
-                "licensePlate": 234,
+                "licensePlate": "234",
                 "departureTime": "23:00:00",
                 "operatorRef": 4,
                 "lineRef": 66554,

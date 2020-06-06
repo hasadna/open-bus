@@ -33,7 +33,7 @@
 					"type": "string"
 				},
 				"licensePlate": {
-					"type": "number",
+					"type": "string",
 					"multipleOf": 1
 				},
 				"departureTime": {
