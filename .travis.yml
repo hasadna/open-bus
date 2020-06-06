@@ -16,7 +16,7 @@ matrix:
         - python setup.py test
         - cd ../retriever/
         - coverage run s3_wrapper_setup.py pytest
-        - cd -
+        - cd ../..
         - pwd
         - coverage run -m unittest discover data_stream
         - codecov
