@@ -104,9 +104,9 @@ public class MakatFile {
         List<String> lines = readAllLinesOfMakatFileAndDoItFast();
         if (lines.isEmpty()) return new HashMap<>();
         Map<String, List<MakatData> > mapByRoute =
-            lines.stream().
-                map(line -> parseMakatLine(line)).
-                collect(Collectors.groupingBy(MakatData::getRouteId));
+                lines.stream().
+                        map(line -> parseMakatLine(line)).
+                        collect(Collectors.groupingBy(MakatData::getRouteId));
         return mapByRoute;
     }
 

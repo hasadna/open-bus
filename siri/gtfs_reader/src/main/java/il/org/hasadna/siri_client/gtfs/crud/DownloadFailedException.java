@@ -4,11 +4,11 @@ import java.io.IOException;
 
 public class DownloadFailedException extends IOException {
 
-  public DownloadFailedException(String message) {
-    super(message);
-  }
+    public DownloadFailedException(String message) {
+        super(message);
+    }
 
-  public DownloadFailedException(Throwable cause) {
-    super(cause);
-  }
+    public DownloadFailedException(Throwable cause) {
+        super(cause);
+    }
 }
