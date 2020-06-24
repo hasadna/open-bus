@@ -5,7 +5,7 @@ matrix:
       python:
         - "3.7"
       install:
-        - pip install boto3 codecov coverage strict-rfc3339 jsonschema
+        - pip install boto3 codecov coverage strict-rfc3339 jsonschema pymongo
       # commands to run tests
       before_script:
         - cd ./gtfs/gtfs_utils/gtfs_utils/
