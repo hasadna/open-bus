@@ -26,9 +26,9 @@ Category | Variable | Source name | Desc | Dependencies | Dtype | Comments
 0 | planned_start_date | date from OriginAimedDepartureTime - siri (departure_time in gtfs) | | **siri raw data** | date | SiriRide index  
 0 | planned_start_datetime | OriginAimedDepartureTime in siri (departure_time in gtfs) | | **siri raw data** | datetime | SiriRide index 
 1 | service_ids | DatedVehicleJourneyRef - siri (TripId in gtfs - 'TripIdToDate.txt') | list of unique service_id in SiriRide | **siri raw data** | list of int | mostly will be only one value in the list
-1 | pts_times | RecordedAtTime - siri | list of points timestamps (by time_recorded) | **siri raw data** | list of datetime 
-1 | pts_timestamps | | list of points timestamps (by timestamp) | **siri raw data** | list of datetime  
-1 | pts_latlons | Longitude & Latitude - siri | list of points latlon's (by time_recorded) | **siri raw data** | list of tuples of floats 
+1 | pts_timestamps | | list of points timestamps by create timestamp | **siri raw data** | list of datetime 
+1 | pts_times | RecordedAtTime - siri | list of points timestamps by time_recorded (ordered by create timestamp) | **siri raw data** | list of datetime  
+1 | pts_latlons | Longitude & Latitude - siri | list of points latlon's (ordered by create timestamp) | **siri raw data** | list of tuples of floats 
 1 | num_pts | | number of geo points in SiriRide | pts_times | int 
 1 | first_record | | timestamp of first record | pts_times | datetime  
 1 | last_record | | timestamp of last record | pts_times | datetime
