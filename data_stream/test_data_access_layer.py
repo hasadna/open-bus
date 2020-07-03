@@ -1,5 +1,7 @@
 import unittest
 from datetime import datetime
+
+import numpy as np
 from pymongo import MongoClient
 
 from data_stream.base_classes import SiriRide, SiriRecord, GeoPoint
@@ -22,6 +24,22 @@ class TestSiriRideMongoCrud(unittest.TestCase):
                                     current_location=GeoPoint(12.12, 23.23))])
         with self.assertRaises(AlreadyExist):
             self.crud.create(ride)
+
+    def test_create_and_read_with_numpy_int_16(self):
+        # Arrange
+        ride = SiriRide(line_name='25a', license_plate='1234567', operator_ref=np.int16(4), line_ref=np.int16(456),
+                        departure_time=datetime.now().time(), journey_ref=np.int16(234),
+                        siri_records=[SiriRecord(recorded_at=datetime.now().time(),
+                                                 response_timestamp=datetime.now(),
+                                                 expected_arrival_time=datetime.now().time(),
+                                                 current_location=GeoPoint(12.12, 23.23))])
+
+        # Act
+        doc_id = self.crud.create(ride)
+        actual = self.crud.read(doc_id).to_json()
+
+        # Assert
+        self.assertEqual(ride.to_json(), actual)
 
     def test_create_and_read(self):
         ride = SiriRide(line_name='25a', license_plate='1234567', operator_ref=4, line_ref=456,

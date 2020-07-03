@@ -114,9 +114,9 @@ class SiriRide(DBDocument):
         self.line_name = line_name
         self.license_plate = license_plate
         self.departure_time: time = departure_time.replace(microsecond=0)
-        self.operator_ref = operator_ref
-        self.line_ref = line_ref
-        self.journey_ref = journey_ref
+        self.operator_ref = int(operator_ref)
+        self.line_ref = int(line_ref)
+        self.journey_ref = int(journey_ref)
         self.siri_records: List[SiriRecord] = siri_records
         self.siri_ride_analytics: SiriRideAnalytics = siri_ride_analytics
 
