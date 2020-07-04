@@ -29,7 +29,7 @@ class InMemoryRidesCacheMechanism(RidesCacheMechanism):
         for siri_ride_fields, siri_records in self._records.items():
             line_name, license_plate, operator_ref, line_ref, departure_time, journey_ref = siri_ride_fields
             yield SiriRide(line_name, license_plate, operator_ref, line_ref, departure_time, journey_ref,
-                           list(siri_records))
+                           set(siri_records))
 
 
 class SiriLogParser:
@@ -59,11 +59,11 @@ class SiriLogParser:
                 continue
             record = SiriRide(line_name=i[4], license_plate=i[7], operator_ref=i[2], line_ref=i[3],
                               departure_time=datetime.fromisoformat(i[6]).time(),
-                              journey_ref=i[5], siri_records=[SiriRecord(
+                              journey_ref=i[5], siri_records={SiriRecord(
                                 recorded_at=datetime.fromisoformat(i[9]).time(),
                                 response_timestamp=datetime.fromisoformat(i[0]),
                                 expected_arrival_time=datetime.fromisoformat(i[8]).time(),
-                                current_location=GeoPoint(longitude=i[10], latitude=i[11]))])
+                                current_location=GeoPoint(longitude=i[10], latitude=i[11]))})
             self._add_record(record)
 
     def get_rides(self):

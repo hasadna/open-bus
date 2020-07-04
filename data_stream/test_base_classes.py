@@ -22,10 +22,10 @@ class TestSiriRideSchema(unittest.TestCase):
     def test_to_json_returns_valid_dict(self):
         instance = SiriRide(doc_id='6', line_name='25a', license_plate='1234567', operator_ref=4, line_ref=456,
                             departure_time=datetime.now().time(), journey_ref=234,
-                            siri_records=[SiriRecord(recorded_at=datetime.now().time(),
+                            siri_records={SiriRecord(recorded_at=datetime.now().time(),
                                                      response_timestamp=datetime.now(),
                                                      expected_arrival_time=datetime.now().time(),
-                                                     current_location=GeoPoint(12.12, 23.23))])
+                                                     current_location=GeoPoint(12.12, 23.23))})
 
         actual = instance.to_json()
 
