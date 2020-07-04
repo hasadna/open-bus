@@ -19,12 +19,12 @@ class Serializable(ABC):
 
     def __eq__(self, other):
         if type(other) is type(self):
-            return self.__dict__ == other.__dict__
+            return tuple(self.__dict__.items()) == tuple(other.__dict__.items())
         else:
             return False
 
     def __hash__(self):
-        return hash(self.__dict__)
+        return hash(tuple(self.__dict__.items()))
 
 
 class DBDocument(Serializable, ABC):
@@ -40,8 +40,8 @@ class GeoPoint(Serializable):
         assert longitude is not None
         assert latitude is not None
 
-        self.longitude = longitude
-        self.latitude = latitude
+        self.longitude = float(longitude)
+        self.latitude = float(latitude)
 
     def to_json(self) -> dict:
         return dict(type='Point', coordinates=[self.longitude, self.latitude])

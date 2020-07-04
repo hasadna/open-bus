@@ -43,7 +43,7 @@ class MongoCrud:
         raise FilterError in case document is not exist in database
         """
         if not self._get_collection(collection_name).update_one(doc_filter, {'$set': doc}).matched_count:
-            raise FilterError('using given filter found no document to update')
+            raise FilterError('using the given filter found no document to update')
 
     def read(self, collection_name: str, doc_filter) -> Dict:
         """
@@ -55,7 +55,7 @@ class MongoCrud:
         """
         res = self._get_collection(collection_name).find_one(doc_filter)
         if res is None:
-            raise FilterError('using given filter found no document to fetch')
+            raise FilterError('using the given filter found no document to fetch')
         return res
 
     def find(self, collection_name: str,  *args, **kwargs):
