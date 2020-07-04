@@ -77,7 +77,7 @@ class TestSiriLogParserIntegration(unittest.TestCase):
 
     def test_parse_gz_file(self):
         # Arrange
-        log_file_1 = os.path.join(__file__, '..', 'test_assets', 'siri_rt_data_v2.2020-06-24.1_min.log.gz')
+        log_file_1 = os.path.join(os.path.dirname(__file__), 'test_assets', 'siri_rt_data_v2.2020-06-24.1_min.log.gz')
 
         # Act
         self.parser.parse_gz_file(log_file_1)
@@ -89,8 +89,9 @@ class TestSiriLogParserIntegration(unittest.TestCase):
 
     def test_parse_multi_gz_files(self):
         # Arrange
-        log_file_1 = os.path.join(__file__, '..', 'test_assets', 'siri_rt_data_v2.2020-06-24.1_min.log.gz')
-        log_file_2 = os.path.join(__file__, '..', 'test_assets', 'siri_rt_data_v2.2020-06-25.0_min.log.gz')
+        log_file_1 = os.path.join(os.path.dirname(__file__), 'test_assets', 'siri_rt_data_v2.2020-06-24.1_min.log.gz')
+        log_file_2 = os.path.join(os.path.dirname(__file__), 'test_assets', 'siri_rt_data_v2.2020-06-25.0_min.log.gz')
+
 
         # Act
         self.parser.parse_multi_gz_files([log_file_1, log_file_2])
