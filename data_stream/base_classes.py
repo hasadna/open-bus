@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Set
 from datetime import datetime, time
 
 
@@ -19,12 +19,12 @@ class Serializable(ABC):
 
     def __eq__(self, other):
         if type(other) is type(self):
-            return self.__dict__ == other.__dict__
+            return tuple(self.__dict__.items()) == tuple(other.__dict__.items())
         else:
             return False
 
     def __hash__(self):
-        return hash(self.__dict__)
+        return hash(tuple(self.__dict__.items()))
 
 
 class DBDocument(Serializable, ABC):
@@ -40,8 +40,8 @@ class GeoPoint(Serializable):
         assert longitude is not None
         assert latitude is not None
 
-        self.longitude = longitude
-        self.latitude = latitude
+        self.longitude = float(longitude)
+        self.latitude = float(latitude)
 
     def to_json(self) -> dict:
         return dict(type='Point', coordinates=[self.longitude, self.latitude])
@@ -95,7 +95,7 @@ class SiriRide(DBDocument):
     doc_type = "siri_ride"
 
     def __init__(self, line_name: str, license_plate: str, operator_ref: int, line_ref: int,
-                 departure_time: time, journey_ref: int, siri_records: List[SiriRecord], doc_id: str = None,
+                 departure_time: time, journey_ref: int, siri_records: Set[SiriRecord], doc_id: str = None,
                  siri_ride_analytics: SiriRideAnalytics = None):
         """
 
@@ -117,7 +117,7 @@ class SiriRide(DBDocument):
         self.operator_ref = int(operator_ref)
         self.line_ref = int(line_ref)
         self.journey_ref = int(journey_ref)
-        self.siri_records: List[SiriRecord] = siri_records
+        self.siri_records: Set[SiriRecord] = siri_records
         self.siri_ride_analytics: SiriRideAnalytics = siri_ride_analytics
 
     def to_json(self) -> Dict[str, Any]:
@@ -136,4 +136,4 @@ class SiriRide(DBDocument):
                         line_ref=attributes.get('lineRef'),
                         departure_time=datetime.strptime(attributes.get('departureTime'), "%H:%M:%S").time(),
                         journey_ref=attributes.get('journeyRef'),
-                        siri_records=[SiriRecord.from_json(i) for i in attributes.get('siriRecords')])
+                        siri_records=set([SiriRecord.from_json(i) for i in attributes.get('siriRecords')]))

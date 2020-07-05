@@ -18,10 +18,10 @@ class TestSiriRideMongoCrud(unittest.TestCase):
 
     def test_create_with_doc_id_raise_AlreadyExist_exception(self):
         ride = SiriRide(doc_id="FOO", line_name='25a', license_plate='1234567', operator_ref=4, line_ref=456,
-                        departure_time=datetime.now().time(), journey_ref=234, siri_records=[
-                         SiriRecord(recorded_at=datetime.now().time(), response_timestamp=datetime.now(),
-                                    expected_arrival_time=datetime.now().time(),
-                                    current_location=GeoPoint(12.12, 23.23))])
+                        departure_time=datetime.now().time(), journey_ref=234, siri_records={SiriRecord(
+                            recorded_at=datetime.now().time(), response_timestamp=datetime.now(),
+                            expected_arrival_time=datetime.now().time(),
+                            current_location=GeoPoint(12.12, 23.23))})
         with self.assertRaises(AlreadyExist):
             self.crud.create(ride)
 
@@ -29,10 +29,10 @@ class TestSiriRideMongoCrud(unittest.TestCase):
         # Arrange
         ride = SiriRide(line_name='25a', license_plate='1234567', operator_ref=np.int16(4), line_ref=np.int16(456),
                         departure_time=datetime.now().time(), journey_ref=np.int16(234),
-                        siri_records=[SiriRecord(recorded_at=datetime.now().time(),
+                        siri_records={SiriRecord(recorded_at=datetime.now().time(),
                                                  response_timestamp=datetime.now(),
                                                  expected_arrival_time=datetime.now().time(),
-                                                 current_location=GeoPoint(12.12, 23.23))])
+                                                 current_location=GeoPoint(12.12, 23.23))})
 
         # Act
         doc_id = self.crud.create(ride)
@@ -43,10 +43,10 @@ class TestSiriRideMongoCrud(unittest.TestCase):
 
     def test_create_and_read(self):
         ride = SiriRide(line_name='25a', license_plate='1234567', operator_ref=4, line_ref=456,
-                        departure_time=datetime.now().time(), journey_ref=234, siri_records=[
-                         SiriRecord(recorded_at=datetime.now().time(), response_timestamp=datetime.now(),
-                                    expected_arrival_time=datetime.now().time(),
-                                    current_location=GeoPoint(12.12, 23.23))])
+                        departure_time=datetime.now().time(), journey_ref=234, siri_records={
+                SiriRecord(recorded_at=datetime.now().time(), response_timestamp=datetime.now(),
+                           expected_arrival_time=datetime.now().time(),
+                           current_location=GeoPoint(12.12, 23.23))})
 
         doc_id = self.crud.create(ride)
 
@@ -57,10 +57,10 @@ class TestSiriRideMongoCrud(unittest.TestCase):
     def test_create_update_and_read(self):
         # Arrange
         ride = SiriRide(line_name='25a', license_plate='1234567', operator_ref=4, line_ref=456,
-                        departure_time=datetime.now().time(), journey_ref=234, siri_records=[
-                         SiriRecord(recorded_at=datetime.now().time(), response_timestamp=datetime.now(),
-                                    expected_arrival_time=datetime.now().time(),
-                                    current_location=GeoPoint(12.12, 23.23))])
+                        departure_time=datetime.now().time(), journey_ref=234, siri_records={
+                SiriRecord(recorded_at=datetime.now().time(), response_timestamp=datetime.now(),
+                           expected_arrival_time=datetime.now().time(),
+                           current_location=GeoPoint(12.12, 23.23))})
 
         # Act
         doc_id = self.crud.create(ride)
@@ -74,16 +74,16 @@ class TestSiriRideMongoCrud(unittest.TestCase):
     def test_find(self):
         # Arrange
         ride_1 = SiriRide(line_name='25a', license_plate='1234567', operator_ref=4, line_ref=456,
-                          departure_time=datetime.now().time(), journey_ref=234, siri_records=[
-                            SiriRecord(recorded_at=datetime.now().time(), response_timestamp=datetime.now(),
-                                       expected_arrival_time=datetime.now().time(),
-                                       current_location=GeoPoint(12.12, 23.23))])
+                          departure_time=datetime.now().time(), journey_ref=234, siri_records={
+                SiriRecord(recorded_at=datetime.now().time(), response_timestamp=datetime.now(),
+                           expected_arrival_time=datetime.now().time(),
+                           current_location=GeoPoint(12.12, 23.23))})
 
         ride_2 = SiriRide(line_name='4', license_plate='1234567', operator_ref=4, line_ref=456,
-                          departure_time=datetime.now().time(), journey_ref=678, siri_records=[
-                            SiriRecord(recorded_at=datetime.now().time(), response_timestamp=datetime.now(),
-                                       expected_arrival_time=datetime.now().time(),
-                                       current_location=GeoPoint(42.12, 26.23))])
+                          departure_time=datetime.now().time(), journey_ref=678, siri_records={
+                SiriRecord(recorded_at=datetime.now().time(), response_timestamp=datetime.now(),
+                           expected_arrival_time=datetime.now().time(),
+                           current_location=GeoPoint(42.12, 26.23))})
         expected = [ride_1, ride_2]
         self.crud.create(ride_1)
         self.crud.create(ride_2)
