@@ -1,5 +1,5 @@
 # Data Stream initiative
-This initiative try the achieve a data flow that include: 
+This initiative try to achieve a data flow that include: 
 1. Parsing Siri log
 2. Add analytical information on each ride
 3. store the information on persistence document database as mongo-db
