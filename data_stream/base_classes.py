@@ -137,3 +137,18 @@ class SiriRide(DBDocument):
                         departure_time=datetime.strptime(attributes.get('departureTime'), "%H:%M:%S").time(),
                         journey_ref=attributes.get('journeyRef'),
                         siri_records=set([SiriRecord.from_json(i) for i in attributes.get('siriRecords')]))
+
+    def __eq__(self, other):
+        return (self.__class__ == other.__class__ and
+                self.doc_id == other.doc_id and
+                self.line_name == other.line_name and
+                self.license_plate == other.license_plate and
+                self.operator_ref == other.operator_ref and
+                self.line_ref == other.line_ref and
+                self.departure_time == other.departure_time and
+                self.journey_ref == other.journey_ref and
+                frozenset(self.siri_records) == frozenset(other.siri_records))
+
+    def __hash__(self):
+        return hash((self.doc_id, self.line_name, self.license_plate, self.operator_ref, self.line_ref,
+                    self.departure_time, self.journey_ref, frozenset(self.siri_records)))
