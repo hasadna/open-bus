@@ -19,16 +19,16 @@ More categories will be added in the next versions (e.g. when we will need to us
 
 Category | Variable | Source name | Desc | Dependencies | Dtype | Comments
 -- | -- | -- | -- | -- | -- | --
-0 | agency_id | OperatorRef - siri (agency_id in gtfs) | | **siri raw data** | int | SiriRide index    
-0 | route_id | LineRef - siri (route_id in gtfs) | | **siri raw data** | int | SiriRide index    
-0 | route_short_name | PublishedLineName - siri (route_short_name in gtfs) | | **siri raw data** | int | **to verify it's always int**   
-0 | bus_id | VehicleRef - siri | | **siri raw data** | int | SiriRide index    
-0 | planned_start_date | date from OriginAimedDepartureTime - siri (departure_time in gtfs) | | **siri raw data** | date | SiriRide index  
-0 | planned_start_datetime | OriginAimedDepartureTime in siri (departure_time in gtfs) | | **siri raw data** | datetime | SiriRide index 
-1 | service_ids | DatedVehicleJourneyRef - siri (TripId in gtfs - 'TripIdToDate.txt') | list of unique service_id in SiriRide | **siri raw data** | list of int | mostly will be only one value in the list
-1 | pts_timestamps | | list of points timestamps by create timestamp | **siri raw data** | list of datetime 
-1 | pts_times | RecordedAtTime - siri | list of points timestamps by time_recorded (ordered by create timestamp) | **siri raw data** | list of datetime  
-1 | pts_latlons | Longitude & Latitude - siri | list of points latlon's (ordered by create timestamp) | **siri raw data** | list of tuples of floats 
+0 | agency_id | OperatorRef - siri (agency_id in gtfs, operatorRef in SiriLogV2) | | **siri raw data** | int | SiriRide index    
+0 | route_id | LineRef - siri (route_id in gtfs, lineRef in SiriLogV2) | | **siri raw data** | int | SiriRide index    
+0 | route_short_name | PublishedLineName - siri (route_short_name in gtfs, lineName in SiriLogV2) | | **siri raw data** | int | **to verify it's always int**   
+0 | bus_id | VehicleRef - siri (licensePlate in SiriLogV2) | | **siri raw data** | int | SiriRide index    
+0 | planned_start_date | date from OriginAimedDepartureTime - siri (departure_time in gtfs, departureTime in SiriLogV2) | | **siri raw data** | date | SiriRide index  
+0 | planned_start_datetime | OriginAimedDepartureTime in siri (departure_time in gtfs, departureTime in SiriLogV2) | | **siri raw data** | datetime | SiriRide index 
+1 | service_ids | DatedVehicleJourneyRef - siri (TripId in gtfs - 'TripIdToDate.txt', journryRef in SiriLogV2) | list of unique service_id in SiriRide | **siri raw data** | list of int | mostly will be only one value in the list
+1 | pts_timestamps | responseTimestamp - SiriLogV2 | list of points timestamps by create timestamp | **siri raw data** | list of datetime 
+1 | pts_times | RecordedAtTime - siri (recordedAt in SiriLogV2) | list of points timestamps by time_recorded (ordered by create timestamp) | **siri raw data** | list of datetime 
+1 | pts_latlons | Longitude & Latitude - siri (lon & lat in SiriLogV2) | list of points latlon's (ordered by create timestamp) | **siri raw data** | list of tuples of floats 
 1 | num_pts | | number of geo points in SiriRide | pts_times | int 
 1 | first_record | | timestamp of first record | pts_times | datetime  
 1 | last_record | | timestamp of last record | pts_times | datetime
