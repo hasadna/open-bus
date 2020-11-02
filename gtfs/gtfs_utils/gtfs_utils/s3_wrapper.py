@@ -8,7 +8,8 @@ import logging
 import boto3
 import botocore.exceptions
 from types import MappingProxyType
-from typing import Callable, List, Tuple
+from typing import Callable, List, Tuple, NewType
+
 #FIXME: faild to load parent module when executing from other path
 #from .configuration import S3Configuration
 
@@ -23,6 +24,8 @@ _DEFAULTS = MappingProxyType({_AWS: {'bucket_name': 's3.obus.hasadna.org.il'},
                                                       'endpoint_url': _DIGITALOCEAN_ENDPOINT},
                               _DIGITALOCEAN_PUBLIC: {'bucket_name': 'obus-do2',
                                                      'endpoint_url': _DIGITALOCEAN_ENDPOINT}})
+
+S3FileKey = NewType("S3FileKey", str)
 
 
 class S3Crud:
@@ -44,8 +47,9 @@ class S3Crud:
     def upload_one_file(self, local_file: str, cloud_key: str) -> None:
         self.client.upload_file(Filename=local_file, Key=cloud_key, Bucket=self.bucket_name)
 
-    def download_one_file(self, local_file: str, cloud_key: str, callback: Callable = None) -> None:
-        logging.info('Downloading { cloud_key } into { local_file }'.format(cloud_key, local_file))
+    def download_one_file(self, local_file: str, cloud_key: S3FileKey, callback: Callable = None) -> None:
+        logging.info('Downloading {cloud_key} into {local_file}'.format(cloud_key=cloud_key,
+                                                                        local_file=local_file))
         os.makedirs(os.path.split(local_file)[0], exist_ok=True)
         self.client.download_file(Filename=local_file,
                                   Key=cloud_key,
@@ -55,7 +59,7 @@ class S3Crud:
     def list_bucket_files(self, prefix_filter: str) -> List:
         return self.client.list_objects_v2(Bucket=self.bucket_name, Prefix=prefix_filter).get('Contents', [])
 
-    def get_file_size(self, file_key: str):
+    def get_file_size(self, file_key: S3FileKey):
         return self.client.head_object(Bucket=self.bucket_name, Key=file_key)['ContentLength']
 
     def is_key_exist(self, key_name: str) -> bool:

@@ -1,24 +1,33 @@
-import logging
 import datetime
+import logging
 import os.path
-from typing import List, Tuple
+from typing import List, Tuple, Union, NewType
+
 from tqdm import tqdm
-from .s3_wrapper import list_content, S3Crud
+
+from .configuration import load_configuration
+from .environment import get_free_space_bytes
 from .retry import retry
-from .configuration import configuration
+from .s3_wrapper import list_content, S3Crud, S3FileKey
+
+MOTFileType = NewType("MOTFileType", str)
+FoundDate = NewType("FoundDate", datetime.date)
+# A shorthand for (found_date, remote_key)
+DateKeyTuple = Tuple[FoundDate, S3FileKey]
 
 
 @retry()
-def s3_download(crud: S3Crud, key, output_path):
+def s3_download(crud: S3Crud, key: S3FileKey, output_path):
     """
 Download file from s3 bucket. Retry using decorator.
-    :param bucket: s3 boto bucket object
-    :type bucket: boto3.resources.factory.s3.Bucket
+    :param crud: s3 boto bucket object
+    :type crud: s3_wrapper.S3Crud
     :param key: key of the file to download
     :type key: str
     :param output_path: output path to download the file to
     :type output_path: str
     """
+    configuration = load_configuration()
 
     def hook(t):
         def inner(bytes_amount):
@@ -40,14 +49,14 @@ Download file from s3 bucket. Retry using decorator.
 
 
 def get_bucket_file_keys_for_date(crud: S3Crud,
-                                  mot_file_name: str,
+                                  mot_file_name: MOTFileType,
                                   date: datetime.datetime) -> List[str]:
     """
     Get list of files from bucket that fit the given MOT file name and are from the given date
     :param crud: S3Crud object
     :param mot_file_name: Original name of the file from MOT
     :param date: Date to use as original file date when searching
-    :return: list of file keys
+    :return: List of file keys
     """
     prefix = datetime.datetime.strftime(date, 'gtfs/%Y/%m/%d/%Y-%m-%d')
     regexp = f'{prefix}.*{mot_file_name}'
@@ -56,20 +65,28 @@ def get_bucket_file_keys_for_date(crud: S3Crud,
 
 
 def get_latest_file(crud: S3Crud,
-                    mot_file_name: str,
-                    desired_date: datetime.datetime,
-                    past_days_to_try: int = 100) -> Tuple[datetime.date, str]:
+                    mot_file_name: MOTFileType,
+                    desired_date: Union[datetime.datetime, datetime.date],
+                    past_days_to_try: int = 100) -> DateKeyTuple:
+    """
+    For MOT file type return its newest version prior to `desired_date`
+    :param crud: S3Crud object
+    :param mot_file_name: Original name of the file from MOT
+    :param desired_date: The newest date acceptable
+    :param past_days_to_try: How many days to search backwards for the file
+    :return: A tuple of the date the file found on and the file key
+    """
     for i in range(past_days_to_try):
         date = desired_date - datetime.timedelta(i)
         bucket_files_in_date = get_bucket_file_keys_for_date(crud, mot_file_name, date)
 
         if len(bucket_files_in_date) > 0:
             bucket_files_in_date = sorted(bucket_files_in_date)
-            date_and_key = (date, bucket_files_in_date[-1])
+            date_and_key = (FoundDate(date), S3FileKey(bucket_files_in_date[-1]))
             return date_and_key
 
 
-def fetch_remote_file(remote_file_key: str,
+def fetch_remote_file(remote_file_key: S3FileKey,
                       local_file_full_path: str,
                       crud: S3Crud,
                       force: bool = False) -> bool:
@@ -90,3 +107,39 @@ def fetch_remote_file(remote_file_key: str,
     logging.debug(f'Finished file download (key="{remote_file_key}", local path="{local_file_full_path}")')
     return True
     # TODO: log file size
+
+
+def get_files_size(keys: List[S3FileKey],
+                   crud: S3Crud) -> int:
+    """
+    return the total size in bytes of files for the keys in the s3
+
+    :param keys: a list of S3 file keys
+    :param crud: S3Crud object
+    :return: the total keys size in bytes
+    """
+    return sum([crud.get_file_size(file_name) for file_name in keys])
+
+
+def validate_download_size(all_remote_keys: List[S3FileKey], crud: S3Crud,
+                           download_dir: str =None) -> int:
+    """
+    validate that the gtfs file to download are not too big
+    :param download_dir: the path that the files would be saved in, default is gtfs_feed
+    :param all_remote_keys: list of keys to be downloaded
+    :param crud: crud
+    :return: the total size of the file, IOError if the files are to big
+    """
+    configuration = load_configuration()
+    if download_dir is None:
+        download_dir = configuration.files.full_paths.gtfs_feeds
+    free_space = get_free_space_bytes(download_dir)
+    files_size = get_files_size(all_remote_keys, crud)
+    max_download_size_mb = configuration.max_gtfs_size_in_mb
+    if files_size > (max_download_size_mb * (1024**2)):
+        raise IOError(f'The files to download are bigger than the max size allowed in the config file\n'
+                      f'files size - {round(files_size/(1024**2), 3)} MB , config limit - {max_download_size_mb} MB')
+    if files_size > free_space:
+        raise IOError(f'The files to download are bigger than the free disk space in the download dir\n'
+                      f'files size - {round(files_size/(1024**2), 3)} MB , free space - {free_space/1024**2} MB')
+    return files_size

@@ -47,3 +47,4 @@ Output format as it is in Splunk
 
    trip_stats
    route_stats
+   configuration_file

@@ -11,12 +11,17 @@ with io.open(join(dirname(abspath(__file__)),
     exec(f.read(), about)
 
 requirements = [
-    'partridge<1.0.0,>=0.11.0',
+    'docutils==0.15.2',
+    'python-dateutil==2.8.0',
+    'botocore==1.13.39',
+    'boto3==1.10.13',
+    'partridge==0.11.0',
     'gtfstk==9.6.3',
-    'numpy',
-    'pandas<0.25,>=0.24',
-    'boto3',
-    'tqdm',
+    'numpy==1.17.3',
+    'pandas==0.24.2',
+    'tqdm==4.37.0',
+    'jsonschema==3.2.0',
+    'sphinx-jsonschema==1.11',
 ]
 
 setup_requirements = [
@@ -26,7 +31,7 @@ setup_requirements = [
 ]
 
 test_requirements = [
-    'pytest',
+    'pytest==4.0.2',
 ]
 
 setup(
@@ -38,7 +43,7 @@ setup(
     author_email='dbareket@gmail.com',
     packages=find_packages(include=['.']),
     include_package_data=True,
-    install_requires=requirements,
+    install_requires=requirements + test_requirements + setup_requirements,
     license='MIT license',
     zip_safe=False,
     keywords='gtfs_utils',

@@ -209,26 +209,23 @@ class TestFoo(unittest.TestCase):
         file_path = join(dirname(__file__), 'resources', 'test_folder_hierarchy')
         key_prefix = 'dfgdfgdfg'
         actual = _create_items_from_local_folder(True, file_path, key_prefix)
-        print(actual)
-        expected = [(file_path+'/bar.txt', key_prefix + '/bar.txt'),
-                    (file_path+'/foo.txt', key_prefix + '/foo.txt')]
+        expected = [(join(file_path, 'bar.txt'), key_prefix + '/bar.txt'),
+                    (join(file_path, 'foo.txt'), key_prefix + '/foo.txt')]
         self.assertEqual(expected, actual)
 
     def test_create_items_from_local_folder_is_folder_True_with_filtert1(self):
         file_path = join(dirname(__file__), 'resources', 'test_folder_hierarchy')
         key_prefix = 'dfgdfgdfg'
         actual = _create_items_from_local_folder(True, file_path, key_prefix, "*.txt")
-        print(actual)
-        expected = [(file_path+'/bar.txt', key_prefix + '/bar.txt'),
-                    (file_path+'/foo.txt', key_prefix + '/foo.txt')]
+        expected = [(join(file_path, 'bar.txt'), key_prefix + '/bar.txt'),
+                    (join(file_path, 'foo.txt'), key_prefix + '/foo.txt')]
         self.assertEqual(expected, actual)
 
     def test_create_items_from_local_folder_is_folder_True_with_filtert2(self):
         file_path = join(dirname(__file__), 'resources', 'test_folder_hierarchy')
         key_prefix = 'dfgdfgdfg'
         actual = _create_items_from_local_folder(True, file_path, key_prefix, "bar*")
-        print(actual)
-        expected = [(file_path+'/bar.txt', key_prefix + '/bar.txt')]
+        expected = [(join(file_path, 'bar.txt'), key_prefix + '/bar.txt')]
         self.assertEqual(expected, actual)
 
     def test_make_crud_args_use_default_values(self):
