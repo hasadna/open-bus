@@ -92,7 +92,12 @@
         <search>
           <query>(index=siri $planned_start_time$) agency_id=$agency_id$ $route_id$
 | eval timestamp = if(timestamp=="none", xD7timestamp, timestamp)
-| table timestamp time_recorded agency_id route_short_name route_id bus_id service_id planned_start_time predicted_end_time lat lon | rename service_id as trip_id_to_date</query>
+| table timestamp, agency_id,
+                  route_id, route_short_name, service_id,
+                  planned_start_date, planned_start_time, bus_id, predicted_end_date, predicted_end_time,
+                  date_recorded, time_recorded, lat, lon,
+                  data_frame_ref, stop_point_ref, vehicle_at_stop,
+                  log_version, date | rename service_id as trip_id_to_date</query>
           <earliest>$time_setter.earliest$</earliest>
           <latest>$time_setter.latest$</latest>
         </search>
@@ -127,6 +132,7 @@
         </search>
         <option name="count">5</option>
         <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
         <option name="rowNumbers">false</option>
         <option name="wrap">false</option>
       </table>
