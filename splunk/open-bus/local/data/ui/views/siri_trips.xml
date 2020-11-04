@@ -102,11 +102,10 @@
           <latest>$time_setter.latest$</latest>
           <sampleRatio>1</sampleRatio>
         </search>
-        <option name="count">10</option>
+        <option name="count">50</option>
         <option name="dataOverlayMode">none</option>
         <option name="drilldown">none</option>
         <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
         <option name="rowNumbers">false</option>
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
