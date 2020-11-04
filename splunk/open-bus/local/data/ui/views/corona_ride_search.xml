@@ -1,0 +1,355 @@
+<form theme="dark" script="custom_layout_width_si.js">
+  <label>Corona Ride Search</label>
+  <search id="trip_event_base">
+    <query>
+      (index=route_stats OR (index=siri lat!=0 $planned_start_time$)) agency_id=$agency_id$ $route_id$ earliest=$earliest$ latest=$latest$ date=$date$  
+      | fields time_recorded planned_start_time lat lon start_stop_lat start_stop_lon _time sourcetype 
+    </query>
+    <earliest>0</earliest>
+    <latest></latest>
+  </search>
+  <search id="route_stats_for_date">
+    <query>
+      index="route_stats" date=$date$ | fields agency_id agency_name route_short_name date all_stop_desc_city all_stop_name all_stop_code route_id route_mkt route_direction
+    </query>
+    <earliest>$earliest$</earliest>
+    <latest>$latest$</latest>
+  </search>
+  <search base="trip_event_base" id="times">
+    <query>eventstats first(start_stop_lat) as start_stop_lat first(start_stop_lon) as start_stop_lon | stats count by time_recorded planned_start_time lat lon start_stop_lat start_stop_lon  | eval start_latlon = start_stop_lat.",".start_stop_lon | eval latlon = lat.",".lon | haversine originField=start_latlon latlon | table planned_start_time time_recorded distance | streamstats min(distance) as min_dist | head 20 | sort min_dist time_recorded | where distance&gt;0.2 and distance&gt;=min_dist | head 1 | table planned_start_time time_recorded | convert dur2sec(planned_start_time) AS sts dur2sec(time_recorded) AS trs | eval td=trs-sts | eval late=tostring(td, "duration") | eval late=case(td&gt;0, "Late by ".late, td&lt;0, "Early by ".late, td==0, "Right on time!") | table planned_start_time time_recorded late td</query>
+  </search>
+  <search base="trip_event_base" id="trip_base">
+    <query>sort sourcetype _time | eval latitude = coalesce(lat, start_stop_lat), longitude = coalesce(lon, start_stop_lon), tooltip=if(isnull(time_recorded), "Start Stop", time_recorded) | eval planned_start_time=coalesce(planned_start_time, start_time) | eval icon=case(sourcetype=="siri_csv", "bus", sourcetype=="route_stats", "home") | dedup tooltip planned_start_time | eval markerColor = if(sourcetype=="siri_csv", "blue", "red") | eval clusterGroup = sourcetype | streamstats first(latitude) as prev_lat first(longitude) as prev_lon window=1 current=false by planned_start_time | eval prev_latlon = prev_lat.",".prev_lon  | eval latlon = latitude.",".longitude | eval prev_latlon = coalesce(prev_latlon, latlon) | haversine originField=prev_latlon latlon | convert dur2sec(time_recorded) as time_recorded_secs | delta time_recorded_secs as delta_time | eval speed = distance/(delta_time/3600)
+    </query>
+  </search>
+  <fieldset submitButton="false" autoRun="true">
+    <input type="time" token="time_setter">
+      <label></label>
+      <default>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="date" searchWhenChanged="true">
+      <label>date</label>
+      <fieldForLabel>date_wday</fieldForLabel>
+      <fieldForValue>date</fieldForValue>
+      <search>
+        <query>| tstats count where index=siri by date | eval earliest = strptime(date, "%Y-%m-%d") | eval date_wday = date.", ".strftime(earliest, "%a") | sort - date</query>
+        <earliest>$time_setter.earliest$</earliest>
+        <latest>$time_setter.latest$</latest>
+      </search>
+      <change>
+        <condition>
+          <eval token="latest">strptime($value$, "%Y-%m-%d")+86400+60*60*3</eval>
+          <eval token="earliest">strptime($value$, "%Y-%m-%d")</eval>
+          <set token="route_id">*</set>
+        </condition>
+      </change>
+    </input>
+    <input type="dropdown" token="route_short_name" searchWhenChanged="true">
+      <label>Route Short Name</label>
+      <default>*</default>
+      <fieldForLabel>route_short_name</fieldForLabel>
+      <fieldForValue>route_short_name</fieldForValue>
+      <search base="route_stats_for_date" id="route_sn_ids">
+        <query>search agency_id=$agency_id$ $start_stop_city$ $end_stop_city$ | makemv delim=";" all_stop_desc_city | eval reg=if(like($start_stop_city$, "%*%"), ".*", $start_stop_city$) | eval find=if(like($start_stop_city$, "%*%"), 0, mvfind(all_stop_desc_city, reg)) | eval filt_city=mvindex(all_stop_desc_city, find, -1) | eval reg=if(like($end_stop_city$, "%*%"), ".*", $end_stop_city$) | eval find=if(like($end_stop_city$, "%*%"), 0, mvfind(filt_city, reg)) | where isnotnull(find) | stats count values(route_id) as route_id by route_short_name </query>
+      </search>
+      <change>
+        <condition>
+          <eval token="route_id">"(route_id=".mvjoin($row.route_id$, " OR route_id=").")"</eval>
+        </condition>
+      </change>
+    </input>
+    <input type="dropdown" token="start_stop_city" searchWhenChanged="true">
+      <label>Origin City</label>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <fieldForLabel>all_stop_desc_city</fieldForLabel>
+      <fieldForValue>all_stop_desc_city</fieldForValue>
+      <search base="route_stats_for_date">
+        <query>search agency_id=$agency_id$ route_short_name=$route_short_name$ | makemv delim=";" all_stop_desc_city | stats count by all_stop_desc_city</query>
+      </search>
+      <choice value="*">All</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="end_stop_city" searchWhenChanged="true">
+      <label>Destination City</label>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <fieldForLabel>filt_city</fieldForLabel>
+      <fieldForValue>filt_city</fieldForValue>
+      <search base="route_stats_for_date">
+        <query>search agency_id=$agency_id$ route_short_name=$route_short_name$ $start_stop_city$ | makemv delim=";" all_stop_desc_city | eval reg=if(like($start_stop_city$, "%*%"), ".*", $start_stop_city$) | eval find=if(like($start_stop_city$, "%*%"), 0, mvfind(all_stop_desc_city, reg)) | eval filt_city=mvindex(all_stop_desc_city, find, -1)  | stats count by filt_city</query>
+      </search>
+      <choice value="*">All</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="agency_id" searchWhenChanged="true">
+      <label>Agency</label>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <fieldForLabel>desc</fieldForLabel>
+      <fieldForValue>agency_id</fieldForValue>
+      <search base="route_stats_for_date">
+        <query>search route_short_name=$route_short_name$ $start_stop_city$ $end_stop_city$ | stats sum(num_trips) as count by agency_name agency_id | eval desc = agency_name." (".agency_id.")" | sort -count</query>
+      </search>
+      <choice value="*">All</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="orig_stop" searchWhenChanged="true">
+      <label>Origin Stop</label>
+      <default>*</default>
+      <fieldForLabel>stop_name</fieldForLabel>
+      <fieldForValue>stop_name</fieldForValue>
+      <search base="route_stats_for_date" id="stop_names">
+        <query>search agency_id=$agency_id$ $start_stop_city$ $end_stop_city$ $route_id$ | makemv delim=";" all_stop_code | makemv delim=";" all_stop_name | makemv delim=";" all_stop_desc_city | eval all=mvzip(all_stop_code, all_stop_name, "~") | eval all=mvzip(all, all_stop_desc_city, "~") | mvexpand all | eval stop_city=mvindex(split(all, "~"), 2) | where stop_city=$start_stop_city$ | eval stop_code=mvindex(split(all, "~"), 0) | eval stop_name=mvindex(split(all, "~"), 1) | dedup stop_name | table stop_name, stop_code, stop_city </query>
+      </search>
+    </input>
+    <input type="dropdown" token="dest_stop" searchWhenChanged="true">
+      <label>Destination Stop</label>
+      <default>*</default>
+      <fieldForLabel>stop_name</fieldForLabel>
+      <fieldForValue>stop_name</fieldForValue>
+      <search base="route_stats_for_date">
+        <query>search agency_id=$agency_id$ $start_stop_city$ $end_stop_city$ $route_id$ | makemv delim=";" all_stop_code | makemv delim=";" all_stop_name | makemv delim=";" all_stop_desc_city | eval all=mvzip(all_stop_code, all_stop_name, "~") | eval all=mvzip(all, all_stop_desc_city, "~") | mvexpand all | eval stop_city=mvindex(split(all, "~"), 2) | where stop_city=$end_stop_city$ | eval stop_code=mvindex(split(all, "~"), 0) | eval stop_name=mvindex(split(all, "~"), 1) | dedup stop_name | table stop_name, stop_code, stop_city </query>
+      </search>
+    </input>
+    <input type="dropdown" token="planned_start_time">
+      <label>Planned start time</label>
+      <fieldForLabel>desc</fieldForLabel>
+      <fieldForValue>planned_start_time</fieldForValue>
+      <search>
+        <query>| tstats dc(time_recorded) as points count where index=siri lat!=0 date=$date$ agency_id=$agency_id$ $route_id$ by planned_start_time index 
+| append [search index=route_stats date=$date$ agency_id=$agency_id$ $route_id$ | makemv delim=";" all_start_time | stats count by index all_start_time | rename all_start_time as planned_start_time | eval index="gtfs"] 
+| stats first(points) as points dc(index) as index_dc first(index) as index by planned_start_time | eval desc = if(index_dc==2, planned_start_time." - ".points, planned_start_time." (".index.") - ".points)</query>
+        <earliest>$time_setter.earliest$</earliest>
+        <latest>$time_setter.latest$</latest>
+      </search>
+      <choice value="*">All</choice>
+      <prefix>(</prefix>
+      <suffix>)</suffix>
+      <valuePrefix>planned_start_time="</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+      <delimiter> OR </delimiter>
+    </input>
+    <input type="checkbox" token="show_route_info">
+      <label></label>
+      <choice value="Show route info?">Show route info?</choice>
+      <delimiter> </delimiter>
+    </input>
+  </fieldset>
+  <row>
+    <panel depends="$hidden$">
+      <table>
+        <search>
+          <query>search index=route_stats date=$date$ route_short_name=$route_short_name$ agency_id=$agency_id$ $start_stop_city$ $end_stop_city$ $route_id$ all_stop_name="*$orig_stop$*$dest_stop$*" | stats count by route_mkt route_direction | stats count values(route_mkt) as route_mkt</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+          <done>
+            <condition match="1==1">
+              <set token="unique_routes">$result.count$</set>
+              <set token="route_mkt">$result.route_mkt$</set>
+              </condition>
+          </done>
+          <progress>
+            <condition match=" $unique_routes$ == 1">
+              <set token="showPanel">true</set>
+              <set token="message">You're good to go.</set>
+            </condition>
+            <condition match=" $unique_routes$ != 1">
+              <set token="message">Please refine filters.</set>
+              <unset token="showPanel"></unset>
+            </condition>
+          </progress>
+        </search>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <p>Found $unique_routes$ unique routes. $message$</p>
+        <p>$route_id$</p>
+        <p>date=$date$ route_short_name=$route_short_name$ route_mkt=$route_mkt$ agency_id=$agency_id$ orig_city=$start_stop_city$ dest_city=$end_stop_city$ orig_stop="$orig_stop$" dest_stop="$dest_stop$"</p>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Trip info</title>
+      <table>
+        <search base="trip_base">
+          <query>stats count as distinct_points sum(distance) as total_distance min(time_recorded_secs) as min_time max(time_recorded_secs) as max_time max(speed) as max_speed | eval total_time = max_time-min_time, avg_speed = round(total_distance / (total_time/3600), 2)." km/h" | eval duration=tostring(total_time, "duration")." hrs", total_distance = round(total_distance, 2)." km", max_speed = round(max_speed, 2)." km/h"| fields - min_time max_time total_time | append [search index=route_stats $route_id$ earliest=$earliest$ latest=$latest$ date=$date$ 
+| eval duration=tostring(round(mean_trip_duration*3600), "duration")." hrs", total_distance = round(mean_trip_distance/1000, 2)." km", avg_speed=round(service_speed, 2)." km/h" | table duration, total_distance, avg_speed] | transpose | rename "row 1" as siri "row 2" as gtfs</query>
+        </search>
+        <option name="count">5</option>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+      <single>
+        <title>Departure info</title>
+        <search base="times">
+          <query>eval "late by (minutes)" = td/60 | rename time_recorded as "~actual_start_time" | table planned_start_time, "~actual_start_time" "late by (minutes)"</query>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x006d9c","0x53a051","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="rangeValues">[0,3,5,10]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">1</option>
+        <option name="trellis.size">medium</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <input type="text" token="hour_min" searchWhenChanged="true">
+        <label>hour_min</label>
+        <default>0</default>
+      </input>
+      <input type="text" token="hour_max" searchWhenChanged="true">
+        <label>hour_max</label>
+        <default>24</default>
+      </input>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>((index=siri lat!=0 $planned_start_time$)) agency_id=$agency_id$ $route_id$ earliest=$earliest$ latest=$latest$ date=$date$ date_hour&gt;=$hour_min$ date_hour&lt;=$hour_max$ 
+   | convert dur2sec(time_recorded) as time_recorded_secs 
+   | sort sourcetype time_recorded_secs 
+   | eval latitude = coalesce(lat, start_stop_lat), longitude = coalesce(lon, start_stop_lon)
+   | eval tooltip=time_recorded
+   | eval planned_start_time=coalesce(planned_start_time, start_time) 
+   | eval icon="bus"
+   |  eval trip_temp_id = planned_start_time.", bus ".coalesce(bus_id,"UNK").", route_id=".coalesce(route_id, "UNK")
+   | eval pathLayer = trip_temp_id
+   | eval layerDescription = trip_temp_id
+   | eval layerGroup = trip_temp_id
+   | dedup tooltip trip_temp_id 
+   | eval markerColor = "blue"
+   | streamstats first(latitude) as prev_lat first(longitude) as prev_lon window=1 current=false by planned_start_time 
+   | eval prev_latlon = prev_lat.",".prev_lon  
+   | eval latlon = latitude.",".longitude 
+   | eval prev_latlon = coalesce(prev_latlon, latlon) 
+   | haversine originField=prev_latlon latlon 
+   | delta time_recorded_secs as delta_time 
+   | eval speed = distance/(delta_time/3600) 
+   | eval playback = "true"
+   | eval description="&lt;table align=\"center\" border=\"1\"&gt;&lt;tr&gt;&lt;th&gt;time_recorded&lt;/th&gt;&lt;th&gt;bus_id&lt;/th&gt;&lt;th&gt;time delta (sec)&lt;/th&gt;&lt;th&gt;speed (kmh)&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=\"center\"&gt;".time_recorded."&lt;/td&gt;&lt;td align=\"center\"&gt;".bus_id."&lt;/td&gt;&lt;td align=\"center\"&gt;".delta_time."&lt;/td&gt;&lt;td&gt;".speed."&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;"  
+   |   eval cluterGroup="bus_location"
+      | append [search index=route_stats agency_id=$agency_id$ $route_id$ earliest=$earliest$ latest=$latest$ date=$date$ | eval all_stop_latlon="XX".all_stop_latlon."XX" | makemv delim=";" all_stop_latlon | makemv delim=";" all_stop_code | makemv delim=";" all_stop_name | eval all=mvzip(all_stop_latlon, all_stop_code, "|")  | eval all=mvzip(all, all_stop_name, " - ")| mvexpand all | rex field=all "(?&lt;all_stop_latlon&gt;.*)\|(?&lt;stop_code&gt;.*)" 
+      | eval icon=case(like(all_stop_latlon, "XX%"), "home", like(all_stop_latlon, "%XX"), "bed", 1==1, "stop-circle") 
+      | eval layerDescription=case(like(all_stop_latlon, "XX%"), "First stop", like(all_stop_latlon, "%XX"), "Last Stop", 1==1, "Stop") 
+      | rex field=all_stop_latlon "(?&lt;latitude&gt;[\d\.]*),(?&lt;longitude&gt;[\d\.]*)(XX)?" | eval description=stop_code
+      | eval markerColor=case(like(all_stop_latlon, "XX%"), "green", like(all_stop_latlon, "%XX"), "red", 1==1, "orange") 
+      | eval clusterGroup=layerDescription
+      |  eval trip_temp_id = "Stops path"
+      | eval pathWeight=1
+      | eval pathColor = "#e41a1c"
+      | eval pathLayer = "Stops path"
+      | eval playback = "false"
+      | table latitude, longitude, description, icon, clusterGroup, markerColor, trip_temp_id, layerDescription, pathWeight pathColor, pathLayer, playback]
+   | table latitude longitude tooltip icon markerColor clusterGroup _time description planned_start_time trip_temp_id layerDescription, pathWeight pathColor pathLayer layerGroup bus_id date agency_id playback</query>
+          <earliest>0</earliest>
+          <latest></latest>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
+        <option name="leaflet_maps_app.maps-plus.animate">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">700</option>
+        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
+        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
+        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
+        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
+        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
+        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
+        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoomLevel">15</option>
+        <option name="leaflet_maps_app.maps-plus.drilldown">1</option>
+        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
+        <option name="leaflet_maps_app.maps-plus.fullScreen">1</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapRadius">10</option>
+        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">31.0461</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">34.8516</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">30</option>
+        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
+        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
+        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
+        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
+        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
+        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
+        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">sqmeters</option>
+        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">meters</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">kilometers</option>
+        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
+        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.multiplePopups">1</option>
+        <option name="leaflet_maps_app.maps-plus.pathColorList">#377eb8,#4daf4a,#984ea3,#ff7f00,#ffff33,#a65628,#f781bf,#999999</option>
+        <option name="leaflet_maps_app.maps-plus.pathIdentifier">trip_temp_id</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">90</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
+        <option name="leaflet_maps_app.maps-plus.permanentTooltip">1</option>
+        <option name="leaflet_maps_app.maps-plus.playbackSpeed">100000</option>
+        <option name="leaflet_maps_app.maps-plus.playbackTickLength">2000</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#c2a5cf</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#9970ab</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
+        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
+        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPathLines">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlayback">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackDateControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackPlayControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackSliderControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
+        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
+        <option name="leaflet_maps_app.maps-plus.stickyTooltip">0</option>
+        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
+        <option name="refresh.display">progressbar</option>
+        <drilldown>
+          <link target="_blank">/app/open-bus/vehicle_investigator?form.bus_id=$row.bus_id$&amp;form.agency_id=$row.agency_id$&amp;form.date=$row.date$&amp;form.earliest=$form.earliest$</link>
+        </drilldown>
+      </viz>
+    </panel>
+  </row>
+  <row depends="$show_route_info$">
+    <panel>
+      <title>Route Info</title>
+      <table>
+        <title>Route Info and Statistics</title>
+        <search>
+          <query>index=route_stats $route_id$ earliest=$earliest$ latest=$latest$ date=$date$ 
+| eval mean_trip_duration=tostring(round(mean_trip_duration*3600), "duration")." hrs", mean_trip_distance = round(mean_trip_distance/1000, 2)." km", service_speed=round(service_speed, 2)." km/h"
+| table agency_name route_short_name start_zone end_zone num_zones num_zones_missing route_id route_mkt route_alternative is_loop route_direction mean_trip_duration mean_trip_distance service_speed num_trips start_time end_time num_stops start_stop_city start_stop_name end_stop_city end_stop_name all_start_time all_stop_code | append [ | stats count | fields - count | eval agency_name=1, route_short_name=2, start_zone=3, end_zone=4,  num_zones=5, num_zones_missing=6, route_id=6.5, route_mkt=7, route_alternative=8, is_loop=9, route_direction=10, mean_trip_duration=10.4, mean_trip_distance=10.6, service_speed=10.7, num_trips=11, start_time=12, end_time=13, num_stops=14, start_stop_city=14.5, start_stop_name=15, end_stop_name=16, end_stop_city=15.5, all_start_time=17, all_stop_code=18] | sort agency_name | transpose | sort "row 1" | fields - "row 1" | rename "row *" as route_* | rename route_2 as route_1 | rename route_3 as route_2 | rename route_4 as route_3 | rename route_5 as route_4 | rename route_6 as route_5 | rename route_7 as route_6</query>
+          <earliest>0</earliest>
+          <latest></latest>
+        </search>
+        <option name="count">30</option>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</form>
