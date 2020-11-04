@@ -1,7 +1,7 @@
 <form theme="dark">
   <label>Bad Rides</label>
   <search id="all_rides">
-    <query>index=route_stats OR (index=siri planned_start_time!=22* planned_start_time!=23* planned_start_time!=00* planned_start_time!=01* lat!=0.0) AND ($route_id$ agency_id=$agency_id$)
+    <query>index=route_stats OR (index=siri planned_start_time!=22* planned_start_time!=23* planned_start_time!=00* planned_start_time!=01* lat!=0.0) AND ($route_id$ agency_id=$agency_id$) NOT [| tstats count where index=siri by date date_hour | stats dc(date_hour) as hours by date | where hours&lt;=22 | fields + date]
       | eventstats first(start_stop_lat) as start_stop_lat first(start_stop_lon) as start_stop_lon by route_id date 
       | search index=siri 
       | eval distance = sqrt(pow((start_stop_lat-lat)*0.89, 2)+pow((start_stop_lon-lon)*1.08, 2))*100000
@@ -9,7 +9,7 @@
       | streamstats min(distance) as min_dist by route_id bus_id planned_start_time date
       | eventstats earliest(time_recorded) as earliest_time_recorded earliest(distance) as earliest_distance dc(time_recorded) as points by route_id bus_id planned_start_time date
       | eventstats mean(points) as mean_points by route_id
-      | sort 0 min_dist time_recorded
+      | sort 0 date time_recorded min_dist 
       | streamstats count by route_id bus_id planned_start_time date
       | where count&lt;=20 and distance&gt;200 and distance&gt;=min_dist 
       | stats first(time_recorded) as departure_time_estimated first(distance) as distance first(earliest_time_recorded) as earliest_time_recorded first(earliest_distance) as earliest_distance first(points) as points first(mean_points) as mean_points by route_id date planned_start_time bus_id route_short_name
@@ -39,7 +39,7 @@
             count
             by route_id route_short_name 
       | join route_id 
-           [search index=route_stats ($route_id$ agency_id=$agency_id$)  
+           [search index=route_stats ($route_id$ agency_id=$agency_id$) NOT [| tstats count where index=siri by date date_hour | stats dc(date_hour) as hours by date | where hours&lt;=22 | fields + date] 
         | makemv delim=";" all_start_time | mvexpand all_start_time | search all_start_time!=23* all_start_time!=22* all_start_time!=00* all_start_time!=01* 
         | stats count as gtfs_trips by route_id]
     </query>
@@ -116,11 +116,13 @@
       <chart>
         <title>Missing rides</title>
         <search base="rsn_stats">
-          <query>table route_short_name missing_rides missing_no_few</query>
+          <query>table route_short_name missing_rides few_points</query>
         </search>
         <option name="charting.chart">column</option>
-        <option name="charting.chart.showDataLabels">minmax</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.stackMode">stacked</option>
         <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
         <option name="refresh.display">progressbar</option>
       </chart>
     </panel>
