@@ -1,6 +1,5 @@
 <form theme="dark">
   <label>Stop Times</label>
-  <description>TODO: do something like: I wanna depart at X and arrive at Y at HH:MM. In 10 minute intervals, what are the odds I will get there (days out of the days in last Z days)</description>
   <search id="duration_search">
     <query>index=siri lat!=0 date_hour&gt;=$hour_min$ date_hour&lt;=$hour_max$ $route_short_name$ $route_id$  [| stats count | fields - count
 | eval orig_lat=$orig_lat$, orig_lon=$orig_lon$
@@ -13,7 +12,10 @@
 | eval search = "(lat&lt;".dest_lat_max." AND lat&gt;".dest_lat_min." AND lon&lt;".dest_lon_max." AND lon&gt;".dest_lon_min.")" | fields + search]
 | stats latest(time_recorded) as dest by date date_wday bus_id planned_start_time]
 | stats first(orig) as orig first(dest) as dest by date date_wday bus_id planned_start_time
+| sort date orig
 | convert dur2sec(orig) as orig_sec, dur2sec(dest) as dest_sec
+| delta orig_sec as delta
+
 | eval duration = dest_sec-orig_sec
 </query>
     <earliest>$time_setter.earliest$</earliest>
@@ -74,8 +76,9 @@
     <panel>
       <title>Origin $orig_code$</title>
       <viz type="leaflet_maps_app.maps-plus">
+        <title>Double click to choose</title>
         <search>
-          <query>index=route_stats $agency_id$ $route_short_name$ $route_id$ | stats count by all_stop_latlon all_stop_code | makemv delim=";" all_stop_latlon | makemv delim=";" all_stop_code | eval x = mvzip(all_stop_code, all_stop_latlon, "_") | stats count by x | mvexpand x | rex field=x "(?&lt;tooltip&gt;\d+)_(?&lt;latitude&gt;.*),(?&lt;longitude&gt;.*)" | stats count by tooltip, latitude, longitude | eval icon="stop-circle", markerColor="red" | eval lat=latitude, lon=longitude, stop_code=tooltip</query>
+          <query>index=route_stats $agency_id$ $route_short_name$ $route_id$ | stats count by all_stop_latlon all_stop_code all_stop_name | makemv delim=";" all_stop_latlon | makemv delim=";" all_stop_code | makemv delim=";" all_stop_name | eval x = mvzip(all_stop_code, all_stop_latlon, "_") | eval x = mvzip(all_stop_name, x, "~") | stats count by x | mvexpand x | rex field=x "(?&lt;stop_name&gt;.+)~(?&lt;stop_code&gt;\d+)_(?&lt;latitude&gt;.*),(?&lt;longitude&gt;.*)" | stats count by stop_name, stop_code, latitude, longitude | eval icon="stop-circle", markerColor="red" | eval lat=latitude, lon=longitude, tooltip=stop_name." - ".stop_code</query>
           <earliest>$time_setter.earliest$</earliest>
           <latest>$time_setter.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -154,14 +157,16 @@
           <set token="orig_lat">$row.lat$</set>
           <set token="orig_lon">$row.lon$</set>
           <set token="orig_code">$row.stop_code$</set>
+          <set token="orig_name">$row.stop_name$</set>
         </drilldown>
       </viz>
     </panel>
     <panel>
       <title>Destination $dest_code$</title>
       <viz type="leaflet_maps_app.maps-plus">
+        <title>Double click to choose</title>
         <search>
-          <query>index=route_stats $agency_id$ $route_short_name$ $route_id$ | stats count by all_stop_latlon all_stop_code | makemv delim=";" all_stop_latlon | makemv delim=";" all_stop_code | eval x = mvzip(all_stop_code, all_stop_latlon, "_") | stats count by x | mvexpand x | rex field=x "(?&lt;tooltip&gt;\d+)_(?&lt;latitude&gt;.*),(?&lt;longitude&gt;.*)" | stats count by tooltip, latitude, longitude | eval icon="stop-circle", markerColor="red" | eval lat=latitude, lon=longitude, stop_code=tooltip</query>
+          <query>index=route_stats $agency_id$ $route_short_name$ $route_id$ | stats count by all_stop_latlon all_stop_code all_stop_name | makemv delim=";" all_stop_latlon | makemv delim=";" all_stop_code | makemv delim=";" all_stop_name | eval x = mvzip(all_stop_code, all_stop_latlon, "_") | eval x = mvzip(all_stop_name, x, "~") | stats count by x | mvexpand x | rex field=x "(?&lt;stop_name&gt;.+)~(?&lt;stop_code&gt;\d+)_(?&lt;latitude&gt;.*),(?&lt;longitude&gt;.*)" | stats count by stop_name, stop_code, latitude, longitude | eval icon="stop-circle", markerColor="red" | eval lat=latitude, lon=longitude, tooltip=stop_name." - ".stop_code</query>
           <earliest>$time_setter.earliest$</earliest>
           <latest>$time_setter.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -208,6 +213,7 @@
         <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
         <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">sqmeters</option>
         <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">meters</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
         <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">kilometers</option>
         <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
         <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
@@ -216,6 +222,8 @@
         <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
         <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
         <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
+        <option name="leaflet_maps_app.maps-plus.playbackSpeed">100</option>
+        <option name="leaflet_maps_app.maps-plus.playbackTickLength">50</option>
         <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
         <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
         <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
@@ -226,6 +234,10 @@
         <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
         <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
+        <option name="leaflet_maps_app.maps-plus.showPlayback">0</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackDateControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackPlayControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackSliderControl">1</option>
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
         <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
         <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
@@ -239,13 +251,14 @@
           <set token="dest_lat">$row.lat$</set>
           <set token="dest_lon">$row.lon$</set>
           <set token="dest_code">$row.stop_code$</set>
+          <set token="dest_name">$row.stop_name$</set>
         </drilldown>
       </viz>
     </panel>
   </row>
   <row>
     <panel>
-      <title>Average duration by weekday and hour for $route_short_name$ $route_id$ from $orig_code$ ($orig_lat$,$orig_lon$) to $dest_code$ ($dest_lat$,$dest_lon$)</title>
+      <title>Average duration by weekday and hour for $route_short_name$ $route_id$ from "$orig_name$" ($orig_code$) ($orig_lat$,$orig_lon$) to "$dest_name$" ($dest_code$) ($dest_lat$,$dest_lon$) | $route_short_name$_$route_id$_from-$orig_code$_to-$dest_code$</title>
       <chart>
         <search base="duration_search">
           <query>| where duration &gt; 60*$duration_threshold$ and duration &lt; 60*$duration_max$
@@ -256,6 +269,26 @@
         <option name="charting.axisTitleX.text">Hour of Day</option>
         <option name="charting.axisTitleY.text">Minutes</option>
         <option name="charting.chart">line</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Median and perc90 of frequency (headway) by weekday and hour for $route_short_name$ $route_id$ from $orig_code$ ($orig_lat$,$orig_lon$) to $dest_code$ ($dest_lat$,$dest_lon$)</title>
+      <chart>
+        <search base="duration_search">
+          <query>|  where delta &gt; 60*0 and delta &lt; 60*180
+| eval delta = delta/60
+| eval date_hour=mvindex(split(orig, ":"), 0)
+| chart median(delta) perc90(delta) over date_hour by date_wday</query>
+        </search>
+        <option name="charting.axisTitleX.text">Hour of Day</option>
+        <option name="charting.axisTitleY.text">Minutes</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.overlayFields">"perc90(delta): friday","perc90(delta): monday","perc90(delta): saturday","perc90(delta): sunday","perc90(delta): thursday","perc90(delta): tuesday","perc90(delta): wednesday"</option>
         <option name="charting.drilldown">none</option>
         <option name="refresh.display">progressbar</option>
       </chart>
@@ -311,7 +344,7 @@
         <search base="duration_search">
           <query>| where duration &gt; 60*$duration_threshold$ and duration &lt; 60*$duration_max$
 | eval duration = tostring(dest_sec-orig_sec, "duration")
-| fields - count orig_sec dest_sec</query>
+| fields - count orig_sec dest_sec | sort date orig</query>
         </search>
         <option name="count">20</option>
         <option name="drilldown">row</option>

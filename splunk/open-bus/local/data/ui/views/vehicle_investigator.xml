@@ -79,11 +79,12 @@
       </input>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
-          <query>(index=gtfs_stats OR (index=siri lat!=0 bus_id=$bus_id$)) agency_id=$agency_id$ [tstats count where index=siri date=$date$ bus_id=$bus_id$ by route_id | fields route_id] earliest=$earliest$ latest=$latest$ date=$date$ date_hour&gt;=$hour_min$ date_hour&lt;=$hour_max$ 
+          <query>(index=route_stats OR (index=siri lat!=0 bus_id=$bus_id$)) agency_id=$agency_id$ [tstats count where index=siri date=$date$ bus_id=$bus_id$ by route_id | fields route_id] earliest=$earliest$ latest=$latest$ date=$date$ date_hour&gt;=$hour_min$ date_hour&lt;=$hour_max$ 
          | sort sourcetype _time 
          | eval latitude = coalesce(lat, start_stop_lat), longitude = coalesce(lon, start_stop_lon) 
          | eval planned_start_time=coalesce(planned_start_time, start_time) 
          | eval icon=case(sourcetype=="siri_csv", "bus", sourcetype=="route_stats", "home") 
+         | eval playback=case(sourcetype=="siri_csv", "true", sourcetype=="route_stats", "false") 
          |  eval trip_temp_id = if(sourcetype=="siri_csv", route_short_name." (".route_id.") - ".planned_start_time, "Start Stop ".route_short_name." (".route_id.")") 
          | eval tooltip=if(isnull(time_recorded), trip_temp_id, time_recorded)
          | dedup tooltip trip_temp_id 
@@ -97,7 +98,8 @@
          | delta time_recorded_secs as delta_time 
          | eval speed = distance/(delta_time/3600) 
          | eval description="&lt;table align=\"center\" border=\"1\"&gt;&lt;tr&gt;&lt;th&gt;time_recorded&lt;/th&gt;&lt;th&gt;planned_start_time&lt;/th&gt;&lt;th&gt;route_short_name&lt;/th&gt;&lt;th&gt;time delta (sec)&lt;/th&gt;&lt;th&gt;speed (kmh)&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=\"center\"&gt;".time_recorded."&lt;/td&gt;&lt;td align=\"center\"&gt;".planned_start_time."&lt;/td&gt;&lt;td align=\"center\"&gt;".route_short_name."&lt;/td&gt;&lt;td align=\"center\"&gt;".delta_time."&lt;/td&gt;&lt;td&gt;".speed."&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;"  
-         | table latitude longitude tooltip icon markerColor clusterGroup _time description planned_start_time trip_temp_id</query>
+         | eval antPath="true"
+         | table latitude longitude tooltip icon markerColor clusterGroup _time description planned_start_time trip_temp_id antPath playback</query>
           <earliest>0</earliest>
           <latest></latest>
         </search>
@@ -151,7 +153,9 @@
         <option name="leaflet_maps_app.maps-plus.pathIdentifier">trip_temp_id</option>
         <option name="leaflet_maps_app.maps-plus.pathSplitInterval">90</option>
         <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
-        <option name="leaflet_maps_app.maps-plus.permanentTooltip">1</option>
+        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
+        <option name="leaflet_maps_app.maps-plus.playbackSpeed">100000</option>
+        <option name="leaflet_maps_app.maps-plus.playbackTickLength">2000</option>
         <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
         <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
         <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
@@ -162,10 +166,14 @@
         <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
         <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.showPathLines">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlayback">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackDateControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackPlayControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackSliderControl">1</option>
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
         <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
         <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">0</option>
+        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
         <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
         <option name="refresh.display">progressbar</option>
       </viz>
