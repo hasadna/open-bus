@@ -34,7 +34,7 @@
       </search>
       <change>
         <condition>
-          <eval token="latest">strptime($value$, "%Y-%m-%d")+86400+60*60*2</eval>
+          <eval token="latest">strptime($value$, "%Y-%m-%d")+86400+60*60*3</eval>
           <eval token="earliest">strptime($value$, "%Y-%m-%d")</eval>
         </condition>
       </change>
@@ -83,7 +83,7 @@
       <fieldForLabel>description</fieldForLabel>
       <fieldForValue>route_id</fieldForValue>
       <search>
-        <query>| tstats count where index="route_stats" AND date=$date$ AND route_short_name=$route_short_name$ AND agency_id=$agency_id$ AND (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) by agency_name start_zone route_short_name route_long_name route_id num_trips | eval description = "קו ".route_short_name." (".route_id.") - ".route_long_name." - ".num_trips." נסיעות" | sort -num_trips</query>
+        <query>| tstats count where index="route_stats" AND date=$date$ AND route_short_name=$route_short_name$ AND agency_id=$agency_id$ AND (start_stop_city=$stop_city$ OR end_stop_city=$stop_city$) by agency_name route_short_name route_long_name route_id num_trips | eval description = "קו ".route_short_name." (".route_id.") - ".route_long_name." - ".num_trips." נסיעות" | sort -num_trips</query>
         <earliest>$time_setter.earliest$</earliest>
         <latest>$time_setter.latest$</latest>
       </search>
@@ -176,6 +176,7 @@
    | haversine originField=prev_latlon latlon 
    | delta time_recorded_secs as delta_time 
    | eval speed = distance/(delta_time/3600) 
+   | eval playback = "true"
    | eval description="&lt;table align=\"center\" border=\"1\"&gt;&lt;tr&gt;&lt;th&gt;time_recorded&lt;/th&gt;&lt;th&gt;bus_id&lt;/th&gt;&lt;th&gt;time delta (sec)&lt;/th&gt;&lt;th&gt;speed (kmh)&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=\"center\"&gt;".time_recorded."&lt;/td&gt;&lt;td align=\"center\"&gt;".bus_id."&lt;/td&gt;&lt;td align=\"center\"&gt;".delta_time."&lt;/td&gt;&lt;td&gt;".speed."&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;"  
    |   eval cluterGroup="bus_location"
       | append [search index=route_stats agency_id=$agency_id$ $route_id$ earliest=$earliest$ latest=$latest$ date=$date$ | eval all_stop_latlon="XX".all_stop_latlon."XX" | makemv delim=";" all_stop_latlon | makemv delim=";" all_stop_code | eval all=mvzip(all_stop_latlon, all_stop_code, "|") | mvexpand all | rex field=all "(?&lt;all_stop_latlon&gt;.*)\|(?&lt;stop_code&gt;.*)" 
@@ -188,12 +189,14 @@
       | eval pathWeight=1
       | eval pathColor = "#e41a1c"
       | eval pathLayer = "Stops path"
-      | table latitude, longitude, description, icon, clusterGroup, markerColor, trip_temp_id, layerDescription, pathWeight pathColor, pathLayer]
-   | table latitude longitude tooltip icon markerColor clusterGroup _time description planned_start_time trip_temp_id layerDescription, pathWeight pathColor antPath pathLayer layerGroup bus_id date agency_id</query>
+      | eval playback = "false"
+      | table latitude, longitude, description, icon, clusterGroup, markerColor, trip_temp_id, layerDescription, pathWeight pathColor, pathLayer, playback]
+   | table latitude longitude tooltip icon markerColor clusterGroup _time description planned_start_time trip_temp_id layerDescription, pathWeight pathColor pathLayer layerGroup bus_id date agency_id playback</query>
           <earliest>0</earliest>
           <latest></latest>
         </search>
         <option name="drilldown">all</option>
+        <option name="height">712</option>
         <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
         <option name="leaflet_maps_app.maps-plus.animate">1</option>
         <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
@@ -245,6 +248,8 @@
         <option name="leaflet_maps_app.maps-plus.pathSplitInterval">90</option>
         <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
         <option name="leaflet_maps_app.maps-plus.permanentTooltip">1</option>
+        <option name="leaflet_maps_app.maps-plus.playbackSpeed">100000</option>
+        <option name="leaflet_maps_app.maps-plus.playbackTickLength">2000</option>
         <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#c2a5cf</option>
         <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#9970ab</option>
         <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
@@ -255,6 +260,10 @@
         <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
         <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.showPathLines">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlayback">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackDateControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackPlayControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackSliderControl">1</option>
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
         <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
         <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
