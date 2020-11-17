@@ -91,8 +91,13 @@ def read_siri28_file(path):
     Read one siri 2.8 json file and parse to df
     """
     # read json
-    with gzip.GzipFile(path, 'r') as fin:
-        data = json.loads(fin.read().decode('utf-8'))
+    if path.name.endswith('.gz'):
+        with gzip.GzipFile(path, 'r') as fin:
+            data = json.loads(fin.read().decode('utf-8'))
+    else:
+        with open(path, 'r') as fin:
+            data = json.loads(fin.read())
+
 
     # flatten to df
     records = data['Siri']['ServiceDelivery']['StopMonitoringDelivery']
@@ -128,15 +133,15 @@ def read_siri28_file(path):
     return df
 
 
-def read_siri28_files(siri_input, max_files=None):
+def read_siri28_files(siri_input, max_files=None, suf='.json.gz'):
     """
     Read multiple siri 2.8 json files, and concat them to one df
     :param siri_input: path to directory with files, or list of files paths.
     """
     if isinstance(siri_input, str):
-        files = Path(siri_input).rglob('*.json.gz')  # recursive search
+        files = Path(siri_input).rglob('*' + suf)  # recursive search
         if not files:
-            raise ValueError("No .json.gz files in dir", siri_input)
+            raise ValueError("No {} files in dir".format(suf), siri_input)
     elif isinstance(siri_input, Iterable):
         files = siri_input
     else:
