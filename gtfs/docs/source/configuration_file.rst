@@ -15,9 +15,7 @@ Config Example
           "output": "output",
           "filtered_feeds": "filtered_feeds",
           "logs": "logs"
-        },
-        "output_file_name_regexp": "^(?P<date_str>[^_]+?)_(?P<type>\\w+)",
-        "output_file_type": "csv.gz"
+        }
       },
 
       "s3": {
@@ -27,8 +25,7 @@ Config Example
         "bucket_name": "obus-do2",
       },
 
-      "use_data_from_today": false,
-      "date_range": ["2019-03-07", "2019-03-07"],
+      "date_range": ["2019-03-07"],
     }
 
 Parameters description
