@@ -42,7 +42,7 @@ SIRI28_TYPES = {
     'ArrivalPlatformName': int,
 }
 
-SIRI28_CATEGORICALS = ['arrival_status', '_version', 'operator_ref']
+SIRI28_CATEGORICALS = ['arrival_status', '_version', 'operator_ref', 'status']
 
 # UNSIGNED = ['item_identifier', 'direction_ref', 'line_ref', 'item_identifier',
 #      'monitoring_ref',
@@ -166,8 +166,9 @@ def read_siri28_files(siri_input, max_files=None, suf='.json.gz'):
                 break
 
     df = pd.concat(dfs, sort=False, ignore_index=True)
-
-    df[SIRI28_CATEGORICALS] = df[SIRI28_CATEGORICALS].astype('category')
+    
+    cat_cols = [col for col in SIRI28_CATEGORICALS if col in df.columns]
+    df[cat_cols] = df[cat_cols].astype('category')
 
     return df
 
