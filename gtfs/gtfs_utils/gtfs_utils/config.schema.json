@@ -28,6 +28,12 @@
         "type": "boolean",
         "default": false
       },
+      "skip_dates_with_output": {
+        "$$description": ["When true uses the output file regex to search for dates that already ",
+                          "has output files and skip the download and analysis of those dates"],
+        "type": "boolean",
+        "default": true
+      },
       "override_source_data_date": {
         "description": "If set use the data from the same date for all analyzed dates",
         "type": "string",
@@ -101,7 +107,10 @@
           "type": "string"
         },
         "output_file_name_regexp": {
-          "description": "A regular expression used to find existing output files.",
+          "$$description": ["A regular expression used to find existing output files. " ,
+                            "This is used to search for dates that already have output files",
+                            "The RegEx must use the named groups ``type`` for the output type (route_stats/trip_stats)",
+                            "and ``date_str`` for the date of the output."],
           "type": "string"
         },
         "output_file_type": {
@@ -138,7 +147,7 @@
           "additionalProperties": false
         }
       },
-      "required": ["base_directory", "child_directories", "output_file_name_regexp", "output_file_type"],
+      "required": ["base_directory", "child_directories"],
       "additionalProperties": false
     },
     "s3": {
