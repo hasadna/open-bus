@@ -12,11 +12,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class GtfsCollectorConfiguration {
+
+  private static Logger logger = LoggerFactory.getLogger(GtfsCollectorConfiguration.class);
 
   private static final int DEFAULT_BACKUP_FILES_STORE_TIME_IN_DAYS = 5;
   private final LocalTime DEFAULT_WHEN_TO_DOWNLOAD = LocalTime.of(3, 30);
@@ -59,6 +63,7 @@ public class GtfsCollectorConfiguration {
     }
 
     GtfsCollectorConfiguration.gtfsRawFilesBackupDirectory = gtfsRawFilesBackupDirectory;
+    logger.info("set gtfsRawFilesBackupDirectory={}", gtfsRawFilesBackupDirectory);
   }
 
   @Value("${gtfs.gtfsDownloadDisabled:false}")
