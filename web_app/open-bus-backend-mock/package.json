@@ -19,7 +19,7 @@
   "homepage": "https://github.com/hasadna/open-bus#readme",
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.16.4",
+    "express": "^4.17.3",
     "morgan": "^1.9.1"
   }
 }
